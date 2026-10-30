@@ -18,7 +18,7 @@ Seg/Qua/Sex 07:30 GitHub Actions "Publicar no Instagram" → API oficial da Meta
 | `guia/log.md` | histórico do que foi publicado |
 | `guia/rotina-prompt.md` | prompt da rotina do Claude |
 | `semanas/AAAA-MM-DD/` | mídias, `agenda.json` (do Claude) e `publicado.json` (só do Action) |
-| `publicar/` | `validar.mjs`, `publicar.mjs` e testes (`node --test publicar/`) |
+| `publicar/` | `validar.mjs`, `publicar.mjs` e testes (`node --test publicar/publicar.test.mjs`) |
 
 ## Na mão
 

@@ -47,7 +47,7 @@ jobs:
         run: command -v ffprobe || (sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg)
 
       - name: Testes do publicador
-        run: node --test publicar/
+        run: node --test publicar/publicar.test.mjs
 
       - name: Publicar
         id: publicar
