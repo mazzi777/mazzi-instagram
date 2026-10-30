@@ -1,0 +1,19 @@
+name: Testes do publicador
+
+on:
+  push:
+    paths: ["publicar/**", ".github/workflows/**"]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  testes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node --test publicar/

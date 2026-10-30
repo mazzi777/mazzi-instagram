@@ -1,0 +1,16 @@
+# Instagram da Mazzi — histórico do que foi produzido
+
+Uma linha por peça, a mais nova no topo. A partir de 09/11/2026 o GitHub Actions acrescenta as linhas sozinho ao publicar (data · PUBLICADO · formato · tema · gancho · ids). A produção da semana lê este arquivo para não repetir tema nem gancho.
+
+- 30/10/2026 · PUBLICADO · stories (5 quadros, S1-01 a S1-05) · clínica · orçamento · "Quantos orçamentos você mandou esse mês que ficaram sem resposta?" · ids 18110910829912546, 18102655184171283, 18183111484446521, 18100656449533082, 18123204278292972 · via Windsor (antecipado; o plano previa 03/11; enquete trocada por "me responde aqui")
+- 30/10/2026 · PUBLICADO · reel (24 s, texto animado) · restaurante · tema 6 quanto sobrou de verdade · "Caixa cheio no dia 30. Quanto disso é lucro?" · id 18102758216455210 · via Windsor (antecipado; o plano previa 04/11)
+- 30/10/2026 · PUBLICADO · carrossel restaurante delivery · id 17892942666653663 · via Windsor (antecipado; o plano previa 06/11)
+- 30/10/2026 · PUBLICADO · carrossel clínica orçamento · id 18201021400380075 · via Windsor (antecipado; o plano previa 03/11)
+- 07/11/2026 · stories dia 3 · clínica + restaurante · convite (o que é a Mazzi, gratuito por enquanto, por convite) · "Pra quem chegou agora: o que é a Mazzi?" + figurinha de link do WhatsApp
+- 06/11/2026 · carrossel (8 slides) · restaurante · tema 3 delivery pelo teclado · "Pedido no telefone sem papel e caneta"
+- 05/11/2026 · stories dia 2 · restaurante · delivery pelo teclado · "Pedido de delivery sem papel e caneta." + caixa de pergunta "O que mais te dá dor de cabeça no delivery?"
+- 04/11/2026 · reel (~30 s, tela do demo) · restaurante · tema 6 quanto sobrou de verdade (vendas, compras, lucro bruto) · "Caixa cheio no dia 30. Quanto disso é lucro?"
+- 03/11/2026 · stories dia 1 · clínica · orçamento · "Quantos orçamentos você mandou esse mês que ficaram sem resposta?" + enquete "Você cobra quem não respondeu o orçamento?"
+- 03/11/2026 · carrossel (8 slides) · clínica · tema 3 orçamento pelo WhatsApp que vira agendamento e sinal · "Visualizou o orçamento e sumiu?"
+
+(Pacote gerado em 30/10/2026, semana 44 no rodízio, para a semana de 02 a 08/11. Visual: fundo grafite #111316, destaque coral #FF7A50, fonte Inter. Mídias públicas em github.com/mazzi777/mazzi-instagram.)
