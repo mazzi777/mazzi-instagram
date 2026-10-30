@@ -2,6 +2,7 @@
 
 Uma linha por peça, a mais nova no topo. A partir de 09/11/2026 o GitHub Actions acrescenta as linhas sozinho ao publicar (data · PUBLICADO · formato · tema · gancho · ids). A produção da semana lê este arquivo para não repetir tema nem gancho.
 
+- 30/10/2026 · PUBLICADO · stories (S1, 1 arquivo(s)) · teste da API · reaproveita S1-05 de 02/11 · "Postei o passo a passo no feed." · ids 18119053028006636 · via API da Meta
 - 30/10/2026 · PUBLICADO · stories (5 quadros, S1-01 a S1-05) · clínica · orçamento · "Quantos orçamentos você mandou esse mês que ficaram sem resposta?" · ids 18110910829912546, 18102655184171283, 18183111484446521, 18100656449533082, 18123204278292972 · via Windsor (antecipado; o plano previa 03/11; enquete trocada por "me responde aqui")
 - 30/10/2026 · PUBLICADO · reel (24 s, texto animado) · restaurante · tema 6 quanto sobrou de verdade · "Caixa cheio no dia 30. Quanto disso é lucro?" · id 18102758216455210 · via Windsor (antecipado; o plano previa 04/11)
 - 30/10/2026 · PUBLICADO · carrossel restaurante delivery · id 17892942666653663 · via Windsor (antecipado; o plano previa 06/11)
