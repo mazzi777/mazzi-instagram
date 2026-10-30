@@ -98,7 +98,9 @@ export function validarPeca(dir, semana, peca, { sondar = sondarVideo } = {}) {
       if (v.largura !== 1080 || v.altura !== 1920) erros.push(`${onde}: ${nome} é ${v.largura}x${v.altura}, esperado 1080x1920`);
       if (v.codec !== 'h264') erros.push(`${onde}: ${nome} em ${v.codec}, esperado h264`);
       if (!v.audio) erros.push(`${onde}: ${nome} sem faixa de áudio`);
-      if (!(v.duracao >= 20 && v.duracao <= 30.5)) erros.push(`${onde}: ${nome} com ${v.duracao}s (20 a 30)`);
+      // Padrão da semana: 20 a 30 s. Peça especial (ex.: lançamento) pode declarar "duracao_max" (até 90 s).
+      const maximo = peca.duracao_max ?? 30;
+      if (!(v.duracao >= 20 && v.duracao <= maximo + 0.5)) erros.push(`${onde}: ${nome} com ${v.duracao}s (20 a ${maximo})`);
     } else {
       if (!/\.jpe?g$/i.test(nome)) { erros.push(`${onde}: ${nome} precisa ser JPEG`); continue; }
       const t = tamanhoJpeg(readFileSync(caminho));
@@ -114,6 +116,9 @@ export function validarPeca(dir, semana, peca, { sondar = sondarVideo } = {}) {
   }
   if (peca.tipo === 'reel' && peca.capa_ms !== undefined && !(Number.isInteger(peca.capa_ms) && peca.capa_ms >= 0)) {
     erros.push(`${onde}: capa_ms precisa ser inteiro >= 0`);
+  }
+  if (peca.duracao_max !== undefined && !(peca.tipo === 'reel' && Number.isInteger(peca.duracao_max) && peca.duracao_max >= 30 && peca.duracao_max <= 90)) {
+    erros.push(`${onde}: duracao_max só vale para reel e precisa ser inteiro de 30 a 90`);
   }
   return erros;
 }

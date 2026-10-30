@@ -1,7 +1,29 @@
 {
   "semana": "2026-10-19",
-  "observacao": "Story de teste da publicação própria pela API da Meta (30/10/2026). Reaproveita o quadro S1-05 da semana 2026-11-02, já aprovado e publicado. Só sai pelo disparo manual (peca=2026-10-19/S1).",
+  "observacao": "Peças avulsas fora do rodízio, só pelo disparo manual (peca=2026-10-19/ID). S1: story de teste da API (30/10/2026). REEL: vídeo de lançamento da Mazzi (marketing/motion-graphics no projeto), 42 s com duracao_max aprovado pela Andressa em 30/10/2026; telas reais do modo demo com dados fictícios e selo EXEMPLO (exceção aprovada só para esta peça).",
   "pecas": [
-    { "id": "S1", "dia": "2026-10-19", "tipo": "stories", "arquivos": ["2026-10-19-S1-01.jpg"], "tema": "teste da API · reaproveita S1-05 de 02/11", "gancho": "Postei o passo a passo no feed." }
+    {
+      "id": "S1",
+      "dia": "2026-10-19",
+      "tipo": "stories",
+      "arquivos": [
+        "2026-10-19-S1-01.jpg"
+      ],
+      "tema": "teste da API · reaproveita S1-05 de 02/11",
+      "gancho": "Postei o passo a passo no feed."
+    },
+    {
+      "id": "REEL",
+      "dia": "2026-10-21",
+      "tipo": "reel",
+      "arquivos": [
+        "2026-10-19-REEL.mp4"
+      ],
+      "duracao_max": 45,
+      "capa_ms": 3300,
+      "tema": "lançamento · a Mazzi em 42 s",
+      "gancho": "Seu negócio. Organizado.",
+      "legenda": "Agenda no caderno, orçamento perdido no WhatsApp, caixa fechado no papel? Dá para ter tudo num lugar só.\n\nEsta é a Mazzi Systems: sistema de gestão para clínicas de estética e restaurantes pequenos. Cada negócio usa com o próprio logo e as próprias cores, no computador e no celular.\n\nNo vídeo, telas de verdade do sistema, com dados de exemplo:\n• agenda: confirmou, faltou, remarcou\n• lembrete no WhatsApp em 1 clique\n• orçamento aprovado que vira agendamento\n• quanto entrou, dia a dia\n• delivery pelo teclado, sem papel\n\nGratuito por enquanto.\nQuer ver no seu negócio? Chama no WhatsApp (link na bio).\n\n#gestaodeclinica #clinicadeestetica #restaurante"
+    }
   ]
 }

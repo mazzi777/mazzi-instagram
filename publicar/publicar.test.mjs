@@ -128,6 +128,14 @@ test('validador pega medida errada, dia errado, peça faltando e palavra proibid
   assert.match(erros, /4 hashtags/);
 });
 
+test('reel de 42 s só passa com duracao_max; duracao_max fora de 30–90 é erro', () => {
+  const longo = () => ({ ...VIDEO_OK(), duracao: 42 });
+  const reel = (mudarReel) => montar({ mudar: (agenda) => mudarReel(agenda.pecas.find((p) => p.id === 'REEL')) }).dir;
+  assert.match(validarSemana(reel(() => {}), { sondar: longo }).join('\n'), /42s \(20 a 30\)/);
+  assert.deepEqual(validarSemana(reel((p) => { p.duracao_max = 45; }), { sondar: longo }), []);
+  assert.match(validarSemana(reel((p) => { p.duracao_max = 120; }), { sondar: longo }).join('\n'), /duracao_max só vale para reel/);
+});
+
 test('legenda vazia e sobra de modelo são erro', () => {
   assert.match(validarLegenda('', 'x').join(), /vazia/);
   assert.match(validarLegenda('Reduziu {{número real}} faltas', 'x').join(), /modelo/);
