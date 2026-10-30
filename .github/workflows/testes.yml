@@ -1,9 +1,10 @@
 name: Testes do publicador
 
+# A cada push: testes do publicador e validação das semanas que ainda vão sair.
+# Se a rotina subir uma semana com erro, o GitHub avisa na hora (e-mail), não no dia de publicar.
 on:
   push:
-    paths: ["publicar/**", ".github/workflows/**"]
-  pull_request:
+    paths: ["publicar/**", "semanas/**", ".github/workflows/**"]
 
 permissions:
   contents: read
@@ -17,3 +18,7 @@ jobs:
         with:
           node-version: 22
       - run: node --test publicar/publicar.test.mjs
+      - name: ffprobe (mede o vídeo do reel)
+        run: command -v ffprobe || (sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg)
+      - name: Semanas que ainda vão sair
+        run: node publicar/validar.mjs --futuras

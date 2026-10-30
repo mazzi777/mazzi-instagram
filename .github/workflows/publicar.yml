@@ -1,16 +1,16 @@
 name: Publicar no Instagram
 
-# Publica as peças do dia de semanas/*/agenda.json no @mazzisystems pela API oficial da Meta.
-# Seg/qua/sex às 07:30 de Brasília. Em caso de falha, abre (ou comenta) o issue
-# "Instagram: falha ao publicar" e o GitHub avisa a Andressa por e-mail.
+# Todo dia às 07:30 de Brasília: confere a chave da Meta, publica no @mazzisystems as peças do dia
+# (ou atrasadas até 2 dias) de semanas/*/agenda.json e grava o registro. Em QUALQUER falha, abre
+# (ou comenta) o issue "Instagram: falha ao publicar" e o GitHub avisa a Andressa por e-mail.
 #
 # Segredos (Settings › Secrets and variables › Actions):
-#   META_TOKEN  token sem validade do usuário do sistema "mazzi-publicador" (Gerenciador de Negócios)
+#   META_TOKEN  token sem validade do usuário do sistema "mazzi-publicador" (portfólio Mazzi Systems)
 #   IG_USER_ID  17841452348726895
 
 on:
   schedule:
-    - cron: "30 10 * * 1,3,5"
+    - cron: "30 10 * * *"
   workflow_dispatch:
     inputs:
       peca:
@@ -43,6 +43,10 @@ jobs:
         with:
           ref: main
 
+      # A Meta baixa as mídias deste commit exato (não de "main", que pode mudar ou estar em cache).
+      - name: Commit das mídias
+        run: echo "MIDIA_REF=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -68,27 +72,44 @@ jobs:
           if [ "$SIMULAR" = "true" ]; then args+=(--simular); fi
           node publicar/publicar.mjs "${args[@]}"
 
+      # Roda mesmo se a publicação falhar ou o job for cancelado: o "pendente" gravado antes de
+      # cada media_publish é o que impede post duplicado na próxima rodada.
       - name: Guardar o que foi publicado
+        id: guardar
         if: always() && steps.publicar.outcome != 'skipped'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add semanas/*/publicado.json guia/log.md
+          git add -A -- semanas guia/log.md
           if git diff --cached --quiet; then echo "Nada novo para guardar."; exit 0; fi
-          git commit -m "Instagram: registro da publicação de $(TZ=America/Sao_Paulo date +%d/%m/%Y)"
-          for i in 1 2 3; do git pull --rebase -q origin main && git push -q origin HEAD:main && exit 0; sleep 5; done
-          echo "::error::Não consegui gravar o publicado.json — confira antes da próxima rodada para não duplicar."
+          git commit -q -m "Instagram: registro da publicação de $(TZ=America/Sao_Paulo date +%d/%m/%Y)"
+          for i in 1 2 3 4 5; do
+            if git pull --rebase -q origin main; then
+              git push -q origin HEAD:main && exit 0
+            else
+              git rebase --abort || true
+            fi
+            sleep $((i * 5))
+          done
+          echo "::error::Não consegui gravar o publicado.json."
           exit 1
 
       - name: Avisar a falha num issue
-        if: failure() && steps.publicar.outcome == 'failure'
+        if: failure() && github.event.inputs.simular != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          GUARDAR: ${{ steps.guardar.outcome }}
         run: |
           titulo="Instagram: falha ao publicar"
-          corpo="$( [ -f publicar/erros.md ] && cat publicar/erros.md || echo 'Erro sem detalhe — ver o log da rodada.')
+          if [ -f publicar/erros.md ]; then detalhe="$(cat publicar/erros.md)"; else detalhe="Um passo falhou antes de publicar (instalação, testes ou checkout). Nada foi publicado; veja a rodada."; fi
+          if [ "$GUARDAR" = "failure" ]; then
+            detalhe="$detalhe
+
+          **ATENÇÃO: o registro (publicado.json) não foi gravado.** Antes da próxima rodada (amanhã 07:30), confira no Instagram o que saiu hoje e peça ao Claude para registrar, senão stories podem sair repetidos."
+          fi
+          corpo="$detalhe
 
           Rodada: $RUN_URL"
-          num=$(gh issue list --state open --search "\"$titulo\" in:title" --json number -q '.[0].number')
+          num=$(gh issue list --state open --author "app/github-actions" --search "\"$titulo\" in:title" --json number -q '.[0].number')
           if [ -n "$num" ]; then gh issue comment "$num" --body "$corpo"; else gh issue create --title "$titulo" --body "$corpo"; fi

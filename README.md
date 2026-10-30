@@ -6,7 +6,7 @@ Conteúdo e publicação automática do Instagram **@mazzisystems** (Mazzi Syste
 
 ```
 Seg 06:53         rotina do Claude (nuvem) produz a semana SEGUINTE → semanas/AAAA-MM-DD/ + agenda.json
-Seg/Qua/Sex 07:30 GitHub Actions "Publicar no Instagram" → API oficial da Meta → @mazzisystems
+Todo dia 07:30    GitHub Actions "Publicar no Instagram" → API oficial da Meta → @mazzisystems
                   → grava semanas/AAAA-MM-DD/publicado.json e uma linha em guia/log.md
 ```
 

@@ -1,52 +1,73 @@
 // Publica no Instagram @mazzisystems as peças do dia, a partir de semanas/*/agenda.json,
-// pela API oficial da Meta (Instagram Graph API). Roda no GitHub Actions (publicar.yml).
+// pela API oficial da Meta (Instagram Graph API). Roda no GitHub Actions (publicar.yml), todo dia.
 //
-// Uso: node publicar/publicar.mjs [--peca AAAA-MM-DD/ID] [--simular]
-// Ambiente: META_TOKEN, IG_USER_ID, GITHUB_REPOSITORY (opcional), PUBLICAR_HOJE (opcional, AAAA-MM-DD)
+// Uso: node publicar/publicar.mjs [--peca AAAA-MM-DD/ID] [--simular] [--conferir]
+// Ambiente: META_TOKEN, IG_USER_ID, GITHUB_REPOSITORY, MIDIA_REF (commit das mídias),
+//           PUBLICAR_HOJE (opcional, AAAA-MM-DD)
+//
+// Nunca publicar duas vezes: antes de cada media_publish o contêiner fica gravado como "pendente"
+// em publicado.json; numa rodada seguinte, o pendente é conferido na Meta (PUBLISHED = já saiu)
+// em vez de criar outro. Post de feed sem registro também é procurado no feed pela legenda.
 import { readFileSync, writeFileSync, existsSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { lerAgenda, validarPeca, dataMais } from './validar.mjs';
 
-export const GRAPH = 'https://graph.facebook.com/v25.0';
-export const ATRASO_MAXIMO_DIAS = 2;
-const FORMATO = { carrossel: 'carrossel', reel: 'reel', stories: 'stories' };
+const GRAPH = 'https://graph.facebook.com/v25.0';
+const ATRASO_MAXIMO_DIAS = 2;
+// A partir desta semana, cada semana precisa ter agenda (antes era o Windsor).
+const PRIMEIRA_SEMANA_API = '2026-11-09';
 
 export function hojeEmSaoPaulo(agora = new Date()) {
   return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }).format(agora);
+}
+
+function segundaDa(iso) {
+  const dia = new Date(`${iso}T12:00:00Z`).getUTCDay();
+  return dataMais(iso, -((dia + 6) % 7));
 }
 
 function lerJson(arquivo, padrao) {
   return existsSync(arquivo) ? JSON.parse(readFileSync(arquivo, 'utf8')) : padrao;
 }
 
-function arquivosDa(peca) {
-  return peca.tipo === 'reel' ? [peca.arquivo] : peca.arquivos;
-}
-
-/** Peças a publicar agora: [{ semana, dir, peca, vencida }]. */
+/** Peças a publicar agora. Uma agenda quebrada vira erro só daquela semana; as outras seguem. */
 export function escolherPecas(raiz, hoje, alvo) {
   const base = path.join(raiz, 'semanas');
-  if (!existsSync(base)) return [];
   const escolhidas = [];
+  const erros = [];
+  if (!existsSync(base)) return { escolhidas, erros };
   for (const nome of readdirSync(base).sort()) {
     const dir = path.join(base, nome);
     if (!existsSync(path.join(dir, 'agenda.json'))) continue;
-    const agenda = lerAgenda(dir);
-    const publicado = lerJson(path.join(dir, 'publicado.json'), {});
+    let agenda;
+    let publicado;
+    try {
+      agenda = lerAgenda(dir);
+      publicado = lerJson(path.join(dir, 'publicado.json'), {});
+      if (agenda.semana !== nome) throw new Error(`"semana" ${agenda.semana} diferente da pasta ${nome}`);
+    } catch (e) {
+      erros.push({ peca: `semanas/${nome}`, mensagem: `agenda inválida, nada desta semana sai até corrigir: ${e.message}` });
+      continue;
+    }
+    const vistos = new Set();
     for (const peca of agenda.pecas) {
       const chave = `${agenda.semana}/${peca.id}`;
-      if (alvo) {
-        if (chave === alvo && !publicado[peca.id]?.completo) escolhidas.push({ semana: agenda.semana, dir, peca, vencida: false });
+      if (vistos.has(peca.id)) {
+        erros.push({ peca: chave, mensagem: 'id repetido na agenda; só a primeira ocorrência é considerada' });
         continue;
       }
+      vistos.add(peca.id);
       const registro = publicado[peca.id];
+      if (alvo) {
+        if (chave === alvo && !registro?.completo) escolhidas.push({ semana: agenda.semana, dir, peca, vencida: false });
+        continue;
+      }
       if (registro?.completo || registro?.vencida || peca.dia > hoje) continue;
-      const vencida = peca.dia < dataMais(hoje, -ATRASO_MAXIMO_DIAS);
-      escolhidas.push({ semana: agenda.semana, dir, peca, vencida });
+      escolhidas.push({ semana: agenda.semana, dir, peca, vencida: peca.dia < dataMais(hoje, -ATRASO_MAXIMO_DIAS) });
     }
   }
-  return escolhidas;
+  return { escolhidas, erros };
 }
 
 export function criarCliente({ token, igUserId, fetch, esperar }) {
@@ -64,32 +85,39 @@ export function criarCliente({ token, igUserId, fetch, esperar }) {
     return corpo;
   }
 
-  async function container(params) {
-    return (await graph('POST', `${igUserId}/media`, params)).id;
-  }
+  const status = async (id) => (await graph('GET', id, { fields: 'status_code' })).status_code;
 
   async function esperarPronto(id, { limiteMs, intervaloMs }) {
     for (let gasto = 0; ; gasto += intervaloMs) {
-      const { status_code: status } = await graph('GET', id, { fields: 'status_code' });
-      if (status === 'FINISHED') return;
-      if (status === 'ERROR' || status === 'EXPIRED') throw new Error(`contêiner ${id} terminou com ${status}`);
-      if (gasto >= limiteMs) throw new Error(`contêiner ${id} não ficou pronto em ${limiteMs / 1000}s (último status: ${status})`);
+      const s = await status(id);
+      if (s === 'FINISHED') return;
+      if (s === 'ERROR' || s === 'EXPIRED') throw new Error(`contêiner ${id} terminou com ${s}`);
+      if (gasto >= limiteMs) throw new Error(`contêiner ${id} não ficou pronto em ${limiteMs / 1000}s (último status: ${s})`);
       await esperar(intervaloMs);
     }
   }
 
-  async function publicarContainer(id) {
-    return (await graph('POST', `${igUserId}/media_publish`, { creation_id: id })).id;
-  }
-
-  return { graph, container, esperarPronto, publicarContainer };
+  return {
+    graph,
+    status,
+    esperarPronto,
+    conta: () => graph('GET', igUserId, { fields: 'id,username' }),
+    container: async (params) => (await graph('POST', `${igUserId}/media`, params)).id,
+    publicarContainer: async (id) => (await graph('POST', `${igUserId}/media_publish`, { creation_id: id })).id,
+    /** Post do feed com esta legenda nos últimos 7 dias (id) ou null. */
+    acharNoFeed: async (legenda, hoje) => {
+      const { data = [] } = await graph('GET', `${igUserId}/media`, { fields: 'id,caption,timestamp', limit: 25 });
+      const desde = dataMais(hoje, -7);
+      const achado = data.find((m) => (m.caption ?? '').trim() === legenda.trim() && (m.timestamp ?? '').slice(0, 10) >= desde);
+      return achado?.id ?? null;
+    },
+  };
 }
 
 /** Confere a chave sem publicar: devolve { id, username } da conta. */
 export async function conferirConta({ env, fetch = globalThis.fetch }) {
   if (!env.META_TOKEN || !env.IG_USER_ID) throw new Error('faltam os segredos META_TOKEN e/ou IG_USER_ID');
-  const meta = criarCliente({ token: env.META_TOKEN, igUserId: env.IG_USER_ID, fetch, esperar: async () => {} });
-  return meta.graph('GET', env.IG_USER_ID, { fields: 'id,username' });
+  return criarCliente({ token: env.META_TOKEN, igUserId: env.IG_USER_ID, fetch, esperar: async () => {} }).conta();
 }
 
 const IMAGEM = { limiteMs: 60_000, intervaloMs: 3_000 };
@@ -109,6 +137,24 @@ function dataBR(iso) {
   return `${d}/${m}/${a}`;
 }
 
+/**
+ * Publica um contêiner sem nunca publicar duas vezes. `pendente` é o contêiner gravado numa rodada
+ * anterior que não terminou. `gravarPendente(id)` precisa salvar em disco ANTES do media_publish.
+ * Devolve o id do post (ou "contêiner X" quando a Meta confirma que saiu mas não dá o id).
+ */
+async function publicarUmaVez(meta, { pendente, criar, espera, gravarPendente }) {
+  if (pendente) {
+    const s = await meta.status(pendente);
+    if (s === 'PUBLISHED') return `contêiner ${pendente}`;
+    if (s === 'FINISHED') return meta.publicarContainer(pendente);
+    // EXPIRED, ERROR ou ainda processando: começa de novo com um contêiner novo.
+  }
+  const id = await criar();
+  await meta.esperarPronto(id, espera);
+  gravarPendente(id);
+  return meta.publicarContainer(id);
+}
+
 export async function publicar({
   raiz, hoje, alvo = null, simular = false, env = {}, fetch = globalThis.fetch,
   esperar = (ms) => new Promise((r) => setTimeout(r, ms)), sondar, log = console.log, agora = () => new Date(),
@@ -116,21 +162,38 @@ export async function publicar({
   const token = env.META_TOKEN;
   const igUserId = env.IG_USER_ID;
   const repo = env.GITHUB_REPOSITORY || 'mazzi777/mazzi-instagram';
+  const ref = env.MIDIA_REF || 'main';
   const ocultar = (texto) => (token ? String(texto).split(token).join('***') : String(texto));
-  const resultado = { publicadas: [], erros: [] };
 
-  const escolhidas = escolherPecas(raiz, hoje, alvo);
-  if (!simular && escolhidas.some((e) => !e.vencida) && (!token || !igUserId)) {
-    resultado.erros.push({ peca: 'configuração', mensagem: 'faltam os segredos META_TOKEN e/ou IG_USER_ID no repositório' });
-    return resultado;
+  const { escolhidas, erros } = escolherPecas(raiz, hoje, alvo);
+  const resultado = { publicadas: [], erros: [...erros] };
+
+  if (alvo && !escolhidas.length && !erros.length) {
+    resultado.erros.push({ peca: alvo, mensagem: 'peça não encontrada ou já publicada (confira o nome: AAAA-MM-DD/ID)' });
   }
+  const semanaAtual = segundaDa(hoje);
+  if (!alvo && semanaAtual >= PRIMEIRA_SEMANA_API && !existsSync(path.join(raiz, 'semanas', semanaAtual, 'agenda.json'))) {
+    resultado.erros.push({ peca: `semanas/${semanaAtual}`, mensagem: 'a semana atual não tem agenda.json: a rotina de segunda não produziu (ou não subiu) a semana' });
+  }
+
   const meta = criarCliente({ token, igUserId, fetch, esperar });
+  if (!simular) {
+    // Toda rodada confere a chave, mesmo sem nada para publicar: chave quebrada vira aviso no mesmo dia.
+    try {
+      if (!token || !igUserId) throw new Error('faltam os segredos META_TOKEN e/ou IG_USER_ID no repositório');
+      await meta.conta();
+    } catch (e) {
+      resultado.erros.push({ peca: 'chave da Meta', mensagem: ocultar(e.message) });
+      return resultado;
+    }
+  }
 
   for (const { semana, dir, peca, vencida } of escolhidas) {
     const onde = `${semana}/${peca.id}`;
     const arquivoPublicado = path.join(dir, 'publicado.json');
     const publicado = lerJson(arquivoPublicado, {});
     const salvar = () => writeFileSync(arquivoPublicado, `${JSON.stringify(publicado, null, 2)}\n`);
+    if (publicado[peca.id]?.completo) continue;
 
     if (vencida) {
       if (!simular) {
@@ -142,10 +205,10 @@ export async function publicar({
     }
 
     try {
-      const erros = validarPeca(dir, semana, peca, sondar ? { sondar } : undefined);
-      if (erros.length) throw new Error(`não passou na validação:\n${erros.map((e) => `  - ${e}`).join('\n')}`);
+      const problemas = validarPeca(dir, semana, peca, sondar ? { sondar } : undefined);
+      if (problemas.length) throw new Error(`não passou na validação:\n${problemas.map((e) => `  - ${e}`).join('\n')}`);
 
-      const urls = arquivosDa(peca).map((a) => `https://raw.githubusercontent.com/${repo}/main/semanas/${semana}/${a}`);
+      const urls = peca.arquivos.map((a) => `https://raw.githubusercontent.com/${repo}/${ref}/semanas/${semana}/${a}`);
       for (const url of urls) {
         const r = await fetch(url, { method: 'HEAD' });
         if (r.status !== 200) throw new Error(`mídia não está pública (${r.status}): ${url}`);
@@ -157,39 +220,57 @@ export async function publicar({
         continue;
       }
 
-      const registro = publicado[peca.id] ?? { ids: [] };
-      if (peca.tipo === 'carrossel') {
-        const filhos = [];
-        for (const url of urls) {
-          const id = await meta.container({ image_url: url, is_carousel_item: true });
-          await meta.esperarPronto(id, IMAGEM);
-          filhos.push(id);
-        }
-        const pai = await meta.container({ media_type: 'CAROUSEL', children: filhos.join(','), caption: peca.legenda });
-        await meta.esperarPronto(pai, IMAGEM);
-        registro.ids = [await meta.publicarContainer(pai)];
-      } else if (peca.tipo === 'reel') {
-        const id = await meta.container({
-          media_type: 'REELS', video_url: urls[0], caption: peca.legenda, share_to_feed: true, thumb_offset: peca.capa_ms ?? 0,
-        });
-        await meta.esperarPronto(id, VIDEO);
-        registro.ids = [await meta.publicarContainer(id)];
-      } else {
-        // Stories: um quadro por vez; se uma rodada parou no meio, continua do próximo quadro.
+      const registro = { ids: [], ...publicado[peca.id], via: 'api' };
+      const gravarPendente = (id) => {
+        registro.pendente = id;
+        publicado[peca.id] = registro;
+        salvar();
+      };
+
+      if (peca.tipo === 'stories') {
+        // Um quadro por vez; registro.ids guarda os quadros que já saíram, e a próxima rodada continua dali.
         for (let i = registro.ids.length; i < urls.length; i++) {
           if (i > 0) await esperar(10_000);
-          const id = await meta.container({ media_type: 'STORIES', image_url: urls[i] });
-          await meta.esperarPronto(id, IMAGEM);
-          registro.ids.push(await meta.publicarContainer(id));
-          publicado[peca.id] = { ...registro, via: 'api' };
+          const idPost = await publicarUmaVez(meta, {
+            pendente: registro.pendente,
+            criar: () => meta.container({ media_type: 'STORIES', image_url: urls[i] }),
+            espera: IMAGEM,
+            gravarPendente,
+          });
+          registro.ids.push(idPost);
+          delete registro.pendente;
+          publicado[peca.id] = registro;
           salvar();
+        }
+      } else {
+        const noFeed = registro.pendente ? null : await meta.acharNoFeed(peca.legenda, hoje);
+        if (noFeed) {
+          log(`${onde}: já estava no feed (${noFeed}); só registrando`);
+          registro.ids = [noFeed];
+        } else {
+          const criar = peca.tipo === 'carrossel'
+            ? async () => {
+              const filhos = [];
+              for (const url of urls) {
+                const id = await meta.container({ image_url: url, is_carousel_item: true });
+                await meta.esperarPronto(id, IMAGEM);
+                filhos.push(id);
+              }
+              return meta.container({ media_type: 'CAROUSEL', children: filhos.join(','), caption: peca.legenda });
+            }
+            : () => meta.container({
+              media_type: 'REELS', video_url: urls[0], caption: peca.legenda, share_to_feed: true, thumb_offset: peca.capa_ms ?? 0,
+            });
+          registro.ids = [await publicarUmaVez(meta, {
+            pendente: registro.pendente, criar, espera: peca.tipo === 'reel' ? VIDEO : IMAGEM, gravarPendente,
+          })];
         }
       }
 
       publicado[peca.id] = { em: agora().toISOString(), via: 'api', ids: registro.ids, completo: true };
       salvar();
       const extra = [peca.tema, peca.gancho && `"${peca.gancho}"`].filter(Boolean).join(' · ');
-      inserirNoLog(raiz, `- ${dataBR(hoje)} · PUBLICADO · ${FORMATO[peca.tipo]} (${peca.id}, ${urls.length} arquivo(s)) · ${extra || 'sem tema'} · ids ${registro.ids.join(', ')} · via API da Meta`);
+      inserirNoLog(raiz, `- ${dataBR(hoje)} · PUBLICADO · ${peca.tipo} (${peca.id}, ${urls.length} arquivo(s)) · ${extra || 'sem tema'} · ids ${registro.ids.join(', ')} · via API da Meta`);
       resultado.publicadas.push({ peca: onde, ids: registro.ids });
       log(`${onde}: publicado (${registro.ids.join(', ')})`);
     } catch (e) {
@@ -205,18 +286,23 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const iPeca = args.indexOf('--peca');
   const alvo = iPeca >= 0 ? args[iPeca + 1] : null;
   const raiz = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+  const sair = (erros) => {
+    const texto = erros.map((e) => `### ${e.peca}\n\n${e.mensagem}`).join('\n\n');
+    writeFileSync(path.join(raiz, 'publicar', 'erros.md'), `${texto}\n`);
+    console.error(texto);
+    process.exit(1);
+  };
   if (args.includes('--conferir')) {
-    const conta = await conferirConta({ env: process.env });
-    console.log(`Chave OK: publica como @${conta.username} (${conta.id}).`);
-    process.exit(0);
+    try {
+      const conta = await conferirConta({ env: process.env });
+      console.log(`Chave OK: publica como @${conta.username}.`);
+      process.exit(0);
+    } catch (e) {
+      sair([{ peca: 'chave da Meta', mensagem: String(e.message).split(process.env.META_TOKEN || '\0').join('***') }]);
+    }
   }
   const hoje = process.env.PUBLICAR_HOJE || hojeEmSaoPaulo();
   const r = await publicar({ raiz, hoje, alvo, simular: args.includes('--simular'), env: process.env });
   if (!r.publicadas.length && !r.erros.length) console.log(`Nada para publicar hoje (${hoje}).`);
-  if (r.erros.length) {
-    const texto = r.erros.map((e) => `### ${e.peca}\n\n${e.mensagem}`).join('\n\n');
-    writeFileSync(path.join(raiz, 'publicar', 'erros.md'), `${texto}\n`);
-    console.error(texto);
-    process.exit(1);
-  }
+  if (r.erros.length) sair(r.erros);
 }

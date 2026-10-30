@@ -1,6 +1,6 @@
 // Valida uma semana (semanas/AAAA-MM-DD) antes do commit e antes de publicar.
 // Uso: node publicar/validar.mjs semanas/2026-11-09
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -82,7 +82,7 @@ export function validarPeca(dir, semana, peca, { sondar = sondarVideo } = {}) {
   if (peca.tipo !== regra.tipo) erros.push(`${onde}: tipo "${peca.tipo}", esperado "${regra.tipo}"`);
   if (peca.dia !== dataMais(semana, regra.offset)) erros.push(`${onde}: dia ${peca.dia}, esperado ${dataMais(semana, regra.offset)}`);
 
-  const arquivos = peca.tipo === 'reel' ? [peca.arquivo] : peca.arquivos;
+  const { arquivos } = peca;
   if (!Array.isArray(arquivos) || arquivos.some((a) => typeof a !== 'string')) return [...erros, `${onde}: lista de arquivos inválida`];
   const [min, max] = peca.tipo === 'carrossel' ? [2, 10] : peca.tipo === 'stories' ? [1, 10] : [1, 1];
   if (arquivos.length < min || arquivos.length > max) erros.push(`${onde}: ${arquivos.length} arquivo(s), esperado de ${min} a ${max}`);
@@ -141,9 +141,37 @@ export function validarSemana(dir, opcoes) {
   return erros;
 }
 
+/** Semanas desta segunda em diante que ainda têm alguma peça por publicar. */
+export function semanasFuturas(raiz, hoje) {
+  const dia = new Date(`${hoje}T12:00:00Z`).getUTCDay();
+  const segunda = dataMais(hoje, -((dia + 6) % 7));
+  const base = path.join(raiz, 'semanas');
+  if (!existsSync(base)) return [];
+  return readdirSync(base).filter((n) => {
+    const agenda = path.join(base, n, 'agenda.json');
+    if (n < segunda || !existsSync(agenda)) return false;
+    const pub = path.join(base, n, 'publicado.json');
+    const feito = existsSync(pub) ? JSON.parse(readFileSync(pub, 'utf8')) : {};
+    try {
+      return JSON.parse(readFileSync(agenda, 'utf8')).pecas.some((p) => !feito[p.id]?.completo);
+    } catch {
+      return true; // agenda quebrada: validarSemana mostra o erro
+    }
+  }).sort();
+}
+
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  if (process.argv[2] === '--futuras') {
+    const raiz = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+    const hoje = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }).format(new Date());
+    const semanas = semanasFuturas(raiz, hoje);
+    const erros = semanas.flatMap((s) => validarSemana(path.join(raiz, 'semanas', s)));
+    if (erros.length) { console.error(erros.map((e) => `- ${e}`).join('\n')); process.exit(1); }
+    console.log(semanas.length ? `OK: ${semanas.join(', ')}` : 'Nenhuma semana futura para validar.');
+    process.exit(0);
+  }
   const dir = process.argv[2];
-  if (!dir) { console.error('Uso: node publicar/validar.mjs semanas/AAAA-MM-DD'); process.exit(2); }
+  if (!dir) { console.error('Uso: node publicar/validar.mjs semanas/AAAA-MM-DD | --futuras'); process.exit(2); }
   const erros = validarSemana(path.resolve(dir));
   if (erros.length) { console.error(erros.map((e) => `- ${e}`).join('\n')); process.exit(1); }
   console.log('OK');
