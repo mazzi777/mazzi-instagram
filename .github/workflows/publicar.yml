@@ -21,6 +21,10 @@ on:
         description: "Só conferir, sem publicar"
         type: boolean
         default: true
+      conferir:
+        description: "Só testar a chave da Meta (mostra a conta), sem olhar a agenda"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -56,7 +60,9 @@ jobs:
           IG_USER_ID: ${{ secrets.IG_USER_ID }}
           PECA: ${{ inputs.peca }}
           SIMULAR: ${{ inputs.simular }}
+          CONFERIR: ${{ inputs.conferir }}
         run: |
+          if [ "$CONFERIR" = "true" ]; then node publicar/publicar.mjs --conferir; exit $?; fi
           args=()
           if [ -n "$PECA" ]; then args+=(--peca "$PECA"); fi
           if [ "$SIMULAR" = "true" ]; then args+=(--simular); fi

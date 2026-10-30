@@ -229,3 +229,18 @@ test('hoje é calculado no fuso de São Paulo', () => {
   assert.equal(hojeEmSaoPaulo(new Date('2026-11-09T02:30:00Z')), '2026-11-08');
   assert.equal(hojeEmSaoPaulo(new Date('2026-11-09T10:30:00Z')), '2026-11-09');
 });
+
+test('conferir a chave lê a conta pelo cabeçalho, sem publicar', async () => {
+  const { conferirConta } = await import('./publicar.mjs');
+  const chamadas = [];
+  const fetch = async (url, opcoes) => {
+    chamadas.push({ url, opcoes });
+    return { ok: true, status: 200, json: async () => ({ id: '1784', username: 'mazzisystems' }) };
+  };
+  const conta = await conferirConta({ env: { META_TOKEN: TOKEN, IG_USER_ID: '1784' }, fetch });
+  assert.equal(conta.username, 'mazzisystems');
+  assert.equal(chamadas.length, 1);
+  assert.equal(chamadas[0].opcoes.method, 'GET');
+  assert.ok(!chamadas[0].url.includes(TOKEN));
+  await assert.rejects(conferirConta({ env: {}, fetch }), /META_TOKEN/);
+});

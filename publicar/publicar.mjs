@@ -8,7 +8,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { lerAgenda, validarPeca, dataMais } from './validar.mjs';
 
-export const GRAPH = 'https://graph.facebook.com/v23.0';
+export const GRAPH = 'https://graph.facebook.com/v25.0';
 export const ATRASO_MAXIMO_DIAS = 2;
 const FORMATO = { carrossel: 'carrossel', reel: 'reel', stories: 'stories' };
 
@@ -83,6 +83,13 @@ export function criarCliente({ token, igUserId, fetch, esperar }) {
   }
 
   return { graph, container, esperarPronto, publicarContainer };
+}
+
+/** Confere a chave sem publicar: devolve { id, username } da conta. */
+export async function conferirConta({ env, fetch = globalThis.fetch }) {
+  if (!env.META_TOKEN || !env.IG_USER_ID) throw new Error('faltam os segredos META_TOKEN e/ou IG_USER_ID');
+  const meta = criarCliente({ token: env.META_TOKEN, igUserId: env.IG_USER_ID, fetch, esperar: async () => {} });
+  return meta.graph('GET', env.IG_USER_ID, { fields: 'id,username' });
 }
 
 const IMAGEM = { limiteMs: 60_000, intervaloMs: 3_000 };
@@ -198,6 +205,11 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const iPeca = args.indexOf('--peca');
   const alvo = iPeca >= 0 ? args[iPeca + 1] : null;
   const raiz = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+  if (args.includes('--conferir')) {
+    const conta = await conferirConta({ env: process.env });
+    console.log(`Chave OK: publica como @${conta.username} (${conta.id}).`);
+    process.exit(0);
+  }
   const hoje = process.env.PUBLICAR_HOJE || hojeEmSaoPaulo();
   const r = await publicar({ raiz, hoje, alvo, simular: args.includes('--simular'), env: process.env });
   if (!r.publicadas.length && !r.erros.length) console.log(`Nada para publicar hoje (${hoje}).`);
