@@ -1,0 +1,54 @@
+{
+  "semana": "2026-10-26",
+  "pecas": [
+    {
+      "id": "AV4",
+      "dia": "2026-10-31",
+      "tipo": "reel",
+      "arquivos": [
+        "2026-10-26-AV4.mp4"
+      ],
+      "legenda": "Agenda no papel e caixa no caderno têm conserto.\n\nEm 1 minuto e meio você vê tudo o que a Mazzi faz pela clínica de estética e pelo restaurante pequeno: lembrete no WhatsApp em 1 clique, anamnese no tablet, orçamento que vira horário, caixa conferido, delivery pelo teclado, balança por dia da semana e quanto sobrou no mês.\n\nGratuito por enquanto. Chama no WhatsApp (link na bio).\n\n#gestao #clinicadeestetica #restaurante",
+      "capa_ms": 1500,
+      "tema": "avulso · vídeo completo narrado (clínica e restaurante)",
+      "gancho": "Agenda no papel e caixa no caderno têm conserto.",
+      "duracao_max": 95
+    },
+    {
+      "id": "AV3",
+      "dia": "2026-10-31",
+      "tipo": "reel",
+      "arquivos": [
+        "2026-10-26-AV3.mp4"
+      ],
+      "legenda": "O caixa não fechou de novo?\n\nNa Mazzi o caixa fecha conferido, o delivery sai pelo teclado (o telefone já puxa o cliente), a balança usa o preço do quilo do dia e a bebida baixa do estoque sozinha. No fim do mês você vê vendas menos compras.\n\nGratuito por enquanto. Chama no WhatsApp (link na bio).\n\n#restaurante #selfservice #delivery",
+      "capa_ms": 2300,
+      "tema": "avulso · fixado restaurante",
+      "gancho": "O caixa não fechou de novo?"
+    },
+    {
+      "id": "AV2",
+      "dia": "2026-10-31",
+      "tipo": "reel",
+      "arquivos": [
+        "2026-10-26-AV2.mp4"
+      ],
+      "legenda": "Paciente faltou de novo?\n\nNa Mazzi você manda o lembrete no WhatsApp em 1 clique, e o paciente confirma ou remarca pelo link. Anamnese e termo assinados no tablet, orçamento aprovado que já vira horário com sinal, antes e depois na ficha e estoque com lote e validade.\n\nGratuito por enquanto. Chama no WhatsApp (link na bio).\n\n#clinicadeestetica #harmonizacaofacial #gestaodeclinica",
+      "capa_ms": 2300,
+      "tema": "avulso · fixado clínica",
+      "gancho": "Paciente faltou de novo?"
+    },
+    {
+      "id": "AV1",
+      "dia": "2026-10-31",
+      "tipo": "reel",
+      "arquivos": [
+        "2026-10-26-AV1.mp4"
+      ],
+      "legenda": "Cuidar do seu negócio não precisa ser complicado.\n\nA Mazzi junta agenda, caixa, estoque, delivery e relatórios num sistema só, no computador e no celular. Hoje atende clínica de estética e restaurante, cada um com o próprio logo e as próprias cores.\n\nGratuito por enquanto. Chama no WhatsApp (link na bio).\n\n#gestao #clinicadeestetica #restaurante",
+      "capa_ms": 2300,
+      "tema": "avulso · fixado o que é a Mazzi",
+      "gancho": "Cuidar do seu negócio não precisa ser complicado."
+    }
+  ]
+}

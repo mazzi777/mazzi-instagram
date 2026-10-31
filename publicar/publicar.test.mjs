@@ -128,12 +128,67 @@ test('validador pega medida errada, dia errado, peça faltando e palavra proibid
   assert.match(erros, /4 hashtags/);
 });
 
-test('reel de 42 s só passa com duracao_max; duracao_max fora de 30–90 é erro', () => {
+test('reel de 42 s só passa com duracao_max; duracao_max fora de 30–180 é erro', () => {
   const longo = () => ({ ...VIDEO_OK(), duracao: 42 });
   const reel = (mudarReel) => montar({ mudar: (agenda) => mudarReel(agenda.pecas.find((p) => p.id === 'REEL')) }).dir;
   assert.match(validarSemana(reel(() => {}), { sondar: longo }).join('\n'), /42s \(20 a 30\)/);
   assert.deepEqual(validarSemana(reel((p) => { p.duracao_max = 45; }), { sondar: longo }), []);
-  assert.match(validarSemana(reel((p) => { p.duracao_max = 120; }), { sondar: longo }).join('\n'), /duracao_max só vale para reel/);
+  assert.deepEqual(validarSemana(reel((p) => { p.duracao_max = 120; }), { sondar: longo }), []);
+  assert.match(validarSemana(reel((p) => { p.duracao_max = 200; }), { sondar: longo }).join('\n'), /duracao_max só vale para reel/);
+});
+
+// Reel avulso (AV1, AV2...): os vídeos fixados do perfil, fora do rodízio da semana.
+const comAvulso = (mudarAv = () => {}) => montar({
+  mudar: (agenda, d) => {
+    const av = { id: 'AV1', dia: '2026-11-10', tipo: 'reel', arquivos: [`${SEMANA}-AV1.mp4`], legenda: 'O que é a Mazzi. Chama no WhatsApp (link na bio).', capa_ms: 2300 };
+    mudarAv(av);
+    writeFileSync(path.join(d, av.arquivos[0]), 'mp4');
+    agenda.pecas.push(av);
+  },
+});
+
+test('reel avulso: passa em qualquer dia da semana e não é peça obrigatória', () => {
+  assert.deepEqual(validarSemana(comAvulso().dir, { sondar: VIDEO_OK }), []);
+  const erros = validarSemana(comAvulso((av) => { av.dia = '2026-11-16'; av.tipo = 'carrossel'; }).dir, { sondar: VIDEO_OK }).join('\n');
+  assert.match(erros, /AV1: dia 2026-11-16, esperado entre 2026-11-09 e 2026-11-15/);
+  assert.match(erros, /AV1: tipo "carrossel", esperado "reel"/);
+  assert.match(validarSemana(comAvulso((av) => { av.id = 'XYZ'; }).dir, { sondar: VIDEO_OK }).join('\n'), /XYZ: id desconhecido/);
+});
+
+test('semana só de avulsos não cobra as peças do rodízio; misturada continua cobrando', () => {
+  const soAvulsos = montar({ mudar: (agenda, d) => {
+    agenda.pecas = [{ id: 'AV1', dia: SEMANA, tipo: 'reel', arquivos: [`${SEMANA}-AV1.mp4`], legenda: 'Fixado. Chama no WhatsApp (link na bio).' }];
+    writeFileSync(path.join(d, `${SEMANA}-AV1.mp4`), 'mp4');
+  } });
+  assert.deepEqual(validarSemana(soAvulsos.dir, { sondar: VIDEO_OK }), []);
+  const misturada = comAvulso((av) => av).dir;
+  const agenda = JSON.parse(readFileSync(path.join(misturada, 'agenda.json'), 'utf8'));
+  agenda.pecas = agenda.pecas.filter((p) => p.id !== 'S3');
+  writeFileSync(path.join(misturada, 'agenda.json'), JSON.stringify(agenda));
+  assert.match(validarSemana(misturada, { sondar: VIDEO_OK }).join('\n'), /falta a peça S3/);
+});
+
+test('reel avulso sai no dia dele, com legenda e capa, e fica registrado', async () => {
+  const { raiz, dir } = comAvulso();
+  const m = metaFalsa();
+  const r = await rodar(raiz, '2026-11-10', { fetch: m.fetch });
+  assert.deepEqual(r.erros, []);
+  // Na terça saem A e S1 (atrasadas até 2 dias) e o avulso; o REEL da semana só na quarta.
+  assert.deepEqual(r.publicadas.map((p) => p.peca), [`${SEMANA}/A`, `${SEMANA}/S1`, `${SEMANA}/AV1`]);
+  const reel = m.posts().find((c) => c.corpo?.video_url?.endsWith('AV1.mp4'));
+  assert.equal(reel.corpo.media_type, 'REELS');
+  assert.equal(reel.corpo.thumb_offset, '2300');
+  assert.equal(lerPublicado(dir).AV1.completo, true);
+});
+
+test('reel avulso pode ser publicado na mão antes do dia (workflow com peca)', async () => {
+  const { raiz, dir } = comAvulso();
+  const m = metaFalsa();
+  const r = await rodar(raiz, '2026-11-05', { fetch: m.fetch, alvo: `${SEMANA}/AV1` });
+  assert.deepEqual(r.erros.filter((e) => !e.peca.startsWith('semanas/')), []);
+  assert.deepEqual(r.publicadas.map((p) => p.peca), [`${SEMANA}/AV1`]);
+  assert.equal(m.publicacoes().length, 1);
+  assert.equal(lerPublicado(dir).AV1.completo, true);
 });
 
 test('legenda vazia e sobra de modelo são erro', () => {

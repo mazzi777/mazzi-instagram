@@ -14,6 +14,11 @@ export const IDS = {
   S3: { tipo: 'stories', offset: 4 },
 };
 
+// Reel avulso, fora do rodízio (ex.: os vídeos fixados do perfil): AV1, AV2... Sai em qualquer dia
+// da própria semana e não é cobrado como peça obrigatória.
+export const AVULSO = /^AV\d{1,2}$/;
+const DURACAO_MAX_LIMITE = 180; // a API da Meta aceita reel bem mais longo; 3 min basta para nós.
+
 // Só palavras: o sentido (número sem "EXEMPLO", promessa estética) é conferido por quem lê as peças.
 const PROIBIDAS = [
   [/nfc-?e\b|nota fiscal|cupom fiscal/i, 'NFC-e/nota fiscal (em homologação)'],
@@ -76,11 +81,18 @@ export function textoProibido(texto, onde) {
 /** Valida uma peça. `dir` é a pasta da semana. Devolve a lista de erros (vazia = ok). */
 export function validarPeca(dir, semana, peca, { sondar = sondarVideo } = {}) {
   const onde = `${semana}/${peca.id}`;
-  const regra = IDS[peca.id];
-  if (!regra) return [`${onde}: id desconhecido (use ${Object.keys(IDS).join(', ')})`];
+  const avulso = AVULSO.test(peca.id ?? '');
+  const regra = IDS[peca.id] ?? (avulso ? { tipo: 'reel' } : null);
+  if (!regra) return [`${onde}: id desconhecido (use ${Object.keys(IDS).join(', ')} ou AV1, AV2... para reel avulso)`];
   const erros = [];
   if (peca.tipo !== regra.tipo) erros.push(`${onde}: tipo "${peca.tipo}", esperado "${regra.tipo}"`);
-  if (peca.dia !== dataMais(semana, regra.offset)) erros.push(`${onde}: dia ${peca.dia}, esperado ${dataMais(semana, regra.offset)}`);
+  if (avulso) {
+    if (typeof peca.dia !== 'string' || peca.dia < semana || peca.dia > dataMais(semana, 6)) {
+      erros.push(`${onde}: dia ${peca.dia}, esperado entre ${semana} e ${dataMais(semana, 6)}`);
+    }
+  } else if (peca.dia !== dataMais(semana, regra.offset)) {
+    erros.push(`${onde}: dia ${peca.dia}, esperado ${dataMais(semana, regra.offset)}`);
+  }
 
   const { arquivos } = peca;
   if (!Array.isArray(arquivos) || arquivos.some((a) => typeof a !== 'string')) return [...erros, `${onde}: lista de arquivos inválida`];
@@ -98,7 +110,7 @@ export function validarPeca(dir, semana, peca, { sondar = sondarVideo } = {}) {
       if (v.largura !== 1080 || v.altura !== 1920) erros.push(`${onde}: ${nome} é ${v.largura}x${v.altura}, esperado 1080x1920`);
       if (v.codec !== 'h264') erros.push(`${onde}: ${nome} em ${v.codec}, esperado h264`);
       if (!v.audio) erros.push(`${onde}: ${nome} sem faixa de áudio`);
-      // Padrão da semana: 20 a 30 s. Peça especial (ex.: lançamento) pode declarar "duracao_max" (até 90 s).
+      // Padrão da semana: 20 a 30 s. Peça especial (ex.: lançamento) pode declarar "duracao_max" (até 180 s).
       const maximo = peca.duracao_max ?? 30;
       if (!(v.duracao >= 20 && v.duracao <= maximo + 0.5)) erros.push(`${onde}: ${nome} com ${v.duracao}s (20 a ${maximo})`);
     } else {
@@ -117,8 +129,8 @@ export function validarPeca(dir, semana, peca, { sondar = sondarVideo } = {}) {
   if (peca.tipo === 'reel' && peca.capa_ms !== undefined && !(Number.isInteger(peca.capa_ms) && peca.capa_ms >= 0)) {
     erros.push(`${onde}: capa_ms precisa ser inteiro >= 0`);
   }
-  if (peca.duracao_max !== undefined && !(peca.tipo === 'reel' && Number.isInteger(peca.duracao_max) && peca.duracao_max >= 30 && peca.duracao_max <= 90)) {
-    erros.push(`${onde}: duracao_max só vale para reel e precisa ser inteiro de 30 a 90`);
+  if (peca.duracao_max !== undefined && !(peca.tipo === 'reel' && Number.isInteger(peca.duracao_max) && peca.duracao_max >= 30 && peca.duracao_max <= DURACAO_MAX_LIMITE)) {
+    erros.push(`${onde}: duracao_max só vale para reel e precisa ser inteiro de 30 a ${DURACAO_MAX_LIMITE}`);
   }
   return erros;
 }
@@ -142,7 +154,9 @@ export function validarSemana(dir, opcoes) {
     vistos.add(peca.id);
     erros.push(...validarPeca(dir, agenda.semana, peca, opcoes));
   }
-  for (const id of Object.keys(IDS)) if (!vistos.has(id)) erros.push(`${agenda.semana}: falta a peça ${id}`);
+  // Semana só de avulsos (ex.: os fixados do perfil) não cobra as peças do rodízio.
+  const soAvulsos = agenda.pecas.length > 0 && agenda.pecas.every((p) => AVULSO.test(p.id ?? ''));
+  if (!soAvulsos) for (const id of Object.keys(IDS)) if (!vistos.has(id)) erros.push(`${agenda.semana}: falta a peça ${id}`);
   return erros;
 }
 
