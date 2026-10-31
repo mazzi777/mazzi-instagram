@@ -2,6 +2,10 @@
 
 Uma linha por peça, a mais nova no topo. A partir de 09/11/2026 o GitHub Actions acrescenta as linhas sozinho ao publicar (data · PUBLICADO · formato · tema · gancho · ids). A produção da semana lê este arquivo para não repetir tema nem gancho.
 
+- 31/10/2026 · PUBLICADO · reel (AV1, 1 arquivo(s)) · avulso · fixado o que é a Mazzi · "Cuidar do seu negócio não precisa ser complicado." · ids 18120563644957737 · via API da Meta
+- 31/10/2026 · PUBLICADO · reel (AV2, 1 arquivo(s)) · avulso · fixado clínica · "Paciente faltou de novo?" · ids 18002977910813603 · via API da Meta
+- 31/10/2026 · PUBLICADO · reel (AV3, 1 arquivo(s)) · avulso · fixado restaurante · "O caixa não fechou de novo?" · ids 18114023189152310 · via API da Meta
+- 31/10/2026 · PUBLICADO · reel (AV4, 1 arquivo(s)) · avulso · vídeo completo narrado (clínica e restaurante) · "Agenda no papel e caixa no caderno têm conserto." · ids 18115488179595753 · via API da Meta
 - 30/10/2026 · PUBLICADO · reel (REEL, 1 arquivo(s)) · lançamento · a Mazzi em 42 s · "Seu negócio. Organizado." · ids 18494012098106528 · via API da Meta
 - 30/10/2026 · PUBLICADO · stories (S1, 1 arquivo(s)) · teste da API · reaproveita S1-05 de 02/11 · "Postei o passo a passo no feed." · ids 18119053028006636 · via API da Meta
 - 30/10/2026 · PUBLICADO · stories (5 quadros, S1-01 a S1-05) · clínica · orçamento · "Quantos orçamentos você mandou esse mês que ficaram sem resposta?" · ids 18110910829912546, 18102655184171283, 18183111484446521, 18100656449533082, 18123204278292972 · via Windsor (antecipado; o plano previa 03/11; enquete trocada por "me responde aqui")
