@@ -1,0 +1,71 @@
+{
+  "semana": "2026-11-16",
+  "produtor": "agente",
+  "pecas": [
+    {
+      "id": "S1",
+      "dia": "2026-11-16",
+      "horario": "07:40",
+      "tipo": "stories",
+      "arquivos": [
+        "2026-11-16-S1-01.jpg",
+        "2026-11-16-S1-02.jpg",
+        "2026-11-16-S1-03.jpg",
+        "2026-11-16-S1-04.jpg"
+      ],
+      "tema": "clinica · Como você controla as sessões do pacote?",
+      "gancho": "O risquinho no caderno diz que faltam 3 sessões. Será mesmo?",
+      "ramo": "clinica",
+      "objetivo": "alcance",
+      "ia": false,
+      "origem": "agente",
+      "fatos": [
+        "clin.pacotes"
+      ],
+      "tentativas": 1
+    },
+    {
+      "id": "B",
+      "dia": "2026-11-18",
+      "horario": "18:40",
+      "tipo": "imagem",
+      "arquivos": [
+        "2026-11-16-B-01.jpg"
+      ],
+      "tema": "restaurante · Sangria que ninguém anotou",
+      "gancho": "Você tirou dinheiro do caixa ontem e não anotou. Cadê ele?",
+      "ramo": "restaurante",
+      "objetivo": "alcance",
+      "ia": false,
+      "origem": "agente",
+      "fatos": [
+        "rest.caixa"
+      ],
+      "tentativas": 2,
+      "legenda": "Você tirou dinheiro do caixa ontem e não anotou. Cadê ele?\n\nMinha opinião: caixa no caderno sempre bate. Não porque tá certo, mas porque ninguém confere.\n\nAquela retirada no meio do turno, pra pagar o motoboy ou comprar gelo, some se ninguém registrar. No fim do dia o caderno fecha redondinho e o dinheiro já foi.\n\nNo caixa da Mazzi, a sangria entra no sistema na hora e o fechamento mostra a diferença. Sem achismo.\n\nSalva esse post ou manda pro seu sócio, pra vocês conversarem sobre isso hoje.\n\n#restaurante #gestao #caixa",
+      "alt_text": "Post com fundo grafite e título em destaque sobre caixa de restaurante que sempre bate no caderno. Um cartão de exemplo mostra duas retiradas, uma registrada e outra sem registro, e a diferença no fechamento."
+    },
+    {
+      "id": "S2",
+      "dia": "2026-11-18",
+      "horario": "20:40",
+      "tipo": "stories",
+      "arquivos": [
+        "2026-11-16-S2-01.jpg",
+        "2026-11-16-S2-02.jpg",
+        "2026-11-16-S2-03.jpg",
+        "2026-11-16-S2-04.jpg"
+      ],
+      "tema": "restaurante · Preço do quilo muda por dia da semana",
+      "gancho": "Sexta o quilo é um preço, domingo é outro. E a etiqueta?",
+      "ramo": "restaurante",
+      "objetivo": "alcance",
+      "ia": false,
+      "origem": "agente",
+      "fatos": [
+        "rest.balanca"
+      ],
+      "tentativas": 1
+    }
+  ]
+}
