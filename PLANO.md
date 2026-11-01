@@ -86,6 +86,15 @@ Guias (`marca.md`/`voz.md`: reel narrado e etiqueta de IA) mudam no corte, para 
 4. G6 de vídeo (ffprobe + loudness + contraste e área segura da legenda) e G7 em 6 quadros. Teste: um reel de 5 s no CI passa; um vídeo quebrado de propósito reprova.
 5. Amostras das vozes (Antonio, Kokoro, Chatterbox se rodar em CPU) para a Andressa ouvir, se quiser.
 
+## Fase 1c+: reels em motion graphics ✅ 01/11/2026
+
+Pedido da Andressa depois de ver o 1º reel ("muito parado"): motion editado, a partir dos fixados, de um storyboard
+no Claude Design (https://claude.ai/artifact/WTDvw3PCxNh6ekojRVoW6V) e de 7 referências que ela mandou.
+Biblioteca de 13 cenas (`agente/video/motion/`), edição em código (cortes na batida, atos de cor, transições,
+efeitos), efeitos CC0 da Kenney no repositório, 12 trilhas do Pixabay sem Content ID no repositório PRIVADO
+`mazzi777/mazzi-trilhas` (deploy key só de leitura `TRILHAS_DEPLOY_KEY`). Pexels saiu. Reel do ensaio de 23/11
+aprovado no GitHub (20,6 s, 5 MB). Render de um reel: ~5 a 6 min.
+
 ## Fase 1d: métricas, estratégia, reserva e relatório
 
 1. `agente/metricas.mjs`: coletas D+1/D+3/D+7/D+28, stories às 20:10, conta diária. Trata o atraso de 48 h, o erro 10 (<5) e o vazio. Testes com respostas gravadas da Meta.

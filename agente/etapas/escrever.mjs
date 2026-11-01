@@ -141,7 +141,7 @@ const CENAS_PROMPT = `CENAS DISPONÍVEIS (campo "cena", escolha uma por batida):
 - icone: ícone de app com notificações acumulando que vira o ícone da Mazzi ("de": ícone, "badge": número).
 - orbita: a Mazzi no centro e 4 a 6 ícones de funções girando em volta ("icones").
 - ato: corte para fundo coral com a frase da tela enorme. Use UMA vez, na virada ("mas tem jeito").
-- painel: painel de relatório inclinado com gráfico se desenhando ("titulo", "linhas"? até 2).
+- painel: painel de relatório inclinado com gráfico se desenhando ("titulo", "linhas"? até 2). Só para números do período: vendas, compras, lucro bruto, atendimentos do mês. Para um caso pontual (uma nota, um pedido, uma paciente), use cartão ou celular.
 Regras: comece com gancho; nunca a mesma cena duas vezes seguidas; pelo menos 4 cenas diferentes; pelo menos uma cena que mostre o produto.
 Ícones permitidos: ${ICONES.join(', ')}.`;
 
