@@ -77,6 +77,27 @@
       "tentativas": 1
     },
     {
+      "id": "B",
+      "dia": "2026-11-25",
+      "horario": "20:40",
+      "tipo": "reel",
+      "arquivos": [
+        "2026-11-23-B.mp4"
+      ],
+      "tema": "restaurante · Nota do prato cobrada duas vezes na balança",
+      "gancho": "A nota do prato sumiu e o cliente pagou de novo?",
+      "ramo": "restaurante",
+      "objetivo": "alcance",
+      "ia": true,
+      "origem": "agente",
+      "fatos": [
+        "rest.balanca"
+      ],
+      "tentativas": 3,
+      "legenda": "A nota do prato sumiu e o cliente pagou de novo?\n\nOu pior: saiu com a nota no bolso e sem pagar.\n\nNo self-service, a nota solta é onde o dinheiro escapa. A balança imprime a nota com código de barras. O caixa lê o código e o valor entra sozinho. Nota que já foi cobrada é recusada.\n\nSalva esse vídeo e manda pra quem tem self-service.\n\n#selfservice #restaurante #balança",
+      "capa_ms": 1000
+    },
+    {
       "id": "C",
       "dia": "2026-11-27",
       "horario": "18:40",
