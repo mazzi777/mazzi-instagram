@@ -1,6 +1,6 @@
 // Reel narrado da Mazzi (1080×1920, 30 fps). Visual da marca: grafite, coral, Inter.
 // Área segura do Instagram: todo texto entre y=230 e y=1440 e fora dos 230 px da direita (botões do app).
-// Movimento: a frase da tela entra em 300 ms (sobe 24 px e aparece, curva que desacelera); a legenda acende
+// Movimento: a frase da tela entra em 200 ms (sobe 20 px e aparece, curva que desacelera); a legenda acende
 // palavra por palavra no tempo da fala. Nada quica, nada gira: quem trabalha é a legenda.
 import React from 'react';
 import { AbsoluteFill, Audio, OffthreadVideo, Sequence, staticFile, useCurrentFrame, useVideoConfig, interpolate, Easing } from 'remotion';
@@ -17,8 +17,9 @@ for (const peso of [500, 700, 800]) loadFont({ family: 'Inter', url: staticFile(
 
 function Entrada({ children, atraso = 0 }) {
   const f = useCurrentFrame() - atraso;
-  const p = interpolate(f, [0, 9], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp', easing: SAI });
-  return <div style={{ opacity: p, transform: `translateY(${(1 - p) * 24}px)` }}>{children}</div>;
+  // 200 ms e já começa um pouco visível: na troca de frase não fica um instante de tela vazia.
+  const p = interpolate(f, [0, 6], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp', easing: SAI });
+  return <div style={{ opacity: 0.2 + 0.8 * p, transform: `translateY(${(1 - p) * 20}px)` }}>{children}</div>;
 }
 
 function Titulo({ texto, destaque }) {

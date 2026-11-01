@@ -68,7 +68,17 @@ texto de bastidor barrado, numeração do resumo. O agente segue em ensaio (vari
    - todos com `concurrency` para não rodarem dois ao mesmo tempo sobre o mesmo git.
 8. `guia/marca.md` e `guia/voz.md` atualizados (reel narrado, etiqueta de IA, faixa de frequência).
 
-## Fase 1c: reels narrados
+## Fase 1c: reels narrados ✅ 01/11/2026
+
+Feito e testado no GitHub em ensaio (semana de 23/11): o agente planejou, escreveu, narrou com o Antonio, alinhou a
+legenda com o Whisper, montou no Remotion e aprovou um reel de 26,7 s (H.264 1080×1920, AAC 48 kHz, 1,3 MB,
+is_ai_generated). Amostras de voz: Antonio e Kokoro geradas; o Chatterbox quebrou na instalação (dependência de
+marca d'água) e ficou de fora. Ajustes que o ensaio pediu: "
+" escrito como texto, régua do gancho explicada ao
+redator, regeração que corrige só o apontado, juiz visual que entende a legenda palavra por palavra, variação
+entre frases fora da narração. Falta: a chave do Pexels (vídeo de banco); sem ela o reel sai com fundo grafite.
+Guias (`marca.md`/`voz.md`: reel narrado e etiqueta de IA) mudam no corte, para não confundir a rotina atual.
+
 
 1. `agente/ferramentas/narrar.mjs`: Edge TTS `pt-BR-AntonioNeural` → Kokoro `pm_alex` (Python, cache do pip no Actions) → sem narração; mapa de pronúncia. Teste com motores falsos (falha do 1º cai no 2º).
 2. `agente/ferramentas/alinhar.mjs`: whisper.cpp `small` pt (binário e modelo em cache) → tempos casados com o roteiro (≥ 90% ou reprova). Teste com um áudio curto de amostra.
