@@ -1,0 +1,16 @@
+{
+  "name": "mazzi-instagram",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "node --test publicar/publicar.test.mjs \"agente/**/*.test.mjs\"",
+    "test:agente": "node --test \"agente/**/*.test.mjs\"",
+    "calibrar": "node agente/checagens/calibrar.mjs"
+  },
+  "dependencies": {
+    "zod": "4.6.7"
+  }
+}

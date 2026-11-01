@@ -18,7 +18,9 @@ Regras para todas as tarefas:
 | 0.4 | Chave do Pexels → `PEXELS_KEY` | Andressa cria a conta (2 min) | só antes da 1c |
 | 0.5 | Vigia do heartbeat (decidir: healthchecks.io, que pede conta dela, ou workflow vigia num repositório privado pequeno) | Clou propõe | antes da 1b |
 
-## Fase 1a: base do produto e checagens
+## Fase 1a: base do produto e checagens ✅ 01/11/2026
+
+Feito: `agente/lib/` (texto pt-BR, schemas), `agente/base/` (produto.json + atualizar.mjs), `agente/checagens/` (gancho, legenda, humano, batidas, nunca, fatos, repeticao, calibrar), 26 testes novos, calibração em `agente/checagens/calibracao.md` (G3 AUC 0,90 com 0 de 20 ruins passando; G5 AUC 1,00). Decisões da Andressa no caminho: nunca falar de preço; clínica inclui odontologia.
 
 1. `agente/lib/schemas.mjs`: schemas zod de `produto.json`, `agenda.json` estendida, `estado.json`, registro e uso. Testes com exemplos válidos e inválidos.
 2. `agente/base/produto.json` inicial, a partir de `guia/marca.md` (no ar + NUNCA), do site público e da `faq`. Teste: todo `no_ar` tem `fonte`; nenhum `no_ar` bate com a lista NUNCA.

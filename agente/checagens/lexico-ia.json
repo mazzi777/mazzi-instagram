@@ -1,0 +1,36 @@
+{
+  "nota": "Palavras e estruturas que denunciam texto de IA em pt-BR, para a checagem G5 (humano.mjs). As da marca vêm de guia/voz.md (Words I would never say out loud). Para acrescentar: uma linha em 'palavras' ou 'frases'.",
+  "palavras": [
+    "revolucione", "revolucionar", "revolucionário", "revolucionária", "alavanque", "alavancar", "alavancagem",
+    "potencialize", "potencializar", "inovador", "inovadora", "inovadores", "disruptivo", "disruptiva",
+    "otimize", "otimizar", "maximize", "maximizar", "impulsione", "impulsionar", "desbloqueie", "desbloquear",
+    "eleve", "elevar", "transformador", "transformadora", "jornada", "ecossistema", "sinergia", "robusto", "robusta",
+    "abrangente", "holístico", "holística", "crucial", "fundamental", "essencial", "primordial", "imprescindível",
+    "mergulhe", "mergulhar", "explore", "explorar", "descubra", "aprimore", "aprimorar", "fomentar", "viabilizar",
+    "simplifique", "eficiência", "excelência", "incrível", "incríveis", "perfeito", "perfeita", "ideal",
+    "personalizado", "personalizada", "game-changer", "gamechanger", "next-level", "otimização", "escalável"
+  ],
+  "frases": [
+    "solução completa", "soluções completas", "transforme seu negócio", "transforme o seu negócio",
+    "leve seu negócio", "leve o seu negócio", "próximo nível", "no mundo de hoje", "nos dias de hoje",
+    "no cenário atual", "é importante ressaltar", "é importante lembrar", "é importante destacar", "vale ressaltar",
+    "vale destacar", "em suma", "em resumo", "em conclusão", "sem mais delongas", "mais do que nunca",
+    "de forma eficiente", "de maneira eficiente", "de forma simples e rápida", "tudo em um só lugar",
+    "tudo em um único lugar", "na palma da sua mão", "na palma da mão", "faz toda a diferença",
+    "fazer toda a diferença", "chegou a hora de", "está na hora de", "dê adeus", "diga adeus", "diga olá",
+    "você está pronto", "você está pronta", "pronto para transformar", "pronta para transformar", "seja bem-vindo", "a chave para", "o segredo para", "não é segredo",
+    "experiência única", "do jeito que você merece", "como nunca antes", "um verdadeiro", "uma verdadeira",
+    "otimizar seu tempo", "ganhe tempo", "foque no que importa", "foque no que realmente importa"
+  ],
+  "estruturas": [
+    { "id": "nao-e-so", "regex": "(?i)\\bn[ãa]o [ée] (?:s[óo]|apenas) [^.!?\\n]{2,60}[,.] [ée]\\b", "nome": "\"Não é só X, é Y\"" },
+    { "id": "nao-apenas", "regex": "(?i)\\bn[ãa]o (?:apenas|s[óo])\\b[^.!?\\n]{2,80}\\bmas tamb[ée]m\\b", "nome": "\"Não apenas X, mas também Y\"" },
+    { "id": "nao-se-trata", "regex": "(?i)\\bn[ãa]o se trata de [^.!?\\n]{2,60}[.,] (?:trata-se|se trata)\\b", "nome": "\"Não se trata de X, trata-se de Y\"" },
+    { "id": "o-resultado", "regex": "(?i)^\\s*(?:o resultado|a melhor parte|o detalhe|o segredo)\\?\\s*$", "nome": "Pergunta de uma linha para criar suspense" },
+    { "id": "imagine", "regex": "(?i)(?:^|[.!?]\\s+)imagine (?:s[óo] |se |um |uma |poder )", "nome": "\"Imagine...\" de abertura" },
+    { "id": "seja-ou", "regex": "(?i)\\bseja (?:para|pra|você|voc[êe]) [^.!?\\n]{2,40}, (?:seja|ou) ", "nome": "\"Seja X, seja Y\"" },
+    { "id": "trinca", "regex": "(?i)\\b[\\p{L}]+, [\\p{L}]+ e [\\p{L}]+\\.", "nome": "Lista de três no fim da frase" },
+    { "id": "dois-pontos-revelacao", "regex": "(?m)^[^:\\n]{3,40}: [\\p{Lu}][^\\n]{3,60}\\.$", "nome": "Frase \"Título: revelação.\"" },
+    { "id": "emoji-lista", "regex": "(?m)^\\s*(?:✅|✔️|👉|🔹|🔸|📌|🚀|💡)\\s", "nome": "Lista com emoji no começo de cada linha" }
+  ]
+}

@@ -1,0 +1,241 @@
+{
+  "atualizado_em": "2026-11-01",
+  "ramos": [
+    "clinica",
+    "restaurante"
+  ],
+  "publico": {
+    "clinica": "Donas e donos de clínicas pequenas de estética, harmonização (HOF) e odontologia, que hoje usam agenda de papel, planilha e WhatsApp solto. Foco em estética/HOF; odonto de vez em quando.",
+    "restaurante": "Donos de restaurantes pequenos (self-service por quilo, marmitex, delivery) que anotam pedido no papel e fecham o caixa no caderno."
+  },
+  "preco": {
+    "regra": "nunca_falar",
+    "resposta": "Chama no WhatsApp (link na bio) que a gente te explica."
+  },
+  "entrada": "Não há cadastro aberto: a pessoa chama no WhatsApp (link na bio) e recebe um convite.",
+  "suporte": "Suporte só pelo WhatsApp, link na bio. Quem responde é gente.",
+  "funcoes": [
+    {
+      "id": "rest.caixa",
+      "ramo": "restaurante",
+      "status": "no_ar",
+      "fato": "Caixa com abertura, vendas, pagamento dividido, sangria e fechamento que mostra a diferença.",
+      "fonte": "guia/marca.md#restaurante"
+    },
+    {
+      "id": "rest.delivery.teclado",
+      "ramo": "restaurante",
+      "status": "no_ar",
+      "fato": "Delivery todo pelo teclado: o telefone puxa o cliente, cada produto tem código curto, calcula o troco, marca talher, imprime 2 vias e a via da cozinha, numera o pedido do dia e mostra qual número faltou.",
+      "fonte": "guia/marca.md#restaurante; docs/NOVIDADES.md out/2026 (12)"
+    },
+    {
+      "id": "rest.balanca",
+      "ramo": "restaurante",
+      "status": "no_ar",
+      "fato": "A balança do self-service ligada pelo cabo ao navegador desconta o prato e imprime a nota com código de barras; o caixa lê o código e o valor entra sozinho. Tem tela para o cliente e preço do quilo por dia da semana. Nota já cobrada é recusada.",
+      "fonte": "guia/marca.md#restaurante; site /restaurantes"
+    },
+    {
+      "id": "rest.estoque",
+      "ramo": "restaurante",
+      "status": "no_ar",
+      "fato": "Estoque opcional: bebidas baixam sozinhas na venda, custo médio, fornecedores e alerta de estoque mínimo.",
+      "fonte": "guia/marca.md#restaurante; docs/NOVIDADES.md out/2026 (13)"
+    },
+    {
+      "id": "rest.relatorios",
+      "ramo": "restaurante",
+      "status": "no_ar",
+      "fato": "Relatórios de vendas, compras e lucro bruto aproximado (vendas menos compras).",
+      "fonte": "guia/marca.md#restaurante"
+    },
+    {
+      "id": "clin.agenda",
+      "ramo": "clinica",
+      "status": "no_ar",
+      "fato": "Agenda por profissional, que não deixa marcar duas pessoas no mesmo horário.",
+      "fonte": "guia/marca.md#clinica; site /clinicas"
+    },
+    {
+      "id": "clin.fichas",
+      "ramo": "clinica",
+      "status": "no_ar",
+      "fato": "Cadastro de pacientes e fichas de atendimento com histórico, fotos e lote do produto usado.",
+      "fonte": "guia/marca.md#clinica; site /clinicas"
+    },
+    {
+      "id": "clin.anamnese-termo",
+      "ramo": "clinica",
+      "status": "no_ar",
+      "fato": "Anamnese e termo de consentimento assinados com o dedo na tela (tablet ou celular) ou por link no WhatsApp, com alertas como alergia e anticoagulante. O documento fica na ficha com data, hora e um código que mostra se foi alterado.",
+      "fonte": "guia/marca.md#clinica; site /clinicas"
+    },
+    {
+      "id": "clin.orcamento",
+      "ramo": "clinica",
+      "status": "no_ar",
+      "fato": "Orçamento enviado pelo WhatsApp: a clínica marca como aprovado, abre a agenda já preenchida e registra o sinal.",
+      "fonte": "guia/marca.md#clinica"
+    },
+    {
+      "id": "clin.lembrete-1-clique",
+      "ramo": "clinica",
+      "status": "no_ar",
+      "fato": "Lembrete de consulta pronto para enviar no WhatsApp com um toque, já com nome, dia e horário, e um link para o paciente confirmar ou pedir para remarcar.",
+      "fonte": "guia/marca.md#clinica; site /clinicas"
+    },
+    {
+      "id": "clin.antes-depois",
+      "ramo": "clinica",
+      "status": "no_ar",
+      "fato": "Fotos de antes e depois lado a lado ou com controle deslizante, guardadas na ficha.",
+      "fonte": "guia/marca.md#clinica"
+    },
+    {
+      "id": "clin.estoque-lote",
+      "ramo": "clinica",
+      "status": "no_ar",
+      "fato": "Estoque da clínica com lote e validade: no atendimento usa o lote que vence antes e avisa de lote vencendo em 30 dias e de item acabando.",
+      "fonte": "guia/marca.md#clinica; projeto/arquivos/status-etapas.md (clínica, 08/10/2026)"
+    },
+    {
+      "id": "clin.pacotes",
+      "ramo": "clinica",
+      "status": "no_ar",
+      "fato": "Pacotes de sessões: vende o pacote e cada atendimento desconta uma sessão, com o selo 'Pacote 4/10' na agenda.",
+      "fonte": "guia/marca.md#clinica"
+    },
+    {
+      "id": "clin.comissoes",
+      "ramo": "clinica",
+      "status": "no_ar",
+      "fato": "Comissão por profissional calculada pelos atendimentos.",
+      "fonte": "guia/marca.md#clinica"
+    },
+    {
+      "id": "clin.retornos",
+      "ramo": "clinica",
+      "status": "no_ar",
+      "fato": "Lista de retornos: quem deveria voltar e quando.",
+      "fonte": "site /clinicas"
+    },
+    {
+      "id": "comum.equipe-cargos",
+      "ramo": "comum",
+      "status": "no_ar",
+      "fato": "Equipe com cargos e permissões: cada pessoa vê só o que o cargo permite, e as ações importantes ficam registradas.",
+      "fonte": "guia/marca.md#comum; site"
+    },
+    {
+      "id": "comum.backup",
+      "ramo": "comum",
+      "status": "no_ar",
+      "fato": "Backup diário automático.",
+      "fonte": "guia/marca.md#comum"
+    },
+    {
+      "id": "comum.marca-propria",
+      "ramo": "comum",
+      "status": "no_ar",
+      "fato": "Cada negócio usa o sistema com o próprio logo, cores e fonte, inclusive nos impressos e no ícone do aplicativo no celular.",
+      "fonte": "guia/marca.md#o-que-e; site /clinicas"
+    },
+    {
+      "id": "comum.celular",
+      "ramo": "comum",
+      "status": "no_ar",
+      "fato": "Funciona no navegador do computador e do celular e dá para instalar como aplicativo na tela inicial. Precisa de internet.",
+      "fonte": "site /clinicas; llms.txt"
+    },
+    {
+      "id": "fiscal.nfce",
+      "ramo": "restaurante",
+      "status": "proibido",
+      "motivo": "NFC-e/nota fiscal em homologação: não anunciar."
+    },
+    {
+      "id": "clin.lembrete-automatico",
+      "ramo": "clinica",
+      "status": "proibido",
+      "motivo": "Lembrete automático pela Meta não está ligado; só existe o de 1 clique."
+    },
+    {
+      "id": "rest.custo-por-prato",
+      "ramo": "restaurante",
+      "status": "proibido",
+      "motivo": "Não existe custo por prato; o relatório é lucro bruto aproximado."
+    }
+  ],
+  "faq": [
+    {
+      "pergunta": "Funciona no celular?",
+      "resposta": "Funciona sim, no navegador do celular e do computador, e dá para instalar como aplicativo na tela inicial."
+    },
+    {
+      "pergunta": "Como entro?",
+      "resposta": "Chama no WhatsApp (link na bio): a gente entende o seu negócio e te manda o convite."
+    },
+    {
+      "pergunta": "Quanto custa?",
+      "resposta": "Chama no WhatsApp (link na bio) que a gente te explica."
+    },
+    {
+      "pergunta": "Preciso trocar a minha balança?",
+      "resposta": "Normalmente não: o sistema lê balanças com saída por cabo (serial), como Toledo, Filizola, Elgin e Urano. Antes a gente confere o seu modelo pelo WhatsApp."
+    },
+    {
+      "pergunta": "Precisa de internet?",
+      "resposta": "Precisa, o sistema funciona pela internet."
+    },
+    {
+      "pergunta": "Quem da equipe vê o quê?",
+      "resposta": "Cada pessoa tem um cargo e vê só o que o cargo permite. Os dados de um negócio nunca aparecem para outro."
+    },
+    {
+      "pergunta": "Como o paciente assina a anamnese e o termo?",
+      "resposta": "Na tela, na própria clínica, ou por um link enviado pelo WhatsApp. O documento assinado fica na ficha com data e hora."
+    },
+    {
+      "pergunta": "O lembrete de consulta é automático?",
+      "resposta": "O lembrete sai pronto para enviar no WhatsApp com um toque, já com o nome do paciente, o dia e o horário."
+    },
+    {
+      "pergunta": "Dá para usar a logo e as cores do meu negócio?",
+      "resposta": "Dá sim: o sistema, os impressos e o ícone do aplicativo ficam com a cara do seu negócio."
+    },
+    {
+      "pergunta": "Serve para dentista?",
+      "resposta": "Serve: agenda, fichas com fotos, anamnese, termo e orçamento funcionam para clínica odontológica também."
+    }
+  ],
+  "nunca": [
+    "NFC-e / nota fiscal (em homologação)",
+    "lembrete automático pela Meta (só existe o de 1 clique)",
+    "nome de cliente (AJ Clinic, João XXIII Grill ou qualquer outro) ou a marca deles",
+    "preço, \"grátis\", \"gratuito\", valor, promoção ou desconto",
+    "número, resultado, depoimento ou cliente inventado (valor só dentro de cartão marcado EXEMPLO)",
+    "print do sistema ou dado que pareça real",
+    "promessa de resultado de procedimento estético ou odontológico",
+    "falar mal de concorrente, política ou tema polêmico",
+    "sobra de modelo {{...}}"
+  ],
+  "novidades_vistas": [
+    "Outubro de 2026 (13): restaurante sem estoque e atalho do caixa",
+    "Outubro de 2026 (12): delivery rápido",
+    "Outubro de 2026 (11): suporte só pelo WhatsApp",
+    "Outubro de 2026 (10): fotos fora do banco",
+    "Outubro de 2026 (9): fonte da marca de cada negócio",
+    "Outubro de 2026 (8): site da Mazzi",
+    "Outubro de 2026 (7): revisão adversarial e proteções",
+    "Outubro de 2026 (6): excluir apaga de verdade",
+    "Outubro de 2026 (5): revisão geral",
+    "Outubro de 2026 (4): Balança do self-service",
+    "Outubro de 2026 (3): ícone com a logo do cliente, Controle de clientes e suporte no WhatsApp",
+    "Outubro de 2026 (2): Painel Mazzi, logo oficial e cadastro só por link",
+    "Outubro de 2026: restaurantes, cores de cada negócio e a marca Mazzi Systems",
+    "Setembro de 2026 (3): anamnese, termos, orçamentos, comissões e visual novo",
+    "Setembro de 2026 (2): correções e segurança",
+    "Setembro de 2026: faturamento, cargos e logo"
+  ]
+}
