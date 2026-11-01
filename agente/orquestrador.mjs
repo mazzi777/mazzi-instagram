@@ -1,5 +1,5 @@
 // Máquina de estado de cada peça (SPEC 6.3):
-// escrever → G1–G5/G8 → imagens → G6 técnica + G7 visual → aprovada.
+// escrever → G1–G5/G8 → imagens ou reel (voz, legenda, vídeo) → G6 técnica + G7 visual → aprovada.
 // Reprovou: regera com os motivos (até config.checagens.regeracoes vezes). Esgotou: reserva. Sem reserva: pulada.
 // Tudo vai para registro/AAAA-MM-DD.jsonl. Retomável: o plano fica em semanas/SEMANA/plano.json e
 // a rodada diária produz o que ainda falta.
@@ -11,9 +11,15 @@ import { ErroLimite, ErroTeto, ErroToken } from './cerebro.mjs';
 import { escreverPeca, checarTexto, juizesDeTexto } from './etapas/escrever.mjs';
 import { checarVisual, ProblemasVisuais } from './checagens/visual.mjs';
 import { capturar, paginasDaPeca } from './imagens/capturar.mjs';
+import { montarReel } from './ferramentas/montar_video.mjs';
+import { creditarPexels } from './ferramentas/broll.mjs';
+import { ffprobe } from './ferramentas/binarios.mjs';
 import { Registro, validar } from './lib/schemas.mjs';
 
 export const FORMATOS_COM_IMAGEM = ['carrossel', 'imagem', 'stories'];
+export const FORMATOS_PRODUZIDOS = [...FORMATOS_COM_IMAGEM, 'reel'];
+// Quadro do gancho como capa do reel (thumb_offset da Meta, em ms).
+const CAPA_REEL_MS = 1000;
 
 export function criarRegistro(raiz, agora = () => new Date()) {
   return (entrada) => {
@@ -34,8 +40,22 @@ function entradaAgenda(item, conteudo, arquivos, fatos, tentativa) {
     tema: `${item.ramo} · ${item.tema}`, gancho: conteudo.gancho, ramo: item.ramo, objetivo: item.objetivo,
     ia: false, origem: 'agente', fatos, tentativas: tentativa,
   };
-  if (item.tipo !== 'stories') Object.assign(e, { legenda: conteudo.legenda, alt_text: conteudo.alt_text });
+  if (item.tipo !== 'stories') Object.assign(e, { legenda: conteudo.legenda, ...(conteudo.alt_text ? { alt_text: conteudo.alt_text } : {}) });
   return e;
+}
+
+/** Reel: voz + legenda + vídeo. Devolve { arquivos, entrada, tecnica[], quadros[], limpar() }. */
+async function produzirReel(item, conteudo, texto, tentativa, { semana, pasta, ctx }) {
+  const destino = path.join(pasta, `${semana}-${item.id}.mp4`);
+  const m = await (ctx.montarReel ?? montarReel)({ roteiro: conteudo, item, destino, log: (l) => ctx.registrar({ tipo: 'tentativa', peca: `${semana}/${item.id}`, detalhe: l }) });
+  const limpar = () => m.trabalho && rmSync(m.trabalho, { recursive: true, force: true });
+  if (!m.arquivo) return { arquivos: [], tecnica: m.motivos, quadros: [], limpar };
+  const legenda = m.broll?.length ? creditarPexels(conteudo.legenda) : conteudo.legenda;
+  // Voz sintética realista: etiqueta de IA obrigatória pela política da Meta (SPEC 8.4).
+  const entrada = { ...entradaAgenda(item, { ...conteudo, legenda }, [path.basename(destino)], texto.fatos, tentativa), ia: true, capa_ms: CAPA_REEL_MS };
+  if (!ctx.sondar) process.env.FFPROBE ??= ffprobe(); // o validador do publicador mede o vídeo com ele
+  const tecnica = [...validarPeca(pasta, semana, entrada, { agente: true, ...(ctx.sondar ? { sondar: ctx.sondar } : {}) }), ...m.motivos];
+  return { arquivos: [destino], entrada, tecnica, quadros: m.quadros, limpar, voz: m.motor };
 }
 
 /**
@@ -52,7 +72,7 @@ export async function produzirPeca(item, ctx) {
   let motivos = [];
   let arquivos = [];
 
-  if (!FORMATOS_COM_IMAGEM.includes(item.tipo)) {
+  if (!FORMATOS_PRODUZIDOS.includes(item.tipo)) {
     registrar({ tipo: 'reprovada', peca: onde, motivos: [`formato ${item.tipo} ainda não é produzido`] });
     return usarReserva(item, ctx, [`formato ${item.tipo} ainda não é produzido`]);
   }
@@ -63,6 +83,20 @@ export async function produzirPeca(item, ctx) {
       const texto = await checarTexto({ item, conteudo, produto, ...juizes, usados, hoje, config });
       registrar({ tipo: 'tentativa', peca: onde, notas: texto.notas, motivos: texto.motivos, detalhe: `tentativa ${tentativa}: texto` });
       if (!texto.ok) { motivos = texto.motivos; continue; }
+
+      if (item.tipo === 'reel') {
+        const r = await produzirReel(item, conteudo, texto, tentativa, { semana, pasta, ctx });
+        arquivos = r.arquivos;
+        try {
+          const visual = r.tecnica.length ? { ok: false, motivos: [] } : await checarVisual(r.quadros, { juiz: juizVisual, contexto: `reel · ${conteudo.gancho} (quadros do vídeo)` });
+          motivos = [...r.tecnica, ...visual.motivos];
+        } finally {
+          r.limpar();
+        }
+        registrar({ tipo: motivos.length ? 'tentativa' : 'aprovada', peca: onde, notas: texto.notas, motivos, detalhe: `tentativa ${tentativa}: vídeo (voz ${r.voz ?? 'nenhuma'})` });
+        if (!motivos.length) return { status: 'aprovada', entrada: r.entrada };
+        continue;
+      }
 
       const paginas = paginasDaPeca({ semana, id: item.id, tipo: item.tipo, ramo: item.ramo, conteudo, pasta });
       arquivos = await (ctx.capturar ?? capturar)(paginas, { navegador: ctx.navegador });

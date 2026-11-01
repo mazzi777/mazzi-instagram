@@ -7,7 +7,7 @@ name: Agente do Instagram
 # Variáveis do repositório (Settings › Variables), o kill switch:
 #   AGENTE_PAUSADO = true      pausa tudo (o publicador também respeita)
 #   AGENTE_MODO    = ensaio    produz em ensaio/ (o publicador não lê) | so_reserva | vazio = real
-# Segredos: CLAUDE_CODE_OAUTH_TOKEN (assinatura), AJ_CLINIC_DEPLOY_KEY (leitura do aj-clinic),
+# Segredos: CLAUDE_CODE_OAUTH_TOKEN (assinatura), AJ_CLINIC_DEPLOY_KEY (leitura do aj-clinic), PEXELS_KEY (vídeo de banco),
 #           HEARTBEAT_URL (opcional: vigia que avisa se o agente parar de rodar).
 
 on:
@@ -77,6 +77,27 @@ jobs:
       - name: Chromium (captura das imagens)
         run: npx playwright install --with-deps chromium
 
+      # Reel narrado: ffmpeg (acabamento e medidas), Whisper (legenda sincronizada) e o navegador do Remotion.
+      - name: ffmpeg
+        run: command -v ffmpeg || (sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg)
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: agente/ferramentas/requisitos.txt
+
+      - name: Whisper (faster-whisper)
+        run: pip install -q -r agente/ferramentas/requisitos.txt
+
+      - name: Cache do modelo do Whisper e do navegador do Remotion
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/huggingface
+            node_modules/.remotion
+          key: video-${{ runner.os }}-whisper-small-remotion-4.0.539
+
       - name: Clonar o aj-clinic (só leitura, para as novidades do produto)
         if: steps.qual.outputs.comando == 'semanal'
         env:
@@ -93,6 +114,7 @@ jobs:
         id: agente
         env:
           CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          PEXELS_KEY: ${{ secrets.PEXELS_KEY }}
           AGENTE_HOJE: ${{ inputs.hoje }}
         run: node agente/agente.mjs ${{ steps.qual.outputs.comando }}
 

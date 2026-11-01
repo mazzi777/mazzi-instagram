@@ -59,7 +59,7 @@ export function tamanhoJpeg(buf) {
 }
 
 export function sondarVideo(arquivo) {
-  const saida = execFileSync('ffprobe', ['-v', 'error', '-show_entries',
+  const saida = execFileSync(process.env.FFPROBE || 'ffprobe', ['-v', 'error', '-show_entries',
     'stream=codec_type,codec_name,width,height:format=duration', '-of', 'json', arquivo], { encoding: 'utf8' });
   const j = JSON.parse(saida);
   const v = j.streams.find((s) => s.codec_type === 'video');

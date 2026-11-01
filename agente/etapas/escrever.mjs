@@ -6,6 +6,7 @@ import { checarHumano } from '../checagens/humano.mjs';
 import { checarNunca } from '../checagens/nunca.mjs';
 import { checarFatos, resumoParaJuiz } from '../checagens/fatos.mjs';
 import { checarRepeticao } from '../checagens/repeticao.mjs';
+import { checarBatidas } from '../checagens/batidas.mjs';
 import { Afirmacoes, ProblemasMarca } from '../lib/schemas.mjs';
 import { contextoMarca } from './contexto.mjs';
 
@@ -23,11 +24,19 @@ const Slide = z.object({
   cartao: Cartao.optional(),
 });
 const Quadro = z.object({ titulo: z.string().min(2).max(80), destaque: z.string().max(25).optional(), texto: z.string().max(140).optional(), cartao: Cartao.optional() });
+const Batida = z.object({
+  fala: z.string().min(2).max(160),
+  tela: z.string().min(2).max(40),
+  destaque: z.string().max(25).optional(),
+  cartao: Cartao.optional(),
+  broll: z.string().max(60).nullable().optional(),
+});
 
 export const CONTEUDO = {
   carrossel: z.object({ gancho: z.string().min(3).max(70), slides: z.array(Slide).min(5).max(8), legenda: z.string().min(20).max(2200), alt_text: z.string().min(10).max(1000) }),
   imagem: z.object({ gancho: z.string().min(3).max(70), titulo: z.string().min(2).max(70), destaque: z.string().max(25).optional(), texto: z.string().max(190).optional(), cartao: Cartao.optional(), legenda: z.string().min(20).max(2200), alt_text: z.string().min(10).max(1000) }),
   stories: z.object({ gancho: z.string().min(3).max(80), quadros: z.array(Quadro).min(4).max(5) }),
+  reel: z.object({ gancho: z.string().min(3).max(70), batidas: z.array(Batida).min(6).max(14), legenda: z.string().min(20).max(2200) }),
 };
 
 const cartaoTexto = (c) => (c ? `[CARTÃO EXEMPLO${c.titulo ? ` "${c.titulo}"` : ''}: ${c.linhas.map((l) => `${l.rotulo}${l.selo ? ` = ${l.selo}` : ''}`).join('; ')}]` : '');
@@ -38,13 +47,17 @@ export function textoDaPeca(tipo, c) {
   if (tipo === 'carrossel') for (const s of c.slides) partes.push([s.titulo, s.texto, ...(s.itens ?? []), cartaoTexto(s.cartao)].filter(Boolean).join('\n'));
   if (tipo === 'imagem') partes.push([c.titulo, c.texto, cartaoTexto(c.cartao)].filter(Boolean).join('\n'));
   if (tipo === 'stories') for (const q of c.quadros) partes.push([q.titulo, q.texto, cartaoTexto(q.cartao)].filter(Boolean).join('\n'));
+  if (tipo === 'reel') for (const b of c.batidas) partes.push([`NA TELA: ${b.tela}`, `NARRAÇÃO: ${b.fala}`, cartaoTexto(b.cartao)].filter(Boolean).join('\n'));
   if (c.legenda) partes.push(`LEGENDA:\n${c.legenda}`);
   return partes.join('\n\n');
 }
 
 /** Texto corrido sem cartões (para as notas de estilo, que não devem ler rótulos de interface). */
-const textoCorrido = (tipo, c) => (tipo === 'stories' ? c.quadros.map((q) => [q.titulo, q.texto].filter(Boolean).join('. ')).join('\n')
-  : [c.legenda ?? ''].join('\n'));
+const textoCorrido = (tipo, c) => {
+  if (tipo === 'stories') return c.quadros.map((q) => [q.titulo, q.texto].filter(Boolean).join('. ')).join('\n');
+  if (tipo === 'reel') return `${c.batidas.map((b) => b.fala).join(' ')}\n${c.legenda}`;
+  return c.legenda ?? '';
+};
 
 /** G1–G5 e G8 sobre o texto de uma peça. Devolve { ok, motivos, notas, fatos }. */
 export async function checarTexto({ item, conteudo, produto, juizFatos, juizMarca, usados, hoje, config }) {
@@ -70,6 +83,7 @@ export async function checarTexto({ item, conteudo, produto, juizFatos, juizMarc
   const [nunca, fatos] = await Promise.all([checarNunca(tudo, { juiz: juizMarca, base: resumoParaJuiz(produto) }), checarFatos(tudo, { juiz: juizFatos, produto })]);
   motivos.push(...nunca.motivos, ...fatos.motivos);
   motivos.push(...checarRepeticao(conteudo.gancho, usados, { hoje, limite: c.repeticao.limite }).motivos);
+  if (item.tipo === 'reel') motivos.push(...checarBatidas(conteudo.batidas.map((b) => b.fala), c.batidas).motivos);
   return { ok: motivos.length === 0, motivos, notas, fatos: fatos.fatos };
 }
 
@@ -78,6 +92,7 @@ export function promptPeca(item, motivosAnteriores = []) {
     carrossel: '5 a 8 slides: capa (gancho), estaca, ideias (uma por slide, com "passo" numerado se for sequência), resumo (itens) e chamada. Cartão de exemplo quando ajudar a ver a função.',
     imagem: 'um post de imagem única: título forte, texto curto e, se ajudar, um cartão de exemplo.',
     stories: '4 ou 5 quadros, uma ideia por quadro, falando com "você"; o 4º é o pedido ("me responde aqui nesse story" ou "chama no WhatsApp, link na bio").',
+    reel: 'reel narrado de 20 a 40 segundos, em 7 a 12 batidas. Cada batida tem "fala" (o que a voz diz: frases curtas de gente, até 10 palavras para caber em 4 segundos; a 1ª fala é o gancho, até 7 palavras, e cabe em 3 segundos), "tela" (a frase grande na tela, até 6 palavras, que reforça a fala sem repetir tudo) e, quando ajudar, "cartao" de exemplo ou "broll" (termo de busca EM INGLÊS para um vídeo de fundo de OBJETO ou LUGAR, sem pessoa em destaque: "restaurant kitchen", "cash register", "clinic reception desk", "smartphone notification"; use em 2 a 4 batidas, não em todas). A última batida é a chamada. Escreva a fala para ser ouvida: sem siglas difíceis, sem parênteses, sem emoji.',
   }[item.tipo];
   const chamada = item.objetivo === 'conversa' ? 'A chamada é "chama no WhatsApp (link na bio)".' : 'A chamada pede para salvar ou compartilhar o post (uma só).';
   return `Escreva a peça abaixo para o Instagram @mazzisystems.
@@ -87,7 +102,7 @@ Ramo: ${item.ramo} · Objetivo: ${item.objetivo} · Tipo de conteúdo: ${item.co
 Tema: ${item.tema}
 Ângulo: ${item.angulo}
 Fatos da base que pode usar (e só estes): ${item.fatos.join(', ')}
-${item.tipo === 'stories' ? '' : `${chamada}\nA legenda começa com o gancho (primeira linha, até 125 caracteres), corpo curto, uma chamada, até 3 hashtags no fim.\n"alt_text" descreve a capa para quem não enxerga, em uma ou duas frases.`}
+${item.tipo === 'stories' ? '' : `${chamada}\nA legenda começa com o gancho (primeira linha, até 125 caracteres), corpo curto, uma chamada, até 3 hashtags no fim.${item.tipo === 'reel' ? '' : '\n"alt_text" descreve a capa para quem não enxerga, em uma ou duas frases.'}`}
 "gancho" é a frase da capa / do 1º quadro: até 12 palavras, concreta, com algo em jogo, falando com o dono.
 Nunca escreva sobre o plano, o ângulo ou o próprio post ("o foco aqui é...", "neste post"): escreva só o que o dono vai ler.
 ${motivosAnteriores.length ? `\nA TENTATIVA ANTERIOR FOI REPROVADA. Corrija tudo isto:\n${motivosAnteriores.map((m) => `- ${m}`).join('\n')}` : ''}`;

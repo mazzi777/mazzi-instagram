@@ -15,7 +15,9 @@ As imagens vêm na ordem (1, 2, 3...). Aponte só problemas reais, um por linha,
 5. falta o @mazzisystems;
 6. cartão de interface sem o selo "EXEMPLO";
 7. qualquer coisa que pareça print de sistema real, dado de pessoa real, nome de cliente ou marca de outra empresa;
-8. imagem vazia, quebrada ou com caractere estranho (quadrado, interrogação no lugar de acento).
+8. imagem vazia, quebrada ou com caractere estranho (quadrado, interrogação no lugar de acento);
+9. pessoa com o rosto identificável em destaque no vídeo de fundo (pode mão, objeto, lugar, pessoa de costas ou desfocada);
+10. legenda ou texto difícil de ler sobre o vídeo de fundo.
 Se estiver tudo certo, devolva a lista vazia.`;
 
 /** juiz(tarefa, texto, imagens) → { problemas } */

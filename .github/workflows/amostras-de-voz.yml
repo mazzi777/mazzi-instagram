@@ -1,0 +1,43 @@
+name: Amostras de voz
+
+# Só na mão: o mesmo texto nas vozes candidatas do reel, para a Andressa ouvir e comparar.
+# O resultado fica como "artefato" da rodada (amostras-de-voz.zip). Não publica nada.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  amostras:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: ffmpeg e espeak-ng (o Kokoro usa para o português)
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg espeak-ng
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Antonio (Edge) e Kokoro (pm_alex)
+        run: node agente/ferramentas/amostras.mjs amostras
+
+      - name: Chatterbox (3ª candidata, em CPU)
+        continue-on-error: true
+        timeout-minutes: 25
+        run: |
+          pip install -q chatterbox-tts
+          printf '%s' "O caixa não fechou de novo? A sangria ficou num papel que ninguém achou. Na Mázi, cada sangria fica registrada na hora. No fechamento, você vê a diferença do dia e de onde ela veio. Quer ver no seu restaurante? Chama no WhatsApp, o link tá na bio." \
+            | python -X utf8 -I agente/ferramentas/chatterbox_tts.py amostras/chatterbox.wav
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: amostras-de-voz
+          path: amostras/*.wav

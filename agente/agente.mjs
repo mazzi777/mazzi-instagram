@@ -14,7 +14,7 @@ import { lerProduto } from './checagens/fatos.mjs';
 import { lerGanchosUsados } from './checagens/repeticao.mjs';
 import { atualizarBase } from './base/atualizar.mjs';
 import { planejarSemana } from './etapas/planejar.mjs';
-import { criarRegistro, produzirPendentes, FORMATOS_COM_IMAGEM } from './orquestrador.mjs';
+import { criarRegistro, produzirPendentes, FORMATOS_PRODUZIDOS } from './orquestrador.mjs';
 import { Produto, validar } from './lib/schemas.mjs';
 import { z } from 'zod';
 
@@ -88,7 +88,7 @@ export async function rodar(comando, { env = process.env, agora = () => new Date
   }
 
   let produto = lerProduto();
-  const formatos = config.formatosAtivos ?? FORMATOS_COM_IMAGEM;
+  const formatos = config.formatosAtivos ?? FORMATOS_PRODUZIDOS;
   const usados = [...lerGanchosUsados(RAIZ), ...ganchosDasAgendas(saida)];
   const ctxBase = { raiz: RAIZ, saida, config, cerebro, usados, hoje, registrar, reserva: null };
 
