@@ -119,6 +119,8 @@ test('nunca (palavras): o que é proibido reprova', () => {
     'Na eleição do ano que vem': /política/,
     'O melhor sistema do Brasil': /superlativo/,
     'Caixa fechado — sem diferença': /travessão/,
+    'O foco aqui é o passo depois do sim.': /bastidor/,
+    'Neste post vamos falar de caixa': /bastidor/,
   };
   for (const [texto, esperado] of Object.entries(casos)) {
     assert.match(palavrasProibidas(texto).join(' | '), esperado, texto);

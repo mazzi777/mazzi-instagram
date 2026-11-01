@@ -16,6 +16,8 @@ export const PROIBIDAS_AGENTE = [
     'tema polêmico ou fora do assunto'],
   [/(?<![\p{L}])(?:melhor (?:sistema|do brasil|do mercado)|[uú]nico (?:sistema|do mercado)|n[uú]mero 1|l[ií]der (?:do|de) mercado)(?![\p{L}])/iu,
     'superlativo que não dá para provar'],
+  [/(?<![\p{L}])(?:o foco (?:aqui|deste|desse|do post)|neste (?:post|carrossel|story|reel)|nesse (?:post|carrossel)|este post (?:mostra|fala)|o [aâ]ngulo|como planejado|tema da semana)/iu,
+    'texto de bastidor: a peça fala do plano ou do próprio post'],
   [/(?<![\p{L}])(?:odonto|dentista)[\p{L}]*(?:[^.!?\n]{0,40})(?:clareamento|implante|aparelho|sorriso perfeito)/iu,
     'promessa de procedimento odontológico'],
 ];

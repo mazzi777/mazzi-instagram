@@ -46,7 +46,7 @@ html,body{width:${l}px;height:${a}px;background:#111316;color:#F3F1EC;font-famil
 .topo{display:flex;justify-content:space-between;font-size:${story ? 34 : 32}px;font-weight:700;letter-spacing:.08em}
 .ramo{color:#FF7A50;text-transform:uppercase}
 .pagina{color:#9a9890;letter-spacing:.02em;font-weight:500}
-.corpo{flex:1;display:flex;flex-direction:column;justify-content:center;gap:40px;min-height:0}
+.corpo{flex:1;display:flex;flex-direction:column;justify-content:safe center;gap:40px;min-height:0;margin:28px 0}
 .traco{width:120px;height:12px;border-radius:6px;background:#FF7A50}
 .num{color:#FF7A50;font-size:48px;font-weight:700}
 h1{font-weight:800;letter-spacing:-.035em;line-height:1.02;font-size:var(--fs,112px)}
@@ -62,12 +62,23 @@ h1{font-weight:800;letter-spacing:-.035em;line-height:1.02;font-size:var(--fs,11
 .lista div{display:flex;gap:22px}.lista b{color:#FF7A50;font-weight:700}
 `;
 
-// Encolhe o título até caber (sem cortar palavra): o G7 confere depois, mas aqui já sai certo.
+// Encolhe o título (e depois o texto) até caber, sem cortar palavra. Depois MEDE: se ainda transborda,
+// encosta na borda ou invade o topo/rodapé, marca data-problema e a peça reprova na checagem técnica (G6).
+// Roda depois que a fonte Inter carregou (medir com a fonte reserva daria outro tamanho).
 const AJUSTE = `<script>
-const h=document.querySelector('h1'),c=document.querySelector('.corpo');
-if(h){let fs=parseFloat(getComputedStyle(h).fontSize);
-while(fs>56&&(c.scrollHeight>c.clientHeight+1||h.scrollWidth>h.clientWidth+1)){fs-=4;h.style.setProperty('--fs',fs+'px')}}
+document.fonts.ready.then(()=>{
+const h=document.querySelector('h1'),c=document.querySelector('.corpo'),t=document.querySelector('.texto');
+const sobra=()=>c.scrollHeight>c.clientHeight+1||(h&&h.scrollWidth>h.clientWidth+1);
+if(h){let fs=parseFloat(getComputedStyle(h).fontSize);while(fs>56&&sobra()){fs-=4;h.style.setProperty('--fs',fs+'px')}}
+if(t){let fs=parseFloat(getComputedStyle(t).fontSize);while(fs>32&&sobra()){fs-=2;t.style.fontSize=fs+'px'}}
+const r=(e)=>e.getBoundingClientRect(),cr=r(c),problemas=[];
+if(sobra())problemas.push('o conteúdo não coube na peça');
+for(const e of c.querySelectorAll('h1,.texto,.cartao,.lista,.traco,.num')){const b=r(e);
+if(b.top<cr.top-1||b.bottom>cr.bottom+1)problemas.push('elemento saiu da área do conteúdo e encostou no topo ou no rodapé');
+if(b.left<0||b.right>innerWidth)problemas.push('elemento saiu pela lateral');}
+document.body.dataset.problema=[...new Set(problemas)].join('; ');
 document.body.dataset.pronto='1';
+});
 </script>`;
 
 function pagina({ formato, ramo, numero, total, corpo, seguir }) {

@@ -47,7 +47,7 @@ export async function produzirPeca(item, ctx) {
   const pasta = path.join(saida, 'semanas', semana);
   const onde = `${semana}/${item.id}`;
   const juizes = juizesDeTexto(cerebro);
-  const juizVisual = cerebro.juiz(ProblemasVisuais, 'juiz:visual');
+  const juizVisual = cerebro.juiz(ProblemasVisuais, 'juiz:visual', config.modelos.juizVisual);
   const maxTentativas = 1 + (cerebro.economico() ? 0 : config.checagens.regeracoes);
   let motivos = [];
   let arquivos = [];
@@ -67,7 +67,7 @@ export async function produzirPeca(item, ctx) {
       const paginas = paginasDaPeca({ semana, id: item.id, tipo: item.tipo, ramo: item.ramo, conteudo, pasta });
       arquivos = await (ctx.capturar ?? capturar)(paginas, { navegador: ctx.navegador });
       const entrada = entradaAgenda(item, conteudo, arquivos.map((a) => path.basename(a)), texto.fatos, tentativa);
-      const tecnica = validarPeca(pasta, semana, entrada, { agente: true });
+      const tecnica = [...validarPeca(pasta, semana, entrada, { agente: true }), ...(arquivos.problemas ?? []).map((p) => `diagramação: ${p}`)];
       const visual = tecnica.length ? { ok: false, motivos: [] } : await checarVisual(arquivos, { juiz: juizVisual, contexto: `${item.tipo} · ${conteudo.gancho}` });
       motivos = [...tecnica, ...visual.motivos];
       registrar({ tipo: motivos.length ? 'tentativa' : 'aprovada', peca: onde, notas: texto.notas, motivos, detalhe: `tentativa ${tentativa}: imagens` });

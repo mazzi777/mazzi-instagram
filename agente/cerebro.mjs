@@ -113,8 +113,8 @@ export function criarCerebro({ raiz, config, agora = () => new Date(), consultar
   }
 
   /** Juiz no formato que as checagens esperam: (tarefa, texto, imagens?) => objeto do schema. */
-  const juiz = (schema, etapa = 'juiz') => (tarefa, texto, imagens = []) => pedir({
-    etapa, modelo: config.modelos.juiz, sistema: tarefa, prompt: `PEÇA A CONFERIR:\n\n${texto}`, imagens, schema, maxTurns: 2, effort: 'low',
+  const juiz = (schema, etapa = 'juiz', modelo = config.modelos.juiz) => (tarefa, texto, imagens = []) => pedir({
+    etapa, modelo, sistema: tarefa, prompt: `PEÇA A CONFERIR:\n\n${texto}`, imagens, schema, maxTurns: 2, effort: 'low',
   });
 
   const economico = () => gastoSemana() >= teto * config.uso.economicoEm;

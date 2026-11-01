@@ -1,6 +1,6 @@
 {
   "nota": "Configuração do agente. Limites de G3/G5 vêm de agente/checagens/calibracao.md (01/11/2026).",
-  "modelos": { "redator": "claude-sonnet-5-5", "planejador": "claude-sonnet-5-5", "juiz": "claude-haiku-5-5" },
+  "modelos": { "redator": "claude-sonnet-5-5", "planejador": "claude-sonnet-5-5", "juiz": "claude-haiku-5-5", "juizVisual": "claude-sonnet-5-5" },
   "checagens": {
     "gancho": { "notaMinima": 70, "criterioMinimo": 55 },
     "humano": { "notaMinima": 70, "criterioMinimo": 55 },

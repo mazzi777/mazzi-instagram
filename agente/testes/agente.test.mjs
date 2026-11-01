@@ -249,3 +249,19 @@ test('modelos: o selo EXEMPLO sai sempre no cartão e o texto é escapado', () =
   assert.match(html, /@mazzisystems/);
   assert.match(htmlStory({ titulo: 'Oi' }, { ramo: 'restaurante' }), /@mazzisystems/);
 });
+
+test('diagramação: texto que não cabe é medido na própria página e vira problema (precisa de navegador)', async (t) => {
+  const { capturar, paginasDaPeca } = await import('../imagens/capturar.mjs');
+  const pasta = tmp();
+  const enorme = { titulo: 'Título '.repeat(30), texto: 'Texto muito comprido que não cabe. '.repeat(40), cartao: { linhas: [{ rotulo: 'a' }, { rotulo: 'b' }, { rotulo: 'c' }] } };
+  let r;
+  try {
+    r = await capturar(paginasDaPeca({ semana: SEMANA, id: 'I1', tipo: 'imagem', ramo: 'clinica', conteudo: enorme, pasta }));
+  } catch (e) {
+    t.skip(`sem navegador para o teste: ${e.message.split('\n')[0]}`);
+    return;
+  }
+  assert.match(r.problemas.join(), /não coube|saiu da área/);
+  const ok = await capturar(paginasDaPeca({ semana: SEMANA, id: 'I2', tipo: 'imagem', ramo: 'clinica', conteudo: { titulo: 'Caixa fechou certo?', texto: 'Curto.' }, pasta }));
+  assert.deepEqual(ok.problemas, []);
+});
