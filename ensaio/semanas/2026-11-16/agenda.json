@@ -66,6 +66,52 @@
         "rest.balanca"
       ],
       "tentativas": 1
+    },
+    {
+      "id": "S3",
+      "dia": "2026-11-20",
+      "horario": "20:40",
+      "tipo": "stories",
+      "arquivos": [
+        "2026-11-16-S3-01.jpg",
+        "2026-11-16-S3-02.jpg",
+        "2026-11-16-S3-03.jpg",
+        "2026-11-16-S3-04.jpg",
+        "2026-11-16-S3-05.jpg"
+      ],
+      "tema": "comum · Como entrar na Mazzi",
+      "gancho": "Não tem cadastro aberto: só entra quem chama no WhatsApp.",
+      "ramo": "comum",
+      "objetivo": "conversa",
+      "ia": false,
+      "origem": "agente",
+      "fatos": [
+        "comum.marca-propria",
+        "comum.celular"
+      ],
+      "tentativas": 2
+    },
+    {
+      "id": "D",
+      "dia": "2026-11-21",
+      "horario": "20:40",
+      "tipo": "imagem",
+      "arquivos": [
+        "2026-11-16-D-01.jpg"
+      ],
+      "tema": "clinica · A paciente que fez a sessão e nunca voltou",
+      "gancho": "Ela fez a sessão e sumiu. Quem ia lembrar de chamar?",
+      "ramo": "clinica",
+      "objetivo": "conversa",
+      "ia": false,
+      "origem": "agente",
+      "fatos": [
+        "clin.retornos",
+        "clin.lembrete-1-clique"
+      ],
+      "tentativas": 2,
+      "legenda": "Quantas pacientes fizeram sessão com você e nunca mais apareceram?\n\nNa maioria das vezes não foi por mal. Ninguém anotou quando ela deveria voltar, e ninguém chamou.\n\nNa Mazzi, a lista de retornos mostra quem deveria voltar e quando. O lembrete de 1 clique abre o WhatsApp com nome, dia e horário já prontos, e um link pra paciente confirmar ou pedir pra remarcar.\n\nChama no WhatsApp (link na bio) que a gente te mostra como funciona.\n\n#clinicadeestetica #gestaodeclinica #harmonizacaofacial",
+      "alt_text": "Post escuro com a frase \"Ela fez a sessão e sumiu. Quem ia lembrar de chamar?\" e um cartão de exemplo com a lista de retornos do mês."
     }
   ]
 }
