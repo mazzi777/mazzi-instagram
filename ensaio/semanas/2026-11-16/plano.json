@@ -34,8 +34,7 @@
         "clin.agenda"
       ],
       "exploracao": false,
-      "id": "A",
-      "situacao": "pulada"
+      "id": "A"
     },
     {
       "dia": "2026-11-18",
@@ -83,8 +82,7 @@
         "rest.estoque"
       ],
       "exploracao": false,
-      "id": "C",
-      "situacao": "pulada"
+      "id": "C"
     },
     {
       "dia": "2026-11-20",
@@ -100,8 +98,7 @@
         "comum.celular"
       ],
       "exploracao": false,
-      "id": "S3",
-      "situacao": "pulada"
+      "id": "S3"
     },
     {
       "dia": "2026-11-21",
@@ -117,8 +114,7 @@
         "clin.lembrete-1-clique"
       ],
       "exploracao": true,
-      "id": "D",
-      "situacao": "pulada"
+      "id": "D"
     }
   ],
   "porque": "Semana ISO 47: pelo rodízio, carrossel de segunda é Clínica tema 6 (pacotes e comissão) e o de sexta é Restaurante tema 6 (quanto sobrou). Reel não está ligado, então a quarta ficou com imagem e stories do restaurante. São 4 posts de feed, 3 de conversa e 1 de alcance (75%). Stories em segunda, quarta e sexta (clínica, restaurante, convite). As duas exploração são a imagem de quarta (formato pouco testado) e a de sábado às 20:40 (horário novo). Evitei os ganchos e ângulos de orçamento, delivery sem papel e \"caixa cheio no dia 30\". Sem preço, cliente ou número inventado."

@@ -39,3 +39,4 @@ Este texto entra no prompt do planejador e do redator. O guia da marca (`guia/ma
 
 - Só afirme o que está na base do produto (funções no ar). Se a função não está na lista, ela não existe.
 - Nunca fale de preço (nem "grátis"). Nunca cite cliente, depoimento, número ou resultado (valor só dentro de cartão de exemplo). Nunca prometa resultado de procedimento.
+- Descreva o que a tela mostra, não o resultado que ela traria: "o relatório mostra vendas menos compras" pode; "você vai saber se fechou no azul", "a calculadora fica de folga", "sobra tempo pra atender" não podem (são promessa de resultado).

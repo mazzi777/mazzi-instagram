@@ -57,7 +57,11 @@ export async function checarTexto({ item, conteudo, produto, juizFatos, juizMarc
   if (item.tipo !== 'stories') {
     const legenda = checarLegenda(conteudo.legenda);
     motivos.push(...legenda.motivos);
-    if (!legenda.detalhe.visivel.includes(conteudo.gancho.replace(/[.?!]+$/, '').slice(0, 30))) motivos.push('legenda: o gancho não está no começo da legenda');
+    // A primeira linha da legenda é o gancho do feed: não precisa ser idêntica à capa, mas tem que ser forte.
+    const primeira = conteudo.legenda.trim().split('
+')[0];
+    const g = checarGancho(primeira, c.gancho);
+    if (!g.ok) motivos.push(`legenda: a primeira linha não é um gancho forte (nota ${g.nota}): "${primeira}"`);
   }
   // Stories: cada quadro é uma tela, então variação de tamanho entre frases não se aplica.
   const humano = checarHumano(textoCorrido(item.tipo, conteudo), { ...c.humano, semVariacao: item.tipo === 'stories' });
