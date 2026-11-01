@@ -1,0 +1,36 @@
+name: Testar o token da Meta
+
+# Só na mão: mostra as permissões do META_TOKEN e confere que ele lê a conta e os insights.
+# Não publica nada.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  testar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Permissões, conta e insights
+        env:
+          META_TOKEN: ${{ secrets.META_TOKEN }}
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+        run: |
+          set -e
+          g() { curl -sS -G -H "Authorization: Bearer $META_TOKEN" "https://graph.facebook.com/v25.0/$1" "${@:2}"; }
+          echo "Permissões concedidas:"
+          g me/permissions | jq -r '.data[] | select(.status=="granted") | "  - " + .permission'
+          echo "Conta:"
+          g "$IG_USER_ID" --data-urlencode fields=username | jq -r '"  @" + .username'
+          echo "Insights da conta (alcance de ontem):"
+          r=$(g "$IG_USER_ID/insights" --data-urlencode metric=reach --data-urlencode period=day --data-urlencode metric_type=total_value)
+          echo "$r" | jq -e '.data' > /dev/null || { echo "::error::Insights falhou: $(echo "$r" | jq -c '.error | {code, message}')"; exit 1; }
+          echo "$r" | jq -r '"  alcance: " + ((.data[0].total_value.value // 0) | tostring)'
+          echo "Comentários do último post:"
+          m=$(g "$IG_USER_ID/media" --data-urlencode fields=id --data-urlencode limit=1 | jq -r '.data[0].id')
+          c=$(g "$m/comments" --data-urlencode fields=id)
+          echo "$c" | jq -e '.data' > /dev/null || { echo "::error::Comentários falhou: $(echo "$c" | jq -c '.error | {code, message}')"; exit 1; }
+          echo "  leitura OK ($(echo "$c" | jq '.data | length') comentário(s))"
