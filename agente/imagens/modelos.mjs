@@ -96,7 +96,8 @@ export function htmlSlide(slide, { ramo, numero, total }) {
   if (slide.tipo === 'capa') {
     corpo = `<div class="traco"></div><h1 style="--fs:124px">${titulo(slide.titulo, slide.destaque)}</h1>${slide.texto ? `<p class="texto">${esc(slide.texto)}</p>` : ''}`;
   } else if (slide.tipo === 'resumo') {
-    const itens = (slide.itens ?? []).map((t, i) => `<div><b>${i + 1}</b><span>${esc(t)}</span></div>`).join('');
+    // O modelo numera; número que o redator já tenha posto ("1.", "2)") sai, para não ficar "1 1.".
+    const itens = (slide.itens ?? []).map((t, i) => `<div><b>${i + 1}</b><span>${esc(t.replace(/^\s*\d+\s*[.)\-:]\s*/, ''))}</span></div>`).join('');
     corpo = `<h1 style="--fs:84px">${titulo(slide.titulo, slide.destaque)}</h1><div class="lista">${itens}</div>`;
   } else {
     const passo = slide.passo ? `<div class="num">${slide.passo}</div>` : '';

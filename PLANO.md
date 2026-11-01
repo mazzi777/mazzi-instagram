@@ -34,7 +34,14 @@ Feito: `agente/lib/` (texto pt-BR, schemas), `agente/base/` (produto.json + atua
 5. Calibração (`agente/checagens/calibrar.mjs`): ganchos do `guia/log.md` + 20 ganchos ruins de propósito → curva e limite. O resultado vai para `agente/checagens/calibracao.md`. Os limites de G3 e G5 em `config.json` vêm daqui.
 6. G1 (fatos: juiz mockado + ligação a ids), G2 (regex do `validar.mjs` reaproveitada + juiz semântico mockado) e G8 (similaridade com o log). Testes de reprovação obrigatórios: NFC-e, lembrete automático, cliente citado, número sem EXEMPLO, promessa estética, concorrente, "grátis para sempre", travessão, `{{`.
 
-## Fase 1b: cérebro, plano e peças de imagem
+## Fase 1b: cérebro, plano e peças de imagem ✅ 01/11/2026 (falta só o vigia, item 0.5)
+
+Feito e testado de verdade no GitHub em modo ensaio (`ensaio/`, que o publicador não lê), semana de 16/11:
+plano com as regras cobradas, 5 de 7 peças aprovadas, 2 puladas por motivo justo. Uso: ~US$ 1,90 equivalente
+nas 5 rodadas de ajuste. Ajustes que o ensaio pediu: juízes com o tom da marca e a base, nota humana calibrada
+para frases curtas, limite do Pro para a rodada (não pula), transbordo medido na página, juiz visual com Sonnet,
+texto de bastidor barrado, numeração do resumo. O agente segue em ensaio (variável AGENTE_MODO=ensaio) até o corte.
+
 
 1. `agente/cerebro.mjs`: wrapper do Agent SDK.
    - Configuração: modelo por etapa, ferramentas do Claude Code desligadas, ferramentas nossas por MCP no processo.

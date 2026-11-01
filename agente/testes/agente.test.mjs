@@ -248,6 +248,9 @@ test('modelos: o selo EXEMPLO sai sempre no cartão e o texto é escapado', () =
   assert.match(html, /&lt;b&gt;x&lt;\/b&gt;/);
   assert.match(html, /@mazzisystems/);
   assert.match(htmlStory({ titulo: 'Oi' }, { ramo: 'restaurante' }), /@mazzisystems/);
+  const resumo = htmlSlide({ tipo: 'resumo', titulo: 'Resumo', itens: ['1. Abra o caixa', '2) Feche'] }, { ramo: 'restaurante', numero: 5, total: 6 });
+  assert.match(resumo, /<b>1<\/b><span>Abra o caixa<\/span>/);
+  assert.match(resumo, /<b>2<\/b><span>Feche<\/span>/);
 });
 
 test('diagramação: texto que não cabe é medido na própria página e vira problema (precisa de navegador)', async (t) => {
