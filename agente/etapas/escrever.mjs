@@ -87,7 +87,7 @@ export async function checarTexto({ item, conteudo, produto, juizFatos, juizMarc
   return { ok: motivos.length === 0, motivos, notas, fatos: fatos.fatos };
 }
 
-export function promptPeca(item, motivosAnteriores = []) {
+export function promptPeca(item, motivosAnteriores = [], anterior = null) {
   const formato = {
     carrossel: '5 a 8 slides: capa (gancho), estaca, ideias (uma por slide, com "passo" numerado se for sequência), resumo (itens) e chamada. Cartão de exemplo quando ajudar a ver a função.',
     imagem: 'um post de imagem única: título forte, texto curto e, se ajudar, um cartão de exemplo.',
@@ -105,16 +105,17 @@ Fatos da base que pode usar (e só estes): ${item.fatos.join(', ')}
 ${item.tipo === 'stories' ? '' : `${chamada}\nA legenda começa com o gancho (primeira linha, até 125 caracteres), corpo curto, uma chamada, até 3 hashtags no fim.${item.tipo === 'reel' ? '' : '\n"alt_text" descreve a capa para quem não enxerga, em uma ou duas frases.'}`}
 "gancho" é a frase da capa / do 1º quadro: até 12 palavras, concreta, com algo em jogo, falando com o dono.
 Nunca escreva sobre o plano, o ângulo ou o próprio post ("o foco aqui é...", "neste post"): escreva só o que o dono vai ler.
-${motivosAnteriores.length ? `\nA TENTATIVA ANTERIOR FOI REPROVADA. Corrija tudo isto:\n${motivosAnteriores.map((m) => `- ${m}`).join('\n')}` : ''}`;
+${motivosAnteriores.length ? `\nA TENTATIVA ANTERIOR FOI REPROVADA. Corrija tudo isto:\n${motivosAnteriores.map((m) => `- ${m}`).join('\n')}` : ''}
+${anterior ? `\nSUA VERSÃO ANTERIOR está abaixo. Mantenha tudo o que não foi apontado e mude SÓ o necessário para resolver os pontos acima (reescrever tudo cria problemas novos):\n${JSON.stringify(anterior, null, 1)}` : ''}`;
 }
 
 /** Escreve a peça (uma tentativa). */
-export async function escreverPeca({ raiz, item, produto, cerebro, config, motivosAnteriores }) {
+export async function escreverPeca({ raiz, item, produto, cerebro, config, motivosAnteriores, anterior }) {
   const conteudo = await cerebro.pedir({
     etapa: `escrever:${item.tipo}`,
     modelo: config.modelos.redator,
     sistema: `Você é o redator do Instagram da Mazzi Systems. Escreve como gente, em português do Brasil.\n\n${contextoMarca(raiz, produto)}`,
-    prompt: promptPeca(item, motivosAnteriores),
+    prompt: promptPeca(item, motivosAnteriores, anterior),
     schema: CONTEUDO[item.tipo],
     effort: 'medium',
   });

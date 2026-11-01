@@ -17,8 +17,7 @@
         "clin.agenda"
       ],
       "exploracao": false,
-      "id": "A",
-      "situacao": "pulada"
+      "id": "A"
     },
     {
       "dia": "2026-11-23",
@@ -66,8 +65,7 @@
         "rest.balanca"
       ],
       "exploracao": true,
-      "id": "B",
-      "situacao": "pulada"
+      "id": "B"
     },
     {
       "dia": "2026-11-27",

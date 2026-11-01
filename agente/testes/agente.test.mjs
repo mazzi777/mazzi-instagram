@@ -169,6 +169,7 @@ test('orquestrador: reprovou, regera com os motivos; esgotou sem reserva, pula (
   assert.equal(r.status, 'pulada');
   assert.equal(cerebro.pedidos.length, 3);
   assert.match(cerebro.pedidos[1].prompt, /REPROVADA/);
+  assert.match(cerebro.pedidos[1].prompt, /SUA VERSÃO ANTERIOR/, 'a versão reprovada volta para corrigir só o apontado');
   assert.equal(existsSync(path.join(saida, 'semanas', SEMANA, `${SEMANA}-A-01.jpg`)), false, 'não deixa imagem de peça reprovada');
 });
 

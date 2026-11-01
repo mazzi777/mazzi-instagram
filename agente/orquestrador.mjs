@@ -71,6 +71,7 @@ export async function produzirPeca(item, ctx) {
   const maxTentativas = 1 + (cerebro.economico() ? 0 : config.checagens.regeracoes);
   let motivos = [];
   let arquivos = [];
+  let anterior = null; // a versão reprovada volta para o redator corrigir só o apontado
 
   if (!FORMATOS_PRODUZIDOS.includes(item.tipo)) {
     registrar({ tipo: 'reprovada', peca: onde, motivos: [`formato ${item.tipo} ainda não é produzido`] });
@@ -79,7 +80,8 @@ export async function produzirPeca(item, ctx) {
 
   for (let tentativa = 1; tentativa <= maxTentativas; tentativa++) {
     try {
-      const conteudo = await escreverPeca({ raiz, item, produto, cerebro, config, motivosAnteriores: motivos });
+      const conteudo = await escreverPeca({ raiz, item, produto, cerebro, config, motivosAnteriores: motivos, anterior });
+      anterior = conteudo;
       const texto = await checarTexto({ item, conteudo, produto, ...juizes, usados, hoje, config });
       registrar({ tipo: 'tentativa', peca: onde, notas: texto.notas, motivos: texto.motivos, detalhe: `tentativa ${tentativa}: texto` });
       if (!texto.ok) { motivos = texto.motivos; continue; }

@@ -27,7 +27,7 @@ export const CONCRETOS = new Set([
   'paciente', 'pacientes', 'cliente', 'clientes', 'caixa', 'pedido', 'pedidos', 'orçamento', 'orçamentos', 'agenda',
   'anamnese', 'termo', 'termos', 'tablet', 'balança', 'quilo', 'sangria', 'lote', 'lotes', 'validade', 'estoque',
   'bebida', 'bebidas', 'refrigerante', 'motoboy', 'delivery', 'marmita', 'marmitex', 'comanda', 'ficha', 'fichas',
-  'whatsapp', 'papel', 'caderno', 'caneta', 'planilha', 'pacote', 'pacotes', 'sessão', 'sessões', 'comissão',
+  'whatsapp', 'zap', 'papel', 'caderno', 'caneta', 'planilha', 'pacote', 'pacotes', 'sessão', 'sessões', 'comissão',
   'fornecedor', 'fornecedores', 'consulta', 'consultas', 'retorno', 'horário', 'horários', 'recepção', 'prato',
   'pratos', 'cartão', 'fila', 'almoço', 'cozinha', 'telefone', 'celular', 'foto', 'fotos', 'antes', 'depois',
   'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado', 'domingo', 'mês', 'semana', 'dia', 'fechamento',
