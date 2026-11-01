@@ -1,6 +1,6 @@
 # SPEC: agente autônomo do Instagram @mazzisystems
 
-Versão 1, 01/11/2026. Status: **aguardando aprovação da Andressa**. Nada aqui foi implementado.
+Versão 1, 01/11/2026. Status: **aprovado pela Andressa em 01/11/2026**. Plano de implementação: `PLANO.md`.
 
 O "funcionário" que cuida do @mazzisystems sozinho: decide o que postar e quando, produz (inclusive reels narrados), confere, publica, lê os resultados e ajusta a estratégia. Você não aprova post. Só recebe aviso quando algo quebra.
 
@@ -231,7 +231,7 @@ O agente escolhe entre os 4 horários fixos. Os pesos vêm das métricas por hor
 
 ### 7.2 Atualização automática (sem você)
 
-1. Toda semana, o agente lê `aj-clinic/docs/NOVIDADES.md` com um token só de leitura (segredo `AJ_CLINIC_LEITURA`, PAT fine-grained, `contents:read`, só no repo `aj-clinic`).
+1. Toda semana, o agente lê `aj-clinic/docs/NOVIDADES.md` com uma deploy key só de leitura (segredo `AJ_CLINIC_DEPLOY_KEY`, vale só para o repo `aj-clinic`).
 2. O Claude extrai as funções novas como candidatas. O código barra tudo que bate com a lista NUNCA (NFC-e, lembrete automático, nome de cliente…) ou com o padrão "em homologação / falta / pendente".
 3. Candidata que passou vira `no_ar` com a fonte anotada (arquivo e linha) e aparece no relatório: "passei a divulgar: X". Você só lê; se não quiser, me diz e ela vira `proibido`.
 
@@ -460,7 +460,7 @@ O git é grátis, guarda histórico, é auditável e já é o que o publicador u
 
 1. **Token do Claude:** você roda `claude setup-token` no seu PC e aprova no navegador. Eu gravo o segredo `CLAUDE_CODE_OAUTH_TOKEN` com `gh secret set` sem mostrar o valor.
 2. **Novo token da Meta**, com os escopos de uma vez para não refazer na Fase 2: `instagram_basic`, `instagram_content_publish`, `instagram_manage_insights`, `instagram_manage_comments`, `instagram_manage_messages` e o que a doc pedir para DM. Você entra no Gerenciador de Negócios (conta do Matheus), eu conduzo pelo navegador. O token atual não tem `instagram_manage_insights`, e **sem ele não há métricas**.
-3. PAT só de leitura do `aj-clinic` → segredo `AJ_CLINIC_LEITURA`.
+3. ~~PAT só de leitura do `aj-clinic`~~ → trocado por uma **deploy key só de leitura** (não vence, só vale para o `aj-clinic` e não precisou de login), no segredo `AJ_CLINIC_DEPLOY_KEY`. Feito em 01/11/2026.
 4. Conta grátis no healthchecks.io → segredo `HEARTBEAT_URL`.
 5. Chave grátis do Pexels → segredo `PEXELS_KEY`.
 
