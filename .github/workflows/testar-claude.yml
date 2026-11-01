@@ -1,0 +1,26 @@
+name: Testar o token do Claude
+
+# Só na mão: confere que o segredo CLAUDE_CODE_OAUTH_TOKEN (assinatura da Andressa) responde.
+# Gasta uma resposta curtíssima do plano. O agente faz a mesma checagem sozinho a partir da Fase 1b.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  testar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Perguntar ao Claude
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+        run: |
+          resposta=$(npx -y @anthropic-ai/claude-code@latest -p "Responda só com a palavra OK." --max-turns 1 --model claude-haiku-5-5)
+          echo "Resposta: $resposta"
+          case "$resposta" in *OK*) echo "Token do Claude funcionando." ;; *) echo "::error::O Claude não respondeu OK."; exit 1 ;; esac
