@@ -80,7 +80,7 @@ export async function produzirPeca(item, ctx) {
   }
   for (const a of arquivos) rmSync(a, { force: true });
   registrar({ tipo: 'reprovada', peca: onde, motivos });
-  return usarReserva(item, ctx, motivos);
+  return { ...(await usarReserva(item, ctx, motivos)), motivos };
 }
 
 async function usarReserva(item, ctx, motivos) {
@@ -122,7 +122,7 @@ export async function produzirPendentes({ desde, ate, ...ctx }) {
       if (r.entrada) gravarNaAgenda(saida, semana, r.entrada);
       item.situacao = r.status;
       gravarJson(fPlano, plano);
-      feitas.push({ id: item.id, status: r.status });
+      feitas.push({ id: item.id, status: r.status, ...(r.motivos ? { motivos: r.motivos } : {}) });
     } catch (e) {
       registrar({ tipo: 'erro', peca: `${semana}/${item.id}`, motivos: [e.message], detalhe: e.constructor.name });
       return { feitas, parou: e };

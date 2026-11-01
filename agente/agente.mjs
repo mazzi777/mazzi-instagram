@@ -108,6 +108,7 @@ export async function rodar(comando, { env = process.env, agora = () => new Date
       }
       const r = await produzirPendentes({ ...ctxBase, produto, semana, desde: semana, ate: dataMais(semana, 6) });
       log.push(`Produzidas: ${r.feitas.map((f) => `${f.id}=${f.status}`).join(', ') || 'nada'}`);
+      for (const f of r.feitas.filter((x) => x.motivos)) log.push(`  ${f.id} (${f.status}), último motivo: ${f.motivos.join(' | ')}`);
       if (r.parou) erros.push(erroComoAviso(r.parou));
     } else if (comando === 'diario') {
       const ate = dataMais(hoje, 3);
