@@ -169,3 +169,17 @@ test('redator: "\n" escrito como texto vira quebra de linha de verdade em toda a
   assert.equal(r.batidas[0].fala, 'a\nb');
   assert.equal(r.n, 3);
 });
+
+test('juiz visual: quadros no meio das cenas, longe dos cortes (nada de pegar transição pela metade)', async () => {
+  const { temposDosQuadros } = await import('../ferramentas/montar_video.mjs');
+  const cenas = [[0, 90], [90, 150], [150, 260], [260, 330], [330, 420], [420, 500], [500, 590], [590, 680]].map(([de, ate]) => ({ de, ate }));
+  const t = temposDosQuadros(cenas);
+  assert.equal(t.length, 6);
+  for (const s of t) {
+    const q = s * 30;
+    const c = cenas.find((x) => q >= x.de && q < x.ate);
+    assert.ok(c, `quadro ${s}s dentro de uma cena`);
+    assert.ok(q - c.de >= 12 && c.ate - q >= 3, `quadro ${s}s longe do corte`);
+  }
+  assert.equal(temposDosQuadros(cenas.slice(0, 3)).length, 3);
+});

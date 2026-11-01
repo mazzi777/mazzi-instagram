@@ -43,9 +43,18 @@ export function acabar(entrada, saida) {
 }
 
 /** Seis quadros para o juiz visual: 0,5 s, o gancho, três no meio e o fim. */
-export function extrairQuadros(video, pasta) {
+/**
+ * Instantes para o juiz visual: o meio de até 6 cenas, já com a animação de entrada pronta e longe das
+ * transições (num quadro de cortina ou chicote, metade da tela aparece "cortada" de propósito).
+ */
+export function temposDosQuadros(cenas, fps = FPS) {
+  const escolhidas = cenas.length <= 6 ? cenas : Array.from({ length: 6 }, (_, k) => cenas[Math.round((k * (cenas.length - 1)) / 5)]);
+  return escolhidas.map((c) => +((c.de + Math.max(12, (c.ate - c.de) * 0.62)) / fps).toFixed(2)).map((t, i) => Math.min(t, (escolhidas[i].ate - 3) / fps));
+}
+
+export function extrairQuadros(video, pasta, tempos) {
   const d = duracao(video);
-  const tempos = [0.5, 1.6, d * 0.35, d * 0.55, d * 0.75, Math.max(0.5, d - 0.8)];
+  tempos ??= [0.5, 1.6, d * 0.35, d * 0.55, d * 0.75, Math.max(0.5, d - 0.8)];
   return tempos.map((t, i) => {
     const f = path.join(pasta, `quadro-${i + 1}.jpg`);
     rodar(ffmpeg(), ['-v', 'error', '-y', '-ss', t.toFixed(2), '-i', video, '-frames:v', '1', '-q:v', '3', f]);
@@ -107,7 +116,7 @@ export async function montarReel({ roteiro, item, destino, log = () => {}, ...fn
 
     const loudness = (fns.loudnessFn ?? medirLoudness)(destino);
     if (!(Math.abs(loudness - LUFS_ALVO) <= 2)) motivos.push(`áudio: loudness ${loudness} LUFS (alvo ${LUFS_ALVO} ±2)`);
-    const quadros = (fns.quadrosFn ?? extrairQuadros)(destino, trabalho);
+    const quadros = (fns.quadrosFn ?? extrairQuadros)(destino, trabalho, temposDosQuadros(edicao.cenas));
     return { arquivo: destino, quadros, motor: voz.motor, casado: alinhado.casado, loudness, duracao: total, trilha: trilha?.id ?? null, cenas: edicao.cenas.map((c) => `${c.tipo}/${c.ato}/${c.entrada}`), motivos, trabalho };
   } catch (e) {
     rmSync(trabalho, { recursive: true, force: true });
