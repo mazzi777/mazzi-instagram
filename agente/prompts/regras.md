@@ -10,6 +10,19 @@ Este texto entra no prompt do planejador e do redator. O guia da marca (`guia/ma
 - O horário importa menos que os 2 primeiros segundos. Escolha o horário pelos dados quando houver; sem dados, feed às 11:40 ou 18:40 e stories às 07:40 ou 20:40.
 - Objetivo `conversa`: a peça termina levando ao WhatsApp. Objetivo `alcance`: a peça ensina ou provoca e termina pedindo para salvar ou compartilhar.
 
+## Como o gancho é avaliado (nota mínima 70, nenhum critério abaixo de 55)
+
+O gancho da capa, do 1º quadro e da primeira linha da legenda passa por esta régua. Escreva já pensando nela:
+
+1. **Tamanho:** 5 a 12 palavras, até 60 caracteres. No reel, a 1ª fala tem até 7 palavras (cabe em 3 segundos).
+2. **Concreto:** tem um objeto do dia a dia do dono (caixa, paciente, orçamento, sangria, troco, pedido, balança, lote, agenda, WhatsApp) ou um nome/número de cena.
+3. **Tensão:** tem algo em jogo: "não", "sem", "sumiu", "faltou", "de novo", "esqueceu", "errado", "ninguém", "antes", ou é uma pergunta.
+4. **Na frente:** a palavra de peso aparece nas 4 primeiras palavras. Nunca abra com "Você sabia", "Hoje", "Olha", "Então", cumprimento ou "neste vídeo".
+5. **Com quem:** fala com o dono ("você", "seu", "sua"), abre com uma ordem ("Confere", "Anota") ou é pergunta direta.
+
+Bons: "O caixa não fechou de novo?", "Paciente faltou e o horário ficou vazio?", "Visualizou o orçamento e sumiu?".
+Ruins: "Gestão eficiente para sua clínica", "Seu negócio. Organizado.", "Hoje vou falar de estoque".
+
 ## Carrossel (ig-carousel)
 
 - 5 a 8 slides: **capa** (o gancho, até 6 palavras grandes + uma linha de promessa), **o que está em jogo** (por que importa, uma frase), **uma ideia por slide** (título de 3 a 7 palavras + até 25 palavras), **resumo** (a lista que a pessoa printa e manda), **chamada** (uma ação só).

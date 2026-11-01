@@ -130,3 +130,11 @@ test('orquestrador (reel): voz que falhou ou legenda fora de sincronia reprova; 
   assert.equal(r.status, 'pulada');
   assert.match(r.motivos.join(), /voz|legenda/);
 });
+
+test('redator: "\n" escrito como texto vira quebra de linha de verdade em toda a peça', async () => {
+  const { limparTexto } = await import('../etapas/escrever.mjs');
+  const r = limparTexto({ legenda: 'Gancho?\n\nCorpo.\n#tag', batidas: [{ fala: 'a\nb' }], n: 3 });
+  assert.equal(r.legenda, 'Gancho?\n\nCorpo.\n#tag');
+  assert.equal(r.batidas[0].fala, 'a\nb');
+  assert.equal(r.n, 3);
+});

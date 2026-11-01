@@ -109,8 +109,8 @@ ${motivosAnteriores.length ? `\nA TENTATIVA ANTERIOR FOI REPROVADA. Corrija tudo
 }
 
 /** Escreve a peça (uma tentativa). */
-export function escreverPeca({ raiz, item, produto, cerebro, config, motivosAnteriores }) {
-  return cerebro.pedir({
+export async function escreverPeca({ raiz, item, produto, cerebro, config, motivosAnteriores }) {
+  const conteudo = await cerebro.pedir({
     etapa: `escrever:${item.tipo}`,
     modelo: config.modelos.redator,
     sistema: `Você é o redator do Instagram da Mazzi Systems. Escreve como gente, em português do Brasil.\n\n${contextoMarca(raiz, produto)}`,
@@ -118,6 +118,18 @@ export function escreverPeca({ raiz, item, produto, cerebro, config, motivosAnte
     schema: CONTEUDO[item.tipo],
     effort: 'medium',
   });
+  return limparTexto(conteudo);
+}
+
+/**
+ * Às vezes o modelo escreve a quebra de linha como o texto "\n" (barra e n) em vez de quebrar a linha.
+ * Aqui vira quebra de verdade, em todo texto da peça, antes de qualquer checagem.
+ */
+export function limparTexto(valor) {
+  if (typeof valor === 'string') return valor.replace(/\\r\\n|\\n/g, '\n').replace(/\\t/g, ' ');
+  if (Array.isArray(valor)) return valor.map(limparTexto);
+  if (valor && typeof valor === 'object') return Object.fromEntries(Object.entries(valor).map(([k, v]) => [k, limparTexto(v)]));
+  return valor;
 }
 
 export const juizesDeTexto = (cerebro) => ({ juizFatos: cerebro.juiz(Afirmacoes, 'juiz:fatos'), juizMarca: cerebro.juiz(ProblemasMarca, 'juiz:marca') });
