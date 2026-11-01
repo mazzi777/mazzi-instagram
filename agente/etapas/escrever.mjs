@@ -7,6 +7,7 @@ import { checarNunca } from '../checagens/nunca.mjs';
 import { checarFatos, resumoParaJuiz } from '../checagens/fatos.mjs';
 import { checarRepeticao } from '../checagens/repeticao.mjs';
 import { checarBatidas } from '../checagens/batidas.mjs';
+import { ICONES } from '../video/motion/icones.mjs';
 import { Afirmacoes, ProblemasMarca } from '../lib/schemas.mjs';
 import { contextoMarca } from './contexto.mjs';
 
@@ -24,13 +25,39 @@ const Slide = z.object({
   cartao: Cartao.optional(),
 });
 const Quadro = z.object({ titulo: z.string().min(2).max(80), destaque: z.string().max(25).optional(), texto: z.string().max(140).optional(), cartao: Cartao.optional() });
+// Cenas da biblioteca de motion (agente/video/motion/cenas.jsx). O redator escolhe uma por batida.
+const Ic = z.enum(ICONES);
+const Cena = z.discriminatedUnion('tipo', [
+  z.object({ tipo: z.literal('gancho'), simbolo: z.enum(['?', '!', 'x']).optional() }),
+  z.object({ tipo: z.literal('digitando'), texto: z.string().min(3).max(34), chip: z.object({ icone: Ic, rotulo: z.string().min(2).max(18) }).optional() }),
+  z.object({ tipo: z.literal('lista'), itens: z.array(z.object({ icone: Ic, rotulo: z.string().min(2).max(22) })).min(3).max(5) }),
+  z.object({ tipo: z.literal('cartao'), cartao: Cartao }),
+  z.object({ tipo: z.literal('papel'), rabiscos: z.array(z.string().min(2).max(22)).min(3).max(5), cartao: Cartao }),
+  z.object({ tipo: z.literal('checklist'), itens: z.array(z.string().min(2).max(26)).min(3).max(5) }),
+  z.object({ tipo: z.literal('contador'), rotulo: z.string().min(2).max(18), valor: z.number().int().min(1).max(999), total: z.number().int().min(1).max(999).optional(), sufixo: z.string().max(3).optional() }),
+  z.object({ tipo: z.literal('celular'), contato: z.string().max(18).optional(), mensagens: z.array(z.object({ lado: z.enum(['negocio', 'cliente']), texto: z.string().min(2).max(70) })).min(1).max(3) }),
+  z.object({ tipo: z.literal('icone'), de: Ic, badge: z.number().int().min(1).max(99) }),
+  z.object({ tipo: z.literal('orbita'), icones: z.array(Ic).min(4).max(6) }),
+  z.object({ tipo: z.literal('ato') }),
+  z.object({ tipo: z.literal('painel'), titulo: z.string().min(2).max(26), linhas: z.array(z.object({ rotulo: z.string().max(30), selo: z.string().max(22).optional(), tom: z.enum(['ok', 'aviso', 'ruim', 'neutro']).optional() })).max(2).optional() }),
+]);
 const Batida = z.object({
   fala: z.string().min(2).max(160),
   tela: z.string().min(2).max(40),
   destaque: z.string().max(25).optional(),
-  cartao: Cartao.optional(),
-  broll: z.string().max(60).nullable().optional(),
+  cena: Cena,
 });
+
+/** Regras de edição que o código cobra do roteiro do reel (variedade e começo forte). */
+export function regrasDaEdicao(batidas) {
+  const tipos = batidas.map((b) => b.cena.tipo);
+  const motivos = [];
+  if (tipos[0] !== 'gancho') motivos.push('edição: a 1ª batida tem que ser a cena "gancho"');
+  tipos.forEach((t, i) => { if (i && t === tipos[i - 1]) motivos.push(`edição: cena "${t}" repetida nas batidas ${i} e ${i + 1}`); });
+  if (new Set(tipos).size < 4) motivos.push(`edição: só ${new Set(tipos).size} tipos de cena; use pelo menos 4 diferentes`);
+  if (!tipos.some((t) => ['cartao', 'celular', 'painel', 'lista', 'icone', 'papel', 'contador'].includes(t))) motivos.push('edição: falta uma cena que mostre o produto (cartão, celular, painel, lista, ícone, papel ou contador)');
+  return motivos;
+}
 
 export const CONTEUDO = {
   carrossel: z.object({ gancho: z.string().min(3).max(70), slides: z.array(Slide).min(5).max(8), legenda: z.string().min(20).max(2200), alt_text: z.string().min(10).max(1000) }),
@@ -47,9 +74,24 @@ export function textoDaPeca(tipo, c) {
   if (tipo === 'carrossel') for (const s of c.slides) partes.push([s.titulo, s.texto, ...(s.itens ?? []), cartaoTexto(s.cartao)].filter(Boolean).join('\n'));
   if (tipo === 'imagem') partes.push([c.titulo, c.texto, cartaoTexto(c.cartao)].filter(Boolean).join('\n'));
   if (tipo === 'stories') for (const q of c.quadros) partes.push([q.titulo, q.texto, cartaoTexto(q.cartao)].filter(Boolean).join('\n'));
-  if (tipo === 'reel') for (const b of c.batidas) partes.push([`NA TELA: ${b.tela}`, `NARRAÇÃO: ${b.fala}`, cartaoTexto(b.cartao)].filter(Boolean).join('\n'));
+  if (tipo === 'reel') for (const b of c.batidas) partes.push([`NA TELA: ${b.tela}`, `NARRAÇÃO: ${b.fala}`, textoDaCena(b.cena)].filter(Boolean).join('\n'));
   if (c.legenda) partes.push(`LEGENDA:\n${c.legenda}`);
   return partes.join('\n\n');
+}
+
+/** O que aparece escrito numa cena do reel (interface sempre marcada como EXEMPLO para o juiz de fatos). */
+function textoDaCena(c) {
+  switch (c.tipo) {
+    case 'digitando': return `NA TELA (digitado): ${c.texto}${c.chip ? ` [${c.chip.rotulo}]` : ''}`;
+    case 'lista': return `LISTA: ${c.itens.map((i) => i.rotulo).join('; ')}`;
+    case 'cartao': return cartaoTexto(c.cartao);
+    case 'papel': return `CADERNO (rabiscos de exemplo): ${c.rabiscos.join('; ')}\n${cartaoTexto(c.cartao)}`;
+    case 'checklist': return `CHECKLIST: ${c.itens.join('; ')}`;
+    case 'contador': return `[CARTÃO EXEMPLO: ${c.rotulo} = ${c.valor}${c.total ? `/${c.total}` : ''}${c.sufixo ?? ''}]`;
+    case 'celular': return `[CELULAR EXEMPLO: ${c.mensagens.map((m) => `${m.lado}: ${m.texto}`).join(' | ')}]`;
+    case 'painel': return `[PAINEL EXEMPLO "${c.titulo}": ${(c.linhas ?? []).map((l) => `${l.rotulo}${l.selo ? ` = ${l.selo}` : ''}`).join('; ')}]`;
+    default: return '';
+  }
 }
 
 /** Texto corrido sem cartões (para as notas de estilo, que não devem ler rótulos de interface). */
@@ -83,16 +125,32 @@ export async function checarTexto({ item, conteudo, produto, juizFatos, juizMarc
   const [nunca, fatos] = await Promise.all([checarNunca(tudo, { juiz: juizMarca, base: resumoParaJuiz(produto) }), checarFatos(tudo, { juiz: juizFatos, produto })]);
   motivos.push(...nunca.motivos, ...fatos.motivos);
   motivos.push(...checarRepeticao(conteudo.gancho, usados, { hoje, limite: c.repeticao.limite }).motivos);
-  if (item.tipo === 'reel') motivos.push(...checarBatidas(conteudo.batidas.map((b) => b.fala), c.batidas).motivos);
+  if (item.tipo === 'reel') motivos.push(...checarBatidas(conteudo.batidas.map((b) => b.fala), c.batidas).motivos, ...regrasDaEdicao(conteudo.batidas));
   return { ok: motivos.length === 0, motivos, notas, fatos: fatos.fatos };
 }
+
+const CENAS_PROMPT = `CENAS DISPONÍVEIS (campo "cena", escolha uma por batida):
+- gancho: a frase da tela bate palavra por palavra com risco à mão no "destaque" e símbolos gigantes no fundo ("simbolo": ? ! ou x). SEMPRE a 1ª batida.
+- digitando: uma frase curta sendo digitada ("texto") e um chip com ícone que salta no fim ("chip": {icone, rotulo}).
+- lista: 3 a 5 botões com ícone girando em 3D ("itens": [{icone, rotulo}]). Bom para "tudo que dá pra fazer".
+- cartao: cartão de interface EXEMPLO em vidro 3D ("cartao": {titulo, linhas: [{rotulo, selo, tom}]}).
+- papel: caderno rabiscado × cartão da Mazzi ("rabiscos": 3 a 5 anotações curtas de caderno, "cartao").
+- checklist: 3 a 5 itens que se marcam no tempo da música ("itens").
+- contador: anel que enche e número que rola, só valor de EXEMPLO ou contagem do produto ("rotulo", "valor", "total"?, "sufixo"?).
+- celular: telefone em 3D com 1 a 3 mensagens subindo ("mensagens": [{lado: negocio|cliente, texto}], "contato"?).
+- icone: ícone de app com notificações acumulando que vira o ícone da Mazzi ("de": ícone, "badge": número).
+- orbita: a Mazzi no centro e 4 a 6 ícones de funções girando em volta ("icones").
+- ato: corte para fundo coral com a frase da tela enorme. Use UMA vez, na virada ("mas tem jeito").
+- painel: painel de relatório inclinado com gráfico se desenhando ("titulo", "linhas"? até 2).
+Regras: comece com gancho; nunca a mesma cena duas vezes seguidas; pelo menos 4 cenas diferentes; pelo menos uma cena que mostre o produto.
+Ícones permitidos: ${ICONES.join(', ')}.`;
 
 export function promptPeca(item, motivosAnteriores = [], anterior = null) {
   const formato = {
     carrossel: '5 a 8 slides: capa (gancho), estaca, ideias (uma por slide, com "passo" numerado se for sequência), resumo (itens) e chamada. Cartão de exemplo quando ajudar a ver a função.',
     imagem: 'um post de imagem única: título forte, texto curto e, se ajudar, um cartão de exemplo.',
     stories: '4 ou 5 quadros, uma ideia por quadro, falando com "você"; o 4º é o pedido ("me responde aqui nesse story" ou "chama no WhatsApp, link na bio").',
-    reel: 'reel narrado de 20 a 40 segundos, em 7 a 12 batidas. Cada batida tem "fala" (o que a voz diz: frases curtas de gente, até 10 palavras para caber em 4 segundos; a 1ª fala é o gancho, até 7 palavras, e cabe em 3 segundos), "tela" (a frase grande na tela, até 6 palavras, que reforça a fala sem repetir tudo) e, quando ajudar, "cartao" de exemplo ou "broll" (termo de busca EM INGLÊS para um vídeo de fundo de OBJETO ou LUGAR, sem pessoa em destaque: "restaurant kitchen", "cash register", "clinic reception desk", "smartphone notification"; use em 2 a 4 batidas, não em todas). A última batida é a chamada. Escreva a fala para ser ouvida: sem siglas difíceis, sem parênteses, sem emoji.',
+    reel: 'reel narrado de 20 a 40 segundos, em 7 a 12 batidas. Cada batida tem "fala" (o que a voz diz: frases curtas de gente, até 10 palavras para caber em 4 segundos; a 1ª fala é o gancho, até 7 palavras, e cabe em 3 segundos), "tela" (a frase grande na tela, até 6 palavras, que reforça a fala sem repetir tudo) e "cena" (o motion graphics daquela batida). A última batida é a chamada (o fechamento da marca entra sozinho nela). Escreva a fala para ser ouvida: sem siglas difíceis, sem parênteses, sem emoji.\n' + CENAS_PROMPT,
   }[item.tipo];
   const chamada = item.objetivo === 'conversa' ? 'A chamada é "chama no WhatsApp (link na bio)".' : 'A chamada pede para salvar ou compartilhar o post (uma só).';
   return `Escreva a peça abaixo para o Instagram @mazzisystems.

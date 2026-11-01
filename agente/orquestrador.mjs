@@ -12,7 +12,6 @@ import { escreverPeca, checarTexto, juizesDeTexto } from './etapas/escrever.mjs'
 import { checarVisual, ProblemasVisuais } from './checagens/visual.mjs';
 import { capturar, paginasDaPeca } from './imagens/capturar.mjs';
 import { montarReel } from './ferramentas/montar_video.mjs';
-import { creditarPexels } from './ferramentas/broll.mjs';
 import { ffprobe } from './ferramentas/binarios.mjs';
 import { Registro, validar } from './lib/schemas.mjs';
 
@@ -47,10 +46,10 @@ function entradaAgenda(item, conteudo, arquivos, fatos, tentativa) {
 /** Reel: voz + legenda + vídeo. Devolve { arquivos, entrada, tecnica[], quadros[], limpar() }. */
 async function produzirReel(item, conteudo, texto, tentativa, { semana, pasta, ctx }) {
   const destino = path.join(pasta, `${semana}-${item.id}.mp4`);
-  const m = await (ctx.montarReel ?? montarReel)({ roteiro: conteudo, item, destino, log: (l) => ctx.registrar({ tipo: 'tentativa', peca: `${semana}/${item.id}`, detalhe: l }) });
+  const m = await (ctx.montarReel ?? montarReel)({ roteiro: conteudo, item: { ...item, semana }, destino, log: (l) => ctx.registrar({ tipo: 'tentativa', peca: `${semana}/${item.id}`, detalhe: l }) });
   const limpar = () => m.trabalho && rmSync(m.trabalho, { recursive: true, force: true });
   if (!m.arquivo) return { arquivos: [], tecnica: m.motivos, quadros: [], limpar };
-  const legenda = m.broll?.length ? creditarPexels(conteudo.legenda) : conteudo.legenda;
+  const legenda = conteudo.legenda;
   // Voz sintética realista: etiqueta de IA obrigatória pela política da Meta (SPEC 8.4).
   const entrada = { ...entradaAgenda(item, { ...conteudo, legenda }, [path.basename(destino)], texto.fatos, tentativa), ia: true, capa_ms: CAPA_REEL_MS };
   if (!ctx.sondar) process.env.FFPROBE ??= ffprobe(); // o validador do publicador mede o vídeo com ele

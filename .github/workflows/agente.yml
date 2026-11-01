@@ -7,7 +7,8 @@ name: Agente do Instagram
 # Variáveis do repositório (Settings › Variables), o kill switch:
 #   AGENTE_PAUSADO = true      pausa tudo (o publicador também respeita)
 #   AGENTE_MODO    = ensaio    produz em ensaio/ (o publicador não lê) | so_reserva | vazio = real
-# Segredos: CLAUDE_CODE_OAUTH_TOKEN (assinatura), AJ_CLINIC_DEPLOY_KEY (leitura do aj-clinic), PEXELS_KEY (vídeo de banco),
+# Segredos: CLAUDE_CODE_OAUTH_TOKEN (assinatura), AJ_CLINIC_DEPLOY_KEY (leitura do aj-clinic),
+#           TRILHAS_DEPLOY_KEY (leitura do repositório privado mazzi-trilhas: músicas do Pixabay, que não podem ficar públicas),
 #           HEARTBEAT_URL (opcional: vigia que avisa se o agente parar de rodar).
 
 on:
@@ -49,7 +50,7 @@ jobs:
   agente:
     if: vars.AGENTE_PAUSADO != 'true'
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 120
     env:
       AGENTE_MODO: ${{ vars.AGENTE_MODO }}
     steps:
@@ -110,11 +111,21 @@ jobs:
           rm -f ~/.ssh/aj_clinic
           echo "AJ_CLINIC_DIR=$RUNNER_TEMP/aj-clinic" >> "$GITHUB_ENV"
 
+      - name: Clonar as trilhas (repositório privado, só leitura)
+        env:
+          CHAVE: ${{ secrets.TRILHAS_DEPLOY_KEY }}
+        run: |
+          if [ -z "$CHAVE" ]; then echo "Sem TRILHAS_DEPLOY_KEY: reels saem só com voz e efeitos."; exit 0; fi
+          mkdir -p ~/.ssh && printf '%s\n' "$CHAVE" > ~/.ssh/trilhas && chmod 600 ~/.ssh/trilhas
+          GIT_SSH_COMMAND="ssh -i ~/.ssh/trilhas -o StrictHostKeyChecking=accept-new" \
+            git clone -q --depth 1 git@github.com:mazzi777/mazzi-trilhas.git "$RUNNER_TEMP/trilhas"
+          rm -f ~/.ssh/trilhas
+          echo "TRILHAS_DIR=$RUNNER_TEMP/trilhas" >> "$GITHUB_ENV"
+
       - name: Rodar o agente
         id: agente
         env:
           CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          PEXELS_KEY: ${{ secrets.PEXELS_KEY }}
           AGENTE_HOJE: ${{ inputs.hoje }}
         run: node agente/agente.mjs ${{ steps.qual.outputs.comando }}
 

@@ -1,15 +1,16 @@
-// Reel narrado: pronúncia, alinhamento da legenda, Pexels e o caminho do reel no orquestrador (com fakes).
+// Reel em motion: pronúncia, alinhamento da legenda, edição (cenas, atos, transições, efeitos), trilha
+// e o caminho do reel no orquestrador (com fakes: nenhum teste renderiza vídeo nem gasta a assinatura).
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, writeFileSync, readFileSync, mkdirSync } from 'node:fs';
+import { mkdtempSync, writeFileSync, readFileSync, mkdirSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { textoFalado } from '../ferramentas/narrar.mjs';
 import { casar } from '../ferramentas/alinhar.mjs';
-import { escolherArquivo, creditarPexels, buscarBroll } from '../ferramentas/broll.mjs';
-import { checarLegenda } from '../checagens/legenda.mjs';
+import { escolherTrilha } from '../ferramentas/montar_video.mjs';
+import { planejarEdicao, escolherAtos, escolherTransicoes, encaixar, gradeDeBatidas } from '../video/motion/roteiro.mjs';
 import { produzirPeca, criarRegistro } from '../orquestrador.mjs';
-import { CONTEUDO } from '../etapas/escrever.mjs';
+import { CONTEUDO, regrasDaEdicao } from '../etapas/escrever.mjs';
 import { lerProduto } from '../checagens/fatos.mjs';
 
 const RAIZ = path.resolve(path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, '$1')), '..', '..');
@@ -43,56 +44,86 @@ test('alinhamento: áudio que não bate com o roteiro fica abaixo do mínimo', (
   assert.ok(r.casado < 0.9);
 });
 
-test('Pexels: arquivo vertical mais perto de 1080; crédito antes das hashtags', async () => {
-  const v = { video_files: [
-    { file_type: 'video/mp4', width: 2160, height: 3840, link: 'a' },
-    { file_type: 'video/mp4', width: 1080, height: 1920, link: 'b' },
-    { file_type: 'video/mp4', width: 1920, height: 1080, link: 'c' },
-    { file_type: 'video/mp4', width: 720, height: 1280, link: 'd' },
-  ] };
-  assert.equal(escolherArquivo(v).link, 'b');
-  const l = creditarPexels('O caixa não fechou de novo?\n\nNa Mazzi a sangria fica registrada na hora, o troco também, e o fechamento mostra a diferença do dia.\n\nChama no WhatsApp (link na bio).\n\n#restaurante #caixa');
-  assert.match(l, /Vídeo: Pexels\n\n#restaurante #caixa$/);
-  assert.equal(checarLegenda(l).ok, true, checarLegenda(l).motivos.join());
-  assert.equal(await buscarBroll('kitchen', tmp(), 'x.mp4', { chave: '' }), null, 'sem chave, sem vídeo de banco (não é erro)');
-});
 
-test('Pexels: busca vertical, baixa e não repete o mesmo vídeo', async () => {
-  const chamadas = [];
-  const fetch = async (url, opcoes) => {
-    chamadas.push({ url, auth: opcoes?.headers?.Authorization });
-    if (url.startsWith('https://api.pexels.com')) {
-      return { ok: true, json: async () => ({ videos: [{ id: 7, duration: 10, user: { name: 'Ana' }, url: 'p', video_files: [{ file_type: 'video/mp4', width: 1080, height: 1920, link: 'https://v/7.mp4' }] }] }) };
-    }
-    return { ok: true, arrayBuffer: async () => new ArrayBuffer(8) };
-  };
-  const usados = new Set();
-  const r = await buscarBroll('cash register', tmp(), 'b.mp4', { chave: 'K', fetch, usados });
-  assert.equal(r.id, 7);
-  assert.match(chamadas[0].url, /orientation=portrait/);
-  assert.equal(chamadas[0].auth, 'K');
-  assert.equal(await buscarBroll('cash register', tmp(), 'c.mp4', { chave: 'K', fetch, usados }), null);
-});
-
+const cenaBasica = [
+  { cena: { tipo: 'gancho', simbolo: '?' } },
+  { cena: { tipo: 'papel', rabiscos: ['sangria 14h ???', 'troco 50', 'não bateu'], cartao: { titulo: 'caixa', linhas: [{ rotulo: 'Sangria 14h', selo: 'ok', tom: 'ok' }] } } },
+  { cena: { tipo: 'checklist', itens: ['Sangria registrada', 'Troco conferido', 'Diferença à vista'] } },
+  { cena: { tipo: 'ato' } },
+  { cena: { tipo: 'cartao', cartao: { titulo: 'fechamento', linhas: [{ rotulo: 'Diferença', selo: 'R$ 0', tom: 'ok' }] } } },
+  { cena: { tipo: 'lista', itens: [{ icone: 'Wallet', rotulo: 'Caixa' }, { icone: 'Truck', rotulo: 'Delivery' }, { icone: 'Scale', rotulo: 'Balança' }] } },
+  { cena: { tipo: 'orbita', icones: ['Wallet', 'Truck', 'Scale', 'Package'] } },
+  { cena: { tipo: 'cartao', cartao: { linhas: [{ rotulo: 'x' }] } } },
+];
 const reelBom = {
   gancho: 'O caixa não fechou de novo?',
   batidas: [
-    { fala: 'O caixa não fechou de novo?', tela: 'O caixa não fechou?', broll: 'cash register' },
-    { fala: 'A sangria ficou num papel que ninguém achou.', tela: 'A sangria sumiu' },
-    { fala: 'E o troco do almoço saiu errado sem ninguém ver.', tela: 'O troco errado' },
-    { fala: 'Na Mazzi cada sangria fica registrada na hora.', tela: 'Sangria na hora' },
-    { fala: 'No fechamento você vê a diferença do dia.', tela: 'A diferença aparece' },
-    { fala: 'E de onde ela veio, sem recontar nota.', tela: 'Sem recontar nota' },
-    { fala: 'Pagamento dividido também entra certinho.', tela: 'Pagamento dividido' },
-    { fala: 'Quer ver no seu restaurante?', tela: 'No seu restaurante' },
-    { fala: 'Chama no WhatsApp, o link tá na bio.', tela: 'Chama no WhatsApp' },
-  ],
+    'O caixa não fechou de novo?', 'A sangria ficou num papel que ninguém achou.', 'E o troco do almoço saiu errado.', 'Mas tem jeito.',
+    'Na Mazzi cada sangria fica registrada na hora.', 'Caixa, delivery e balança no mesmo lugar.', 'Tudo no seu computador e no celular.', 'Chama no WhatsApp, o link tá na bio.',
+  ].map((fala, i) => ({ fala, tela: ['O caixa não fechou de novo?', 'No caderno', 'Troco errado', 'Mas tem jeito', 'Sangria na hora', 'Tudo junto', 'No celular também', 'Chama no WhatsApp'][i], destaque: i === 0 ? 'de novo?' : undefined, ...cenaBasica[i] })),
   legenda: 'O caixa não fechou de novo?\n\nNa Mazzi a sangria fica registrada na hora e o fechamento mostra a diferença do dia.\n\nChama no WhatsApp (link na bio).\n\n#restaurante',
 };
 
-test('roteiro de reel: schema aceita o bom', () => {
-  assert.equal(CONTEUDO.reel.safeParse(reelBom).success, true);
-  assert.equal(CONTEUDO.reel.safeParse({ ...reelBom, batidas: reelBom.batidas.slice(0, 3) }).success, false);
+test('roteiro de reel: schema aceita cenas da biblioteca e recusa cena inventada ou ícone fora da lista', () => {
+  assert.equal(CONTEUDO.reel.safeParse(reelBom).success, true, JSON.stringify(CONTEUDO.reel.safeParse(reelBom).error?.issues?.[0]));
+  const ruim = structuredClone(reelBom);
+  ruim.batidas[1].cena = { tipo: 'explosao' };
+  assert.equal(CONTEUDO.reel.safeParse(ruim).success, false);
+  const iconeRuim = structuredClone(reelBom);
+  iconeRuim.batidas[5].cena.itens[0].icone = 'Rocket';
+  assert.equal(CONTEUDO.reel.safeParse(iconeRuim).success, false);
+});
+
+test('edição: começa no gancho, sem cena repetida seguida, 4+ tipos, mostra o produto', () => {
+  assert.deepEqual(regrasDaEdicao(reelBom.batidas), []);
+  const semGancho = [reelBom.batidas[1], ...reelBom.batidas.slice(2)];
+  assert.match(regrasDaEdicao(semGancho).join(), /gancho/);
+  const repetida = [reelBom.batidas[0], reelBom.batidas[2], reelBom.batidas[2], reelBom.batidas[1]];
+  assert.match(regrasDaEdicao(repetida).join(), /repetida/);
+  const pobre = [reelBom.batidas[0], reelBom.batidas[3], reelBom.batidas[0], reelBom.batidas[3]];
+  assert.match(regrasDaEdicao(pobre).join('|'), /tipos de cena.*\|.*produto|produto/);
+});
+
+test('edição (código): cortes puxados para a batida, atos variados, transições sem repetir, fechamento azul de zoom', () => {
+  assert.equal(encaixar(2.05, gradeDeBatidas(120, 10)), 2);
+  assert.equal(encaixar(2.3, gradeDeBatidas(120, 10)), 2.5);
+  assert.equal(encaixar(2.62, [0, 1.5, 3]), 2.62, 'longe da batida: fica onde está');
+  const tipos = ['gancho', 'checklist', 'cartao', 'painel', 'contador', 'ato', 'cartao', 'fechamento'];
+  const atos = escolherAtos(tipos);
+  assert.equal(atos.at(-1), 'azul');
+  assert.equal(atos[5], 'coral');
+  assert.ok(atos.includes('claro'), 'pelo menos um ato claro');
+  assert.ok(!atos.some((a, i) => i >= 2 && a === atos[i - 1] && a === atos[i - 2]), 'nunca 3 iguais seguidos');
+  const tr = escolherTransicoes(tipos, 'x');
+  assert.equal(tr[0], 'corte');
+  assert.equal(tr[5], 'cortina');
+  assert.equal(tr.at(-1), 'zoom');
+  assert.ok(tr.every((t, i) => i === 0 || t !== tr[i - 1]));
+  assert.deepEqual(escolherTransicoes(tipos, 'x'), tr, 'mesma semente, mesma edição');
+});
+
+test('edição (código): planejarEdicao monta cenas contínuas, fechamento no fim e efeitos em ordem', () => {
+  const inicios = reelBom.batidas.map((_, i) => 0.15 + i * 3);
+  const r = planejarEdicao({ batidas: reelBom.batidas, inicios, duracoes: inicios.map(() => 2.6), total: 24.4, musica: { bpm: 124 }, ramo: 'Restaurante', semente: '2026-11-23/B' });
+  assert.equal(r.cenas[0].de, 0);
+  assert.equal(r.cenas.at(-1).tipo, 'fechamento');
+  assert.equal(r.cenas.at(-1).ate, r.duracaoFrames);
+  r.cenas.forEach((c, i) => { if (i) assert.equal(c.de, r.cenas[i - 1].ate, 'sem buraco entre cenas'); });
+  assert.equal(r.cenas[0].dados.ramo, 'Restaurante');
+  assert.ok(r.sfx.length >= r.cenas.length, 'pelo menos um efeito por cena');
+  assert.ok(r.sfx.every((e, i) => i === 0 || e.quadro >= r.sfx[i - 1].quadro));
+  assert.ok(r.sfx.every((e) => /^sfx\/[a-z0-9-]+\.ogg$/.test(e.arquivo) && existsSync(path.join(RAIZ, 'agente', 'video', e.arquivo))), 'todo efeito existe');
+});
+
+test('trilha: escolhe do catálogo sem Content ID, sem repetir as evitadas; sem catálogo, sem trilha', () => {
+  const dir = tmp();
+  writeFileSync(path.join(dir, 'catalogo.json'), JSON.stringify({ faixas: [
+    { id: 'a', arquivo: 'a.mp3', content_id: false, clima: 'energetico' }, { id: 'b', arquivo: 'b.mp3', content_id: true, clima: 'energetico' }, { id: 'c', arquivo: 'c.mp3', content_id: false, clima: 'groove' },
+  ] }));
+  for (const f of ['a.mp3', 'b.mp3', 'c.mp3']) writeFileSync(path.join(dir, f), 'x');
+  for (let k = 0; k < 10; k++) assert.notEqual(escolherTrilha({ dir, semente: `s${k}` }).id, 'b');
+  assert.equal(escolherTrilha({ dir, semente: 's', evitar: ['a'] }).id, 'c');
+  assert.equal(escolherTrilha({ dir: tmp(), semente: 's' }), null);
 });
 
 function cerebroFalso(conteudo, visual = () => ({ problemas: [] })) {
@@ -102,31 +133,31 @@ function cerebroFalso(conteudo, visual = () => ({ problemas: [] })) {
     juiz: (_s, etapa) => async (_t, _x, imagens) => (etapa === 'juiz:visual' ? (assert.equal(imagens.length, 6), visual()) : etapa === 'juiz:fatos' ? { afirmacoes: [] } : { problemas: [] }),
   };
 }
+const itemReel = { id: 'B', dia: '2026-11-25', horario: '18:40', tipo: 'reel', ramo: 'restaurante', objetivo: 'conversa', conteudo: 'dor', tema: 'caixa', angulo: 'a sangria que sumiu', fatos: ['rest.caixa'] };
+const sondar = () => ({ largura: 1080, altura: 1920, codec: 'h264', audio: true, duracao: 26 });
 
-test('orquestrador (reel): aprovado sai com etiqueta de IA, capa e crédito do Pexels', async () => {
+test('orquestrador (reel): aprovado sai com etiqueta de IA e capa; a montagem recebe semana e id', async () => {
   const saida = tmp();
-  const semana = '2026-11-16';
-  const item = { id: 'R1', dia: '2026-11-18', horario: '18:40', tipo: 'reel', ramo: 'restaurante', objetivo: 'conversa', conteudo: 'dor', tema: 'caixa', angulo: 'a sangria que sumiu', fatos: ['rest.caixa'] };
-  const montar = async ({ destino }) => {
+  let recebido;
+  const montar = async ({ destino, item }) => {
+    recebido = item;
     mkdirSync(path.dirname(destino), { recursive: true });
     writeFileSync(destino, 'mp4');
-    return { arquivo: destino, quadros: [1, 2, 3, 4, 5, 6].map((n) => `q${n}.jpg`), motor: 'edge:pt-BR-AntonioNeural', broll: [{ id: 1 }], motivos: [] };
+    return { arquivo: destino, quadros: [1, 2, 3, 4, 5, 6].map((n) => `q${n}.jpg`), motor: 'edge:pt-BR-AntonioNeural', motivos: [] };
   };
-  const sondar = () => ({ largura: 1080, altura: 1920, codec: 'h264', audio: true, duracao: 26 });
-  const r = await produzirPeca(item, { raiz: RAIZ, saida, semana, produto, config, cerebro: cerebroFalso(reelBom), usados: [], hoje: '2026-11-14', registrar: criarRegistro(saida), montarReel: montar, sondar });
+  const r = await produzirPeca(itemReel, { raiz: RAIZ, saida, semana: '2026-11-23', produto, config, cerebro: cerebroFalso(reelBom), usados: [], hoje: '2026-11-21', registrar: criarRegistro(saida), montarReel: montar, sondar });
   assert.equal(r.status, 'aprovada', JSON.stringify(r.motivos));
   assert.equal(r.entrada.ia, true);
   assert.equal(r.entrada.capa_ms, 1000);
-  assert.deepEqual(r.entrada.arquivos, ['2026-11-16-R1.mp4']);
-  assert.match(r.entrada.legenda, /Vídeo: Pexels/);
+  assert.deepEqual(r.entrada.arquivos, ['2026-11-23-B.mp4']);
+  assert.equal(recebido.semana, '2026-11-23');
 });
 
 test('orquestrador (reel): voz que falhou ou legenda fora de sincronia reprova; esgotou, pula', async () => {
   const saida = tmp();
-  const item = { id: 'R1', dia: '2026-11-18', horario: '18:40', tipo: 'reel', ramo: 'restaurante', objetivo: 'conversa', conteudo: 'dor', tema: 'caixa', angulo: 'a sangria que sumiu', fatos: ['rest.caixa'] };
   let n = 0;
   const montar = async () => (n++ % 2 ? { motivos: ['voz: nenhum motor de voz funcionou (Edge e Kokoro)'] } : { arquivo: path.join(saida, 'x.mp4'), quadros: [], motivos: ['legenda: só 70% das palavras casaram'] });
-  const r = await produzirPeca(item, { raiz: RAIZ, saida, semana: '2026-11-16', produto, config, cerebro: cerebroFalso(reelBom), usados: [], hoje: '2026-11-14', registrar: criarRegistro(saida), montarReel: montar, sondar: () => ({ largura: 1080, altura: 1920, codec: 'h264', audio: true, duracao: 26 }) });
+  const r = await produzirPeca(itemReel, { raiz: RAIZ, saida, semana: '2026-11-23', produto, config, cerebro: cerebroFalso(reelBom), usados: [], hoje: '2026-11-21', registrar: criarRegistro(saida), montarReel: montar, sondar });
   assert.equal(r.status, 'pulada');
   assert.match(r.motivos.join(), /voz|legenda/);
 });
