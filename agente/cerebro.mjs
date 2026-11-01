@@ -10,6 +10,12 @@ import { z } from 'zod';
 import { validar } from './lib/schemas.mjs';
 
 export class ErroToken extends Error {}
+
+/** JSON Schema que o Claude Code aceita: draft-07 e sem o campo $schema. */
+export function schemaParaClaude(schema) {
+  const { $schema, ...resto } = z.toJSONSchema(schema, { target: 'draft-7' });
+  return resto;
+}
 export class ErroLimite extends Error {}
 export class ErroTeto extends Error {}
 
@@ -91,7 +97,7 @@ export function criarCerebro({ raiz, config, agora = () => new Date(), consultar
     const gasto = gastoSemana();
     if (gasto >= teto) throw new ErroTeto(`teto semanal de uso atingido (US$ ${gasto.toFixed(2)} de ${teto} equivalente)`);
     const r = await consultar({
-      modelo, sistema, prompt, imagens, schemaJson: z.toJSONSchema(schema), ferramentas, maxTurns, effort,
+      modelo, sistema, prompt, imagens, schemaJson: schemaParaClaude(schema), ferramentas, maxTurns, effort,
       tetoUsd: Math.max(0.05, Math.min(1.5, teto - gasto)),
     });
     anotar(etapa, modelo, r);

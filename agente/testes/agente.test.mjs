@@ -5,7 +5,7 @@ import { mkdtempSync, writeFileSync, readFileSync, existsSync, mkdirSync, readdi
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { z } from 'zod';
-import { criarCerebro, semanaIso, ErroTeto, ErroToken, ErroLimite } from '../cerebro.mjs';
+import { criarCerebro, semanaIso, schemaParaClaude, ErroTeto, ErroToken, ErroLimite } from '../cerebro.mjs';
 import { regrasDoPlano, idsDoPlano, planejarSemana } from '../etapas/planejar.mjs';
 import { textoDaPeca, checarTexto } from '../etapas/escrever.mjs';
 import { produzirPeca, produzirPendentes, criarRegistro, gravarNaAgenda } from '../orquestrador.mjs';
@@ -39,6 +39,12 @@ test('semana ISO', () => {
   assert.equal(semanaIso(new Date('2026-11-01T12:00:00Z')), '2026-W44');
   assert.equal(semanaIso(new Date('2026-11-02T12:00:00Z')), '2026-W45');
   assert.equal(semanaIso(new Date('2027-01-01T12:00:00Z')), '2026-W53');
+});
+
+test('cérebro: schema vai em draft-07 sem $schema (o Claude Code recusa o draft 2020-12)', () => {
+  const j = schemaParaClaude(z.object({ a: z.string() }));
+  assert.equal(j.$schema, undefined);
+  assert.equal(j.type, 'object');
 });
 
 test('cérebro: valida a resposta, anota o uso e corta no teto', async () => {
