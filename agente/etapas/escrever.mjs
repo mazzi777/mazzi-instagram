@@ -58,8 +58,7 @@ export async function checarTexto({ item, conteudo, produto, juizFatos, juizMarc
     const legenda = checarLegenda(conteudo.legenda);
     motivos.push(...legenda.motivos);
     // A primeira linha da legenda é o gancho do feed: não precisa ser idêntica à capa, mas tem que ser forte.
-    const primeira = conteudo.legenda.trim().split('
-')[0];
+    const primeira = conteudo.legenda.trim().split('\n')[0];
     const g = checarGancho(primeira, c.gancho);
     if (!g.ok) motivos.push(`legenda: a primeira linha não é um gancho forte (nota ${g.nota}): "${primeira}"`);
   }
