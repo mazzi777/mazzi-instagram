@@ -18,7 +18,12 @@ As imagens vêm na ordem (1, 2, 3...). Aponte só problemas reais, um por linha,
 8. imagem vazia, quebrada ou com caractere estranho (quadrado, interrogação no lugar de acento);
 9. pessoa com o rosto identificável em destaque no vídeo de fundo (pode mão, objeto, lugar, pessoa de costas ou desfocada);
 10. legenda ou texto difícil de ler sobre o vídeo de fundo.
-Se estiver tudo certo, devolva a lista vazia.`;
+Se estiver tudo certo, devolva a lista vazia.
+
+Se forem quadros de um REEL (vídeo): a legenda de baixo acende palavra por palavra no tempo da fala. Num quadro parado ela
+pode estar no meio da frase, e as palavras ainda não faladas aparecem um pouco mais apagadas: isso é o efeito, NÃO é texto
+cortado nem falta de contraste. A frase grande do alto e a legenda podem repetir as mesmas palavras: também não é problema.
+Num reel, aponte só texto saindo da tela, sobreposto, ilegível de verdade, erro de português na frase grande, ou os itens 5 a 9.`;
 
 /** juiz(tarefa, texto, imagens) → { problemas } */
 export async function checarVisual(imagens, { juiz, contexto = '' } = {}) {

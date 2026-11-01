@@ -61,7 +61,7 @@ function Legenda({ palavras, fps }) {
     <div style={{ position: 'absolute', left: ESQ, top: 1190, width: LARGURA, fontSize: 64, fontWeight: 700, lineHeight: 1.18, letterSpacing: '-0.01em' }}>
       <span style={{ background: 'rgba(17,19,22,0.82)', boxDecorationBreak: 'clone', WebkitBoxDecorationBreak: 'clone', padding: '4px 14px', borderRadius: 12 }}>
         {trecho.map((p) => (
-          <span key={p.i} style={{ color: p.i === atual ? COR.coral : COR.texto, opacity: p.i <= atual ? 1 : 0.62 }}>{p.texto} </span>
+          <span key={p.i} style={{ color: p.i === atual ? COR.coral : COR.texto, opacity: p.i <= atual ? 1 : 0.72 }}>{p.texto} </span>
         ))}
       </span>
     </div>
