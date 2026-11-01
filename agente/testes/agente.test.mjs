@@ -1,0 +1,227 @@
+// Cérebro, plano e orquestrador com o Claude e a captura falsos (nenhum teste gasta a assinatura).
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { mkdtempSync, writeFileSync, readFileSync, existsSync, mkdirSync, readdirSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
+import { z } from 'zod';
+import { criarCerebro, semanaIso, ErroTeto, ErroToken, ErroLimite } from '../cerebro.mjs';
+import { regrasDoPlano, idsDoPlano, planejarSemana } from '../etapas/planejar.mjs';
+import { textoDaPeca, checarTexto } from '../etapas/escrever.mjs';
+import { produzirPeca, produzirPendentes, criarRegistro, gravarNaAgenda } from '../orquestrador.mjs';
+import { segundaSeguinte, segundaDa, avisosDeToken } from '../agente.mjs';
+import { lerProduto } from '../checagens/fatos.mjs';
+import { htmlSlide, htmlStory } from '../imagens/modelos.mjs';
+
+const RAIZ = path.resolve(path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, '$1')), '..', '..');
+const config = JSON.parse(readFileSync(path.join(RAIZ, 'agente', 'config.json'), 'utf8'));
+const produto = lerProduto();
+const SEMANA = '2026-11-16';
+const tmp = () => mkdtempSync(path.join(tmpdir(), 'mazzi-agente-'));
+
+function jpeg(largura, altura) {
+  const b = Buffer.alloc(21);
+  b.set([0xff, 0xd8, 0xff, 0xc0, 0x00, 0x11, 0x08]);
+  b.writeUInt16BE(altura, 7);
+  b.writeUInt16BE(largura, 9);
+  b.set([0xff, 0xd9], 19);
+  return b;
+}
+const capturaFalsa = async (paginas) => paginas.map((p) => {
+  mkdirSync(path.dirname(p.arquivo), { recursive: true });
+  writeFileSync(p.arquivo, p.formato === 'story' ? jpeg(1080, 1920) : jpeg(1080, 1350));
+  return p.arquivo;
+});
+
+// ---------- cérebro ----------
+
+test('semana ISO', () => {
+  assert.equal(semanaIso(new Date('2026-11-01T12:00:00Z')), '2026-W44');
+  assert.equal(semanaIso(new Date('2026-11-02T12:00:00Z')), '2026-W45');
+  assert.equal(semanaIso(new Date('2027-01-01T12:00:00Z')), '2026-W53');
+});
+
+test('cérebro: valida a resposta, anota o uso e corta no teto', async () => {
+  const saida = tmp();
+  let chamadas = 0;
+  const consultar = async (q) => { chamadas++; assert.equal(q.schemaJson.type, 'object'); return { ok: true, saida: { n: 1 }, custo: 3, entrada: 100, saidaTokens: 10 }; };
+  const c = criarCerebro({ raiz: saida, config: { ...config, uso: { tetoSemanalUsd: 5, economicoEm: 0.5 } }, consultar, agora: () => new Date('2026-11-03T10:00:00Z') });
+  const schema = z.object({ n: z.number() });
+  assert.deepEqual(await c.pedir({ etapa: 'x', modelo: 'm', sistema: 's', prompt: 'p', schema }), { n: 1 });
+  assert.equal(c.economico(), true);
+  await c.pedir({ etapa: 'x', modelo: 'm', sistema: 's', prompt: 'p', schema });
+  await assert.rejects(c.pedir({ etapa: 'x', modelo: 'm', sistema: 's', prompt: 'p', schema }), ErroTeto);
+  assert.equal(chamadas, 2);
+  const uso = JSON.parse(readFileSync(path.join(saida, 'uso', '2026-W45.json'), 'utf8'));
+  assert.equal(uso.chamadas.length, 2);
+});
+
+test('cérebro: resposta fora do schema é erro; login e limite viram erros próprios', async () => {
+  const pedir = (r) => criarCerebro({ raiz: tmp(), config, consultar: async () => r }).pedir({ etapa: 'x', modelo: 'm', sistema: 's', prompt: 'p', schema: z.object({ n: z.number() }) });
+  await assert.rejects(pedir({ ok: true, saida: { n: 'um' }, custo: 0 }), /inválido/);
+  await assert.rejects(pedir({ ok: false, erro: 'error_during_execution: 401 Invalid bearer token', custo: 0 }), ErroToken);
+  await assert.rejects(pedir({ ok: false, erro: "You've hit your usage limit", custo: 0 }), ErroLimite);
+});
+
+// ---------- plano ----------
+
+const itemPlano = (dia, tipo, extra = {}) => ({ dia, horario: tipo === 'stories' ? '07:40' : '11:40', tipo, ramo: 'clinica', objetivo: 'conversa', conteudo: 'dor', tema: `tema ${dia} ${tipo}`, angulo: 'um ângulo concreto qualquer', fatos: ['clin.agenda'], exploracao: false, ...extra });
+const planoBom = () => ({
+  porque: 'teste',
+  pecas: [
+    itemPlano('2026-11-16', 'carrossel'), itemPlano('2026-11-16', 'stories'),
+    itemPlano('2026-11-18', 'imagem', { ramo: 'restaurante', fatos: ['rest.caixa'], objetivo: 'alcance' }), itemPlano('2026-11-18', 'stories'),
+    itemPlano('2026-11-20', 'carrossel', { ramo: 'restaurante', fatos: ['rest.delivery.teclado'] }), itemPlano('2026-11-20', 'stories'),
+  ],
+});
+const formatos = ['carrossel', 'imagem', 'stories'];
+
+test('plano: o plano bom passa; ids saem em ordem', () => {
+  assert.deepEqual(regrasDoPlano(planoBom(), { semana: SEMANA, config, produto, formatos }), []);
+  assert.deepEqual(idsDoPlano(planoBom()).map((p) => p.id), ['S1', 'A', 'S2', 'B', 'S3', 'C']);
+});
+
+test('plano: regras quebradas viram motivos', () => {
+  const p = planoBom();
+  p.pecas.push(itemPlano('2026-11-16', 'imagem'), itemPlano('2026-11-25', 'reel', { fatos: ['fiscal.nfce'] }));
+  const m = regrasDoPlano(p, { semana: SEMANA, config, produto, formatos }).join('\n');
+  assert.match(m, /2 posts de feed no dia 2026-11-16/);
+  assert.match(m, /reel ainda não está ligado/);
+  assert.match(m, /fora da semana/);
+  assert.match(m, /fiscal\.nfce/);
+});
+
+test('plano: recusado volta com os motivos e passa na 2ª tentativa', async () => {
+  const prompts = [];
+  let n = 0;
+  const cerebro = { pedir: async ({ prompt }) => { prompts.push(prompt); return n++ ? planoBom() : { ...planoBom(), pecas: planoBom().pecas.slice(0, 4) }; } };
+  const r = await planejarSemana({ raiz: RAIZ, semana: SEMANA, config, produto, cerebro, formatos });
+  assert.equal(r.tentativas, 2);
+  assert.match(prompts[1], /RECUSADO/);
+});
+
+// ---------- texto e orquestrador ----------
+
+const carrosselBom = {
+  gancho: 'Paciente faltou de novo?',
+  slides: [
+    { tipo: 'capa', titulo: 'Paciente faltou de novo?', destaque: 'de novo?', texto: 'O horário vazio custa caro pra clínica.' },
+    { tipo: 'estaca', titulo: 'Horário vazio não volta', texto: 'Quem falta sem avisar deixa a agenda furada.' },
+    { tipo: 'ideia', passo: 1, titulo: 'Lembrete com um toque', texto: 'Sai pronto pro WhatsApp com nome, dia e horário.', cartao: { titulo: 'amanhã', linhas: [{ rotulo: 'Consulta 14h', selo: 'Confirmou', tom: 'ok' }] } },
+    { tipo: 'resumo', titulo: 'Resumo', itens: ['Mande o lembrete na véspera', 'Veja quem confirmou'] },
+    { tipo: 'chamada', titulo: 'Quer ver na sua agenda?', texto: 'Chama no WhatsApp, link na bio.' },
+  ],
+  legenda: 'Paciente faltou de novo?\n\nNa Mazzi o lembrete sai pronto pro WhatsApp com um toque, já com nome, dia e horário. Você vê quem confirmou.\n\nChama no WhatsApp (link na bio).\n\n#clinicadeestetica',
+  alt_text: 'Capa escura com o texto: Paciente faltou de novo?',
+};
+const item = { id: 'A', dia: SEMANA, horario: '11:40', tipo: 'carrossel', ramo: 'clinica', objetivo: 'conversa', conteudo: 'dor', tema: 'paciente que falta', angulo: 'a véspera', fatos: ['clin.lembrete-1-clique'] };
+
+test('texto da peça marca os cartões como EXEMPLO para o juiz', () => {
+  assert.match(textoDaPeca('carrossel', carrosselBom), /\[CARTÃO EXEMPLO "amanhã": Consulta 14h = Confirmou\]/);
+  assert.match(textoDaPeca('carrossel', carrosselBom), /LEGENDA:/);
+});
+
+test('checarTexto: peça boa passa com juízes limpos; fato inventado reprova', async () => {
+  const juizMarca = async () => ({ problemas: [] });
+  const juizFatos = async () => ({ afirmacoes: [{ trecho: 'lembrete', tipo: 'funcao', funcao_id: 'clin.lembrete-1-clique', em_exemplo: false }] });
+  const ok = await checarTexto({ item, conteudo: carrosselBom, produto, juizFatos, juizMarca, usados: [], hoje: '2026-11-14', config });
+  assert.equal(ok.ok, true, ok.motivos.join('; '));
+  assert.deepEqual(ok.fatos, ['clin.lembrete-1-clique']);
+  const ruim = await checarTexto({ item, conteudo: carrosselBom, produto, juizMarca, juizFatos: async () => ({ afirmacoes: [{ trecho: 'emite NFC-e', tipo: 'funcao', funcao_id: null, em_exemplo: false }] }), usados: [], hoje: '2026-11-14', config });
+  assert.equal(ruim.ok, false);
+});
+
+function cerebroFalso({ conteudos, visual = () => ({ problemas: [] }), fatos = () => ({ afirmacoes: [] }) }) {
+  let n = 0;
+  const pedidos = [];
+  return {
+    pedidos,
+    economico: () => false,
+    pedir: async (q) => { pedidos.push(q); return conteudos[Math.min(n++, conteudos.length - 1)]; },
+    juiz: (_schema, etapa) => async () => (etapa === 'juiz:visual' ? visual() : etapa === 'juiz:fatos' ? fatos() : { problemas: [] }),
+  };
+}
+
+test('orquestrador: peça boa é aprovada, vira entrada da agenda e passa no validador do publicador', async () => {
+  const saida = tmp();
+  const registrar = criarRegistro(saida);
+  const cerebro = cerebroFalso({ conteudos: [carrosselBom] });
+  const r = await produzirPeca(item, { raiz: RAIZ, saida, semana: SEMANA, produto, config, cerebro, usados: [], hoje: '2026-11-14', registrar, capturar: capturaFalsa });
+  assert.equal(r.status, 'aprovada');
+  assert.equal(r.entrada.arquivos.length, 5);
+  assert.equal(r.entrada.ia, false);
+  assert.equal(r.entrada.horario, '11:40');
+  const reg = readdirSync(path.join(saida, 'registro'));
+  assert.equal(reg.length, 1);
+});
+
+test('orquestrador: reprovou, regera com os motivos; esgotou sem reserva, pula (na dúvida, não posta)', async () => {
+  const saida = tmp();
+  const ruim = { ...carrosselBom, gancho: 'Soluções inovadoras para o seu negócio', legenda: `Soluções inovadoras para o seu negócio\n\n${carrosselBom.legenda}` };
+  const cerebro = cerebroFalso({ conteudos: [ruim, ruim, ruim] });
+  const r = await produzirPeca(item, { raiz: RAIZ, saida, semana: SEMANA, produto, config, cerebro, usados: [], hoje: '2026-11-14', registrar: criarRegistro(saida), capturar: capturaFalsa });
+  assert.equal(r.status, 'pulada');
+  assert.equal(cerebro.pedidos.length, 3);
+  assert.match(cerebro.pedidos[1].prompt, /REPROVADA/);
+  assert.equal(existsSync(path.join(saida, 'semanas', SEMANA, `${SEMANA}-A-01.jpg`)), false, 'não deixa imagem de peça reprovada');
+});
+
+test('orquestrador: problema visual reprova e a 2ª tentativa passa; com reserva, usa a reserva', async () => {
+  const saida = tmp();
+  let v = 0;
+  const cerebro = cerebroFalso({ conteudos: [carrosselBom], visual: () => (v++ ? { problemas: [] } : { problemas: [{ imagem: 2, problema: 'texto cortado' }] }) });
+  const r = await produzirPeca(item, { raiz: RAIZ, saida, semana: SEMANA, produto, config, cerebro, usados: [], hoje: '2026-11-14', registrar: criarRegistro(saida), capturar: capturaFalsa });
+  assert.equal(r.status, 'aprovada');
+  assert.equal(r.entrada.tentativas, 2);
+
+  const reserva = { pegar: async () => ({ origemId: 'R1', entrada: { ...r.entrada, id: 'A', origem: 'reserva' } }) };
+  const sempreRuim = cerebroFalso({ conteudos: [carrosselBom], visual: () => ({ problemas: [{ imagem: 1, problema: 'quebrado' }] }) });
+  const r2 = await produzirPeca(item, { raiz: RAIZ, saida, semana: SEMANA, produto, config, cerebro: sempreRuim, usados: [], hoje: '2026-11-14', registrar: criarRegistro(saida), capturar: capturaFalsa, reserva });
+  assert.equal(r2.status, 'reserva');
+});
+
+test('orquestrador: produz os pendentes do plano, grava a agenda do agente e para no teto', async () => {
+  const saida = tmp();
+  const dir = path.join(saida, 'semanas', SEMANA);
+  mkdirSync(dir, { recursive: true });
+  const plano = { semana: SEMANA, pecas: [item, { ...item, id: 'B', dia: '2026-11-18' }] };
+  writeFileSync(path.join(dir, 'plano.json'), JSON.stringify(plano));
+  let n = 0;
+  const cerebro = { ...cerebroFalso({ conteudos: [carrosselBom] }) };
+  const pedirOriginal = cerebro.pedir;
+  cerebro.pedir = async (q) => { if (n++ >= 1) throw new ErroTeto('teto'); return pedirOriginal(q); };
+  const r = await produzirPendentes({ raiz: RAIZ, saida, semana: SEMANA, produto, config, cerebro, usados: [], hoje: '2026-11-14', registrar: criarRegistro(saida), capturar: capturaFalsa, desde: SEMANA, ate: '2026-11-22' });
+  assert.deepEqual(r.feitas, [{ id: 'A', status: 'aprovada' }]);
+  assert.ok(r.parou instanceof ErroTeto);
+  const agenda = JSON.parse(readFileSync(path.join(dir, 'agenda.json'), 'utf8'));
+  assert.equal(agenda.produtor, 'agente');
+  assert.deepEqual(agenda.pecas.map((p) => p.id), ['A']);
+});
+
+test('orquestrador: nunca mexe numa agenda da rotina', () => {
+  const saida = tmp();
+  mkdirSync(path.join(saida, 'semanas', SEMANA), { recursive: true });
+  writeFileSync(path.join(saida, 'semanas', SEMANA, 'agenda.json'), JSON.stringify({ semana: SEMANA, pecas: [] }));
+  assert.throws(() => gravarNaAgenda(saida, SEMANA, { id: 'A', dia: SEMANA }), /rotina/);
+});
+
+// ---------- datas, tokens e modelos ----------
+
+test('datas: segunda seguinte e segunda da semana', () => {
+  assert.equal(segundaSeguinte('2026-11-14'), '2026-11-16'); // sábado
+  assert.equal(segundaSeguinte('2026-11-16'), '2026-11-23'); // segunda → a próxima
+  assert.equal(segundaDa('2026-11-19'), '2026-11-16');
+});
+
+test('token do Claude: avisa 30 dias antes de vencer', () => {
+  assert.deepEqual(avisosDeToken(config, '2026-11-20'), []);
+  assert.match(avisosDeToken(config, '2027-10-10')[0].mensagem, /vence em/);
+});
+
+test('modelos: o selo EXEMPLO sai sempre no cartão e o texto é escapado', () => {
+  const html = htmlSlide({ tipo: 'ideia', titulo: '<b>x</b>', cartao: { linhas: [{ rotulo: 'a' }] } }, { ramo: 'clinica', numero: 2, total: 5 });
+  assert.match(html, /EXEMPLO/);
+  assert.match(html, /&lt;b&gt;x&lt;\/b&gt;/);
+  assert.match(html, /@mazzisystems/);
+  assert.match(htmlStory({ titulo: 'Oi' }, { ramo: 'restaurante' }), /@mazzisystems/);
+});

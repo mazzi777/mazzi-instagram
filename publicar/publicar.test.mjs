@@ -62,7 +62,7 @@ const lerPublicado = (dir) => JSON.parse(readFileSync(path.join(dir, 'publicado.
  *  publish(n) → 'ok' | 'erro' | 'rede' para a n-ésima chamada de media_publish
  *  feed → posts devolvidos em GET /{ig}/media
  */
-function metaFalsa({ status = () => 'FINISHED', publish = () => 'ok', feed = [], conta = 'ok', rawStatus = 200, prefixo = 'c' } = {}) {
+function metaFalsa({ status = () => 'FINISHED', publish = () => 'ok', feed = [], conta = 'ok', rawStatus = 200, prefixo = 'c', limite = [0, 50] } = {}) {
   const chamadas = [];
   let n = 0;
   let publicacoes = 0;
@@ -85,6 +85,7 @@ function metaFalsa({ status = () => 'FINISHED', publish = () => 'ok', feed = [],
       return conta === 'ok' ? json(200, { id: IG, username: 'mazzisystems' }) : json(401, { error: { message: 'Error validating access token', code: 190 } });
     }
     if (metodo === 'GET' && partes.length === 3 && partes[2] === 'media') return json(200, { data: feed });
+    if (metodo === 'GET' && partes[2] === 'content_publishing_limit') return json(200, { data: [{ quota_usage: limite[0], config: { quota_total: limite[1], quota_duration: 86400 } }] });
     if (metodo === 'GET') return json(200, { status_code: status(partes.at(-1)) });
     return json(404, { error: { message: 'rota desconhecida' } });
   };
@@ -438,4 +439,85 @@ test('semanas futuras: só as que ainda têm peça por publicar', async () => {
   escreverSemana(raiz, '2026-11-02', { publicado: Object.fromEntries(['A', 'S1', 'REEL', 'S2', 'B', 'S3'].map((id) => [id, { completo: true }])) });
   escreverSemana(raiz, '2026-10-26');
   assert.deepEqual(semanasFuturas(raiz, '2026-11-04'), [SEMANA]);
+});
+
+// ---------- semana do agente ----------
+
+function semanaAgente(raiz, semana, pecas) {
+  const dir = path.join(raiz, 'semanas', semana);
+  mkdirSync(dir, { recursive: true });
+  for (const p of pecas) {
+    for (const a of p.arquivos) writeFileSync(path.join(dir, a), p.tipo === 'reel' ? 'mp4' : p.tipo === 'stories' ? jpeg(1080, 1920) : jpeg(1080, 1350));
+  }
+  writeFileSync(path.join(dir, 'agenda.json'), JSON.stringify({ semana, produtor: 'agente', pecas }));
+  return dir;
+}
+
+function montarAgente(pecas) {
+  const raiz = mkdtempSync(path.join(tmpdir(), 'mazzi-ag-'));
+  mkdirSync(path.join(raiz, 'guia'));
+  writeFileSync(path.join(raiz, 'guia', 'log.md'), '# Log\n\n- 30/10/2026 · PUBLICADO · antigo\n');
+  return { raiz, dir: semanaAgente(raiz, SEMANA, pecas) };
+}
+
+const carrosselAgente = (extra = {}) => ({
+  id: 'A', dia: SEMANA, horario: '11:40', tipo: 'carrossel', arquivos: Array.from({ length: 5 }, (_, i) => `${SEMANA}-A-0${i + 1}.jpg`),
+  legenda: LEGENDA_A, tema: 'clínica', gancho: 'Paciente faltou?', alt_text: 'Capa: paciente faltou?', ...extra,
+});
+
+test('agente: semana com ids livres, imagem única e horários é válida; carrossel curto e horário fora da lista não', () => {
+  const { dir } = montarAgente([
+    carrosselAgente(),
+    { id: 'I1', dia: SEMANA, horario: '18:40', tipo: 'imagem', arquivos: [`${SEMANA}-I1-01.jpg`], legenda: LEGENDA_A, tema: 't', gancho: 'g' },
+    { id: 'S1', dia: SEMANA, horario: '07:40', tipo: 'stories', arquivos: [`${SEMANA}-S1-01.jpg`] },
+  ]);
+  assert.deepEqual(validarSemana(dir, { sondar: VIDEO_OK }), []);
+  const { dir: d2 } = montarAgente([carrosselAgente({ horario: '12:00', arquivos: [`${SEMANA}-A-01.jpg`, `${SEMANA}-A-02.jpg`] })]);
+  const erros = validarSemana(d2, { sondar: VIDEO_OK }).join('\n');
+  assert.match(erros, /horário 12:00/);
+  assert.match(erros, /esperado de 5 a 8/);
+});
+
+test('agente: peça do dia só sai a partir do próprio horário', () => {
+  const { raiz } = montarAgente([carrosselAgente({ horario: '18:40' })]);
+  assert.equal(escolherPecas(raiz, SEMANA, null, '11:40').escolhidas.length, 0);
+  assert.equal(escolherPecas(raiz, SEMANA, null, '18:40').escolhidas.length, 1);
+  assert.equal(escolherPecas(raiz, '2026-11-10', null, '07:40').escolhidas.length, 1, 'atrasada de ontem sai na primeira rodada');
+});
+
+test('agente: alt_text na capa, etiqueta de IA só quando ia: true, imagem única sem media_type', async () => {
+  const { raiz } = montarAgente([
+    carrosselAgente({ ia: true }),
+    { id: 'I1', dia: SEMANA, horario: '11:40', tipo: 'imagem', arquivos: [`${SEMANA}-I1-01.jpg`], legenda: LEGENDA_A, tema: 't', gancho: 'g', alt_text: 'Imagem' },
+  ]);
+  const m = metaFalsa();
+  const r = await rodar(raiz, SEMANA, { fetch: m.fetch, hora: '11:40' });
+  assert.equal(r.erros.length, 0, JSON.stringify(r.erros));
+  const posts = m.posts().map((c) => c.corpo);
+  assert.equal(posts.find((c) => c.is_carousel_item && c.image_url.endsWith('A-01.jpg')).alt_text, 'Capa: paciente faltou?');
+  assert.equal(posts.find((c) => c.is_carousel_item && c.image_url.endsWith('A-02.jpg')).alt_text, undefined);
+  assert.equal(posts.find((c) => c.media_type === 'CAROUSEL').is_ai_generated, 'true');
+  const imagem = posts.find((c) => c.image_url?.endsWith('I1-01.jpg'));
+  assert.equal(imagem.media_type, undefined);
+  assert.equal(imagem.is_ai_generated, undefined);
+  assert.equal(imagem.alt_text, 'Imagem');
+});
+
+test('agente: limite de publicação quase no fim não publica e vira erro', async () => {
+  const { raiz } = montarAgente([carrosselAgente()]);
+  const m = metaFalsa({ limite: [46, 50] });
+  const r = await rodar(raiz, SEMANA, { fetch: m.fetch, hora: '11:40' });
+  assert.equal(m.publicacoes().length, 0);
+  assert.match(r.erros[0].mensagem, /limite de publicação/);
+});
+
+test('kill switch: pausado não chama a Meta; o ensaio do agente não muda o publicador', async () => {
+  const { raiz } = montarAgente([carrosselAgente()]);
+  const m = metaFalsa();
+  const pausado = await rodar(raiz, SEMANA, { fetch: m.fetch, hora: '11:40', env: { META_TOKEN: TOKEN, IG_USER_ID: IG, AGENTE_PAUSADO: 'true' } });
+  assert.equal(pausado.pausado, true);
+  assert.equal(m.chamadas.length, 0);
+  const ensaio = await rodar(raiz, SEMANA, { fetch: m.fetch, hora: '11:40', env: { META_TOKEN: TOKEN, IG_USER_ID: IG, AGENTE_MODO: 'ensaio' } });
+  assert.equal(ensaio.publicadas.length, 1);
+  assert.equal(ensaio.publicadas[0].simulado, undefined);
 });

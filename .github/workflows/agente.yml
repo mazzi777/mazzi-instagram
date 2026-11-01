@@ -1,0 +1,138 @@
+name: Agente do Instagram
+
+# O "funcionário" do @mazzisystems (SPEC.md). Produz; quem publica é o workflow "Publicar no Instagram".
+#   sábado 02:17 (Brasília)  semanal: atualiza a base do produto, planeja e produz a semana seguinte
+#   todo dia 03:17           diário: produz/regera o que falta para os próximos 3 dias e confere os tokens
+#
+# Variáveis do repositório (Settings › Variables), o kill switch:
+#   AGENTE_PAUSADO = true      pausa tudo (o publicador também respeita)
+#   AGENTE_MODO    = ensaio    produz em ensaio/ (o publicador não lê) | so_reserva | vazio = real
+# Segredos: CLAUDE_CODE_OAUTH_TOKEN (assinatura), AJ_CLINIC_DEPLOY_KEY (leitura do aj-clinic),
+#           HEARTBEAT_URL (opcional: vigia que avisa se o agente parar de rodar).
+
+on:
+  schedule:
+    - cron: "17 5 * * 6"   # sábado 02:17 em Brasília
+    - cron: "17 6 * * *"   # todo dia 03:17 em Brasília
+  workflow_dispatch:
+    inputs:
+      comando:
+        description: "semanal ou diario"
+        type: choice
+        options: [semanal, diario]
+        default: diario
+      hoje:
+        description: "Fingir que hoje é (AAAA-MM-DD), só para teste"
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: agente
+  cancel-in-progress: false
+
+jobs:
+  # Pausado: não produz nada, mas avisa o vigia que está vivo (silêncio por pausa não é alarme).
+  pausado:
+    if: vars.AGENTE_PAUSADO == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - env:
+          HEARTBEAT_URL: ${{ secrets.HEARTBEAT_URL }}
+        run: |
+          echo "Agente pausado (AGENTE_PAUSADO=true). Nada é produzido."
+          if [ -n "$HEARTBEAT_URL" ]; then curl -fsS -m 10 --retry 3 "$HEARTBEAT_URL" > /dev/null || true; fi
+
+  agente:
+    if: vars.AGENTE_PAUSADO != 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      AGENTE_MODO: ${{ vars.AGENTE_MODO }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Qual rodada
+        id: qual
+        run: |
+          c="${{ inputs.comando }}"
+          if [ -z "$c" ]; then
+            if [ "${{ github.event.schedule }}" = "17 5 * * 6" ]; then c=semanal; else c=diario; fi
+          fi
+          echo "comando=$c" >> "$GITHUB_OUTPUT"
+          echo "Rodada: $c (modo: ${AGENTE_MODO:-real})"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Chromium (captura das imagens)
+        run: npx playwright install --with-deps chromium
+
+      - name: Clonar o aj-clinic (só leitura, para as novidades do produto)
+        if: steps.qual.outputs.comando == 'semanal'
+        env:
+          CHAVE: ${{ secrets.AJ_CLINIC_DEPLOY_KEY }}
+        run: |
+          if [ -z "$CHAVE" ]; then echo "Sem AJ_CLINIC_DEPLOY_KEY: a base não será atualizada."; exit 0; fi
+          mkdir -p ~/.ssh && printf '%s\n' "$CHAVE" > ~/.ssh/aj_clinic && chmod 600 ~/.ssh/aj_clinic
+          GIT_SSH_COMMAND="ssh -i ~/.ssh/aj_clinic -o StrictHostKeyChecking=accept-new" \
+            git clone -q --depth 1 git@github.com:mazzi777/aj-clinic.git "$RUNNER_TEMP/aj-clinic"
+          rm -f ~/.ssh/aj_clinic
+          echo "AJ_CLINIC_DIR=$RUNNER_TEMP/aj-clinic" >> "$GITHUB_ENV"
+
+      - name: Rodar o agente
+        id: agente
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          AGENTE_HOJE: ${{ inputs.hoje }}
+        run: node agente/agente.mjs ${{ steps.qual.outputs.comando }}
+
+      # Roda mesmo se o agente falhar: o que foi produzido e o registro do que reprovou ficam guardados.
+      - name: Guardar o que foi produzido
+        id: guardar
+        if: always() && steps.agente.outcome != 'skipped'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A -- semanas registro uso ensaio agente/base/produto.json 2>/dev/null || true
+          if git diff --cached --quiet; then echo "Nada novo para guardar."; exit 0; fi
+          git commit -q -m "Agente: rodada ${{ steps.qual.outputs.comando }} de $(TZ=America/Sao_Paulo date +%d/%m/%Y)"
+          for i in 1 2 3 4 5; do
+            if git pull --rebase -q origin main; then
+              git push -q origin HEAD:main && exit 0
+            else
+              git rebase --abort || true
+            fi
+            sleep $((i * 5))
+          done
+          echo "::error::Não consegui guardar o que o agente produziu."
+          exit 1
+
+      - name: Vigia (heartbeat)
+        if: always() && steps.agente.outcome == 'success'
+        env:
+          HEARTBEAT_URL: ${{ secrets.HEARTBEAT_URL }}
+        run: if [ -n "$HEARTBEAT_URL" ]; then curl -fsS -m 10 --retry 3 "$HEARTBEAT_URL" > /dev/null && echo "Vigia avisado."; fi
+
+      - name: Avisar a falha num issue
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          titulo="Agente do Instagram: problema"
+          if [ -f agente/erros.md ]; then detalhe="$(cat agente/erros.md)"; else detalhe="Um passo falhou antes do agente rodar (instalação ou checkout). Veja a rodada."; fi
+          corpo="$detalhe
+
+          Rodada: $RUN_URL"
+          num=$(gh issue list --state open --author "app/github-actions" --search "\"$titulo\" in:title" --json number -q '.[0].number')
+          if [ -n "$num" ]; then gh issue comment "$num" --body "$corpo"; else gh issue create --title "$titulo" --body "$corpo"; fi

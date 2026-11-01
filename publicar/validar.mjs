@@ -17,6 +17,12 @@ export const IDS = {
 // Reel avulso, fora do rodízio (ex.: os vídeos fixados do perfil): AV1, AV2... Sai em qualquer dia
 // da própria semana e não é cobrado como peça obrigatória.
 export const AVULSO = /^AV\d{1,2}$/;
+
+// Semana feita pelo agente (agenda.json com "produtor": "agente"): ids livres, horário por peça,
+// post de imagem única, carrossel de 5 a 8 slides e reel de 20 a 45 s (SPEC 8.3).
+export const ID_AGENTE = /^[A-Z][A-Z0-9]{0,5}$/;
+export const HORARIOS = ['07:40', '11:40', '18:40', '20:40'];
+const TIPOS_AGENTE = ['carrossel', 'imagem', 'reel', 'stories'];
 const DURACAO_MAX_LIMITE = 180; // a API da Meta aceita reel bem mais longo; 3 min basta para nós.
 
 // Só palavras: o sentido (número sem "EXEMPLO", promessa estética) é conferido por quem lê as peças.
@@ -79,14 +85,19 @@ export function textoProibido(texto, onde) {
 }
 
 /** Valida uma peça. `dir` é a pasta da semana. Devolve a lista de erros (vazia = ok). */
-export function validarPeca(dir, semana, peca, { sondar = sondarVideo } = {}) {
+export function validarPeca(dir, semana, peca, { sondar = sondarVideo, agente = false } = {}) {
   const onde = `${semana}/${peca.id}`;
   const avulso = AVULSO.test(peca.id ?? '');
-  const regra = IDS[peca.id] ?? (avulso ? { tipo: 'reel' } : null);
-  if (!regra) return [`${onde}: id desconhecido (use ${Object.keys(IDS).join(', ')} ou AV1, AV2... para reel avulso)`];
   const erros = [];
+  if (agente) {
+    if (!ID_AGENTE.test(peca.id ?? '')) return [`${onde}: id inválido (letra maiúscula e até 5 letras/números)`];
+    if (!TIPOS_AGENTE.includes(peca.tipo)) erros.push(`${onde}: tipo "${peca.tipo}" desconhecido`);
+    if (peca.horario !== undefined && !HORARIOS.includes(peca.horario)) erros.push(`${onde}: horário ${peca.horario} fora de ${HORARIOS.join(', ')}`);
+  }
+  const regra = agente ? { tipo: peca.tipo } : IDS[peca.id] ?? (avulso ? { tipo: 'reel' } : null);
+  if (!regra) return [`${onde}: id desconhecido (use ${Object.keys(IDS).join(', ')} ou AV1, AV2... para reel avulso)`];
   if (peca.tipo !== regra.tipo) erros.push(`${onde}: tipo "${peca.tipo}", esperado "${regra.tipo}"`);
-  if (avulso) {
+  if (avulso || agente) {
     if (typeof peca.dia !== 'string' || peca.dia < semana || peca.dia > dataMais(semana, 6)) {
       erros.push(`${onde}: dia ${peca.dia}, esperado entre ${semana} e ${dataMais(semana, 6)}`);
     }
@@ -96,7 +107,7 @@ export function validarPeca(dir, semana, peca, { sondar = sondarVideo } = {}) {
 
   const { arquivos } = peca;
   if (!Array.isArray(arquivos) || arquivos.some((a) => typeof a !== 'string')) return [...erros, `${onde}: lista de arquivos inválida`];
-  const [min, max] = peca.tipo === 'carrossel' ? [2, 10] : peca.tipo === 'stories' ? [1, 10] : [1, 1];
+  const [min, max] = peca.tipo === 'carrossel' ? (agente ? [5, 8] : [2, 10]) : peca.tipo === 'stories' ? [1, 10] : [1, 1];
   if (arquivos.length < min || arquivos.length > max) erros.push(`${onde}: ${arquivos.length} arquivo(s), esperado de ${min} a ${max}`);
 
   for (const nome of arquivos) {
@@ -111,18 +122,19 @@ export function validarPeca(dir, semana, peca, { sondar = sondarVideo } = {}) {
       if (v.codec !== 'h264') erros.push(`${onde}: ${nome} em ${v.codec}, esperado h264`);
       if (!v.audio) erros.push(`${onde}: ${nome} sem faixa de áudio`);
       // Padrão da semana: 20 a 30 s. Peça especial (ex.: lançamento) pode declarar "duracao_max" (até 180 s).
-      const maximo = peca.duracao_max ?? 30;
+      const maximo = peca.duracao_max ?? (agente ? 45 : 30);
       if (!(v.duracao >= 20 && v.duracao <= maximo + 0.5)) erros.push(`${onde}: ${nome} com ${v.duracao}s (20 a ${maximo})`);
     } else {
       if (!/\.jpe?g$/i.test(nome)) { erros.push(`${onde}: ${nome} precisa ser JPEG`); continue; }
       const t = tamanhoJpeg(readFileSync(caminho));
-      const alvo = peca.tipo === 'carrossel' ? [1080, 1350] : [1080, 1920];
+      const alvo = peca.tipo === 'carrossel' || peca.tipo === 'imagem' ? [1080, 1350] : [1080, 1920];
       if (!t) erros.push(`${onde}: ${nome} não é um JPEG legível`);
       else if (t.largura !== alvo[0] || t.altura !== alvo[1]) erros.push(`${onde}: ${nome} é ${t.largura}x${t.altura}, esperado ${alvo.join('x')}`);
     }
   }
 
   if (peca.tipo !== 'stories') erros.push(...validarLegenda(peca.legenda, onde));
+  if (peca.alt_text !== undefined && !(typeof peca.alt_text === 'string' && peca.alt_text.length <= 1000)) erros.push(`${onde}: alt_text precisa ser texto de até 1000 caracteres`);
   for (const campo of ['tema', 'gancho']) {
     if (typeof peca[campo] === 'string') erros.push(...textoProibido(peca[campo], `${onde} (${campo})`));
   }
@@ -146,6 +158,8 @@ export function validarSemana(dir, opcoes) {
   let agenda;
   try { agenda = lerAgenda(dir); } catch (e) { return [e.message]; }
   const erros = [];
+  const agente = agenda.produtor === 'agente';
+  opcoes = { ...opcoes, agente };
   if (path.basename(dir) !== agenda.semana) erros.push(`pasta ${path.basename(dir)} diferente da semana ${agenda.semana}`);
   if (new Date(`${agenda.semana}T12:00:00Z`).getUTCDay() !== 1) erros.push(`semana ${agenda.semana} não é uma segunda-feira`);
   const vistos = new Set();
@@ -156,7 +170,7 @@ export function validarSemana(dir, opcoes) {
   }
   // Semana só de avulsos (ex.: os fixados do perfil) não cobra as peças do rodízio.
   const soAvulsos = agenda.pecas.length > 0 && agenda.pecas.every((p) => AVULSO.test(p.id ?? ''));
-  if (!soAvulsos) for (const id of Object.keys(IDS)) if (!vistos.has(id)) erros.push(`${agenda.semana}: falta a peça ${id}`);
+  if (!soAvulsos && !agente) for (const id of Object.keys(IDS)) if (!vistos.has(id)) erros.push(`${agenda.semana}: falta a peça ${id}`);
   return erros;
 }
 

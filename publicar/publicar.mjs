@@ -22,6 +22,14 @@ export function hojeEmSaoPaulo(agora = new Date()) {
   return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }).format(agora);
 }
 
+/** "HH:MM" agora em São Paulo (peça do agente sai a partir do próprio horário). */
+export function horaEmSaoPaulo(agora = new Date()) {
+  return new Intl.DateTimeFormat('en-GB', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(agora);
+}
+
+// Folga no limite de publicação da Meta (a doc fala em 50 e em 100 por 24 h: o número é lido na hora).
+const FOLGA_LIMITE = 5;
+
 function segundaDa(iso) {
   const dia = new Date(`${iso}T12:00:00Z`).getUTCDay();
   return dataMais(iso, -((dia + 6) % 7));
@@ -32,7 +40,7 @@ function lerJson(arquivo, padrao) {
 }
 
 /** Peças a publicar agora. Uma agenda quebrada vira erro só daquela semana; as outras seguem. */
-export function escolherPecas(raiz, hoje, alvo) {
+export function escolherPecas(raiz, hoje, alvo, hora = '23:59') {
   const base = path.join(raiz, 'semanas');
   const escolhidas = [];
   const erros = [];
@@ -64,6 +72,7 @@ export function escolherPecas(raiz, hoje, alvo) {
         continue;
       }
       if (registro?.completo || registro?.vencida || peca.dia > hoje) continue;
+      if (peca.dia === hoje && peca.horario && peca.horario > hora) continue;
       escolhidas.push({ semana: agenda.semana, dir, peca, vencida: peca.dia < dataMais(hoje, -ATRASO_MAXIMO_DIAS) });
     }
   }
@@ -104,6 +113,11 @@ export function criarCliente({ token, igUserId, fetch, esperar }) {
     conta: () => graph('GET', igUserId, { fields: 'id,username' }),
     container: async (params) => (await graph('POST', `${igUserId}/media`, params)).id,
     publicarContainer: async (id) => (await graph('POST', `${igUserId}/media_publish`, { creation_id: id })).id,
+    /** { usado, total } do limite de publicação nas últimas 24 h. */
+    limite: async () => {
+      const { data = [] } = await graph('GET', `${igUserId}/content_publishing_limit`, { fields: 'quota_usage,config' });
+      return { usado: data[0]?.quota_usage ?? 0, total: data[0]?.config?.quota_total ?? 50 };
+    },
     /** Post do feed com esta legenda nos últimos 7 dias (id) ou null. */
     acharNoFeed: async (legenda, hoje) => {
       const { data = [] } = await graph('GET', `${igUserId}/media`, { fields: 'id,caption,timestamp', limit: 25 });
@@ -157,15 +171,21 @@ async function publicarUmaVez(meta, { pendente, criar, espera, gravarPendente })
 
 export async function publicar({
   raiz, hoje, alvo = null, simular = false, env = {}, fetch = globalThis.fetch,
-  esperar = (ms) => new Promise((r) => setTimeout(r, ms)), sondar, log = console.log, agora = () => new Date(),
+  esperar = (ms) => new Promise((r) => setTimeout(r, ms)), sondar, log = console.log, agora = () => new Date(), hora,
 }) {
+  // Kill switch: pausado, não publica nada (nem reserva, nem a semana da rotina).
+  // (O modo ensaio do agente não passa por aqui: no ensaio o agente grava em ensaio/, que o publicador não lê.)
+  if (env.AGENTE_PAUSADO === 'true') {
+    log('Agente pausado (AGENTE_PAUSADO=true): nada é publicado.');
+    return { publicadas: [], erros: [], pausado: true };
+  }
   const token = env.META_TOKEN;
   const igUserId = env.IG_USER_ID;
   const repo = env.GITHUB_REPOSITORY || 'mazzi777/mazzi-instagram';
   const ref = env.MIDIA_REF || 'main';
   const ocultar = (texto) => (token ? String(texto).split(token).join('***') : String(texto));
 
-  const { escolhidas, erros } = escolherPecas(raiz, hoje, alvo);
+  const { escolhidas, erros } = escolherPecas(raiz, hoje, alvo, hora ?? horaEmSaoPaulo(agora()));
   const resultado = { publicadas: [], erros: [...erros] };
 
   if (alvo && !escolhidas.length && !erros.length) {
@@ -205,7 +225,8 @@ export async function publicar({
     }
 
     try {
-      const problemas = validarPeca(dir, semana, peca, sondar ? { sondar } : undefined);
+      const agente = lerAgenda(dir).produtor === 'agente';
+      const problemas = validarPeca(dir, semana, peca, { ...(sondar ? { sondar } : {}), agente });
       if (problemas.length) throw new Error(`não passou na validação:\n${problemas.map((e) => `  - ${e}`).join('\n')}`);
 
       const urls = peca.arquivos.map((a) => `https://raw.githubusercontent.com/${repo}/${ref}/semanas/${semana}/${a}`);
@@ -220,7 +241,12 @@ export async function publicar({
         continue;
       }
 
+      const { usado, total } = await meta.limite();
+      if (usado >= total - FOLGA_LIMITE) throw new Error(`limite de publicação da Meta quase no fim (${usado} de ${total} nas últimas 24 h): fica para a próxima rodada`);
+
       const registro = { ids: [], ...publicado[peca.id], via: 'api' };
+      // Etiqueta de IA (política da Meta, SPEC 8.4): só vai quando a peça declara ia: true.
+      const ia = peca.ia === true ? { is_ai_generated: true } : {};
       const gravarPendente = (id) => {
         registro.pendente = id;
         publicado[peca.id] = registro;
@@ -248,19 +274,22 @@ export async function publicar({
           log(`${onde}: já estava no feed (${noFeed}); só registrando`);
           registro.ids = [noFeed];
         } else {
+          const alt = peca.alt_text ? { alt_text: peca.alt_text } : {};
           const criar = peca.tipo === 'carrossel'
             ? async () => {
               const filhos = [];
-              for (const url of urls) {
-                const id = await meta.container({ image_url: url, is_carousel_item: true });
+              for (const [i, url] of urls.entries()) {
+                const id = await meta.container({ image_url: url, is_carousel_item: true, ...(i === 0 ? alt : {}) });
                 await meta.esperarPronto(id, IMAGEM);
                 filhos.push(id);
               }
-              return meta.container({ media_type: 'CAROUSEL', children: filhos.join(','), caption: peca.legenda });
+              return meta.container({ media_type: 'CAROUSEL', children: filhos.join(','), caption: peca.legenda, ...ia });
             }
-            : () => meta.container({
-              media_type: 'REELS', video_url: urls[0], caption: peca.legenda, share_to_feed: true, thumb_offset: peca.capa_ms ?? 0,
-            });
+            : peca.tipo === 'imagem'
+              ? () => meta.container({ image_url: urls[0], caption: peca.legenda, ...alt, ...ia })
+              : () => meta.container({
+                media_type: 'REELS', video_url: urls[0], caption: peca.legenda, share_to_feed: true, thumb_offset: peca.capa_ms ?? 0, ...ia,
+              });
           registro.ids = [await publicarUmaVez(meta, {
             pendente: registro.pendente, criar, espera: peca.tipo === 'reel' ? VIDEO : IMAGEM, gravarPendente,
           })];
