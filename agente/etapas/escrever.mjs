@@ -75,8 +75,8 @@ export async function checarTexto({ item, conteudo, produto, juizFatos, juizMarc
     const g = checarGancho(primeira, c.gancho);
     if (!g.ok) motivos.push(`legenda: a primeira linha não é um gancho forte (nota ${g.nota}): "${primeira}"`);
   }
-  // Stories: cada quadro é uma tela, então variação de tamanho entre frases não se aplica.
-  const humano = checarHumano(textoCorrido(item.tipo, conteudo), { ...c.humano, semVariacao: item.tipo === 'stories' });
+  // Stories e reel: cada quadro/batida é uma tela, então variação de tamanho entre frases não se aplica.
+  const humano = checarHumano(textoCorrido(item.tipo, conteudo), { ...c.humano, semVariacao: item.tipo === 'stories' || item.tipo === 'reel' });
   notas.humano = humano.nota;
   motivos.push(...humano.motivos);
   const tudo = textoDaPeca(item.tipo, conteudo);
