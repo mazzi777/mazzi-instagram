@@ -1,0 +1,81 @@
+{
+  "semana": "2026-11-23",
+  "produtor": "agente",
+  "pecas": [
+    {
+      "id": "S2",
+      "dia": "2026-11-25",
+      "horario": "07:40",
+      "tipo": "stories",
+      "arquivos": [
+        "2026-11-23-S2-01.jpg",
+        "2026-11-23-S2-02.jpg",
+        "2026-11-23-S2-03.jpg",
+        "2026-11-23-S2-04.jpg",
+        "2026-11-23-S2-05.jpg"
+      ],
+      "tema": "restaurante · Stories: o que o cliente vê na tela da balança",
+      "gancho": "Seu cliente vê o peso do prato na hora de pagar?",
+      "ramo": "restaurante",
+      "objetivo": "conversa",
+      "ia": false,
+      "origem": "agente",
+      "fatos": [
+        "rest.balanca"
+      ],
+      "tentativas": 1
+    },
+    {
+      "id": "C",
+      "dia": "2026-11-27",
+      "horario": "18:40",
+      "tipo": "carrossel",
+      "arquivos": [
+        "2026-11-23-C-01.jpg",
+        "2026-11-23-C-02.jpg",
+        "2026-11-23-C-03.jpg",
+        "2026-11-23-C-04.jpg",
+        "2026-11-23-C-05.jpg",
+        "2026-11-23-C-06.jpg",
+        "2026-11-23-C-07.jpg",
+        "2026-11-23-C-08.jpg"
+      ],
+      "tema": "restaurante · Caixa que sempre bate é caixa que ninguém conferiu",
+      "gancho": "Seu caixa nunca tem diferença? Então ninguém conferiu.",
+      "ramo": "restaurante",
+      "objetivo": "conversa",
+      "ia": false,
+      "origem": "agente",
+      "fatos": [
+        "rest.caixa"
+      ],
+      "tentativas": 2,
+      "legenda": "Seu caixa nunca tem diferença? Então ninguém conferiu o que entrou.\n\nNo caderno, o caixa fecha porque a gente ajusta a conta até bater. Ninguém separa dinheiro, pix e cartão. Ninguém lembra da sangria do motoboy.\n\nNo sistema, você abre o caixa, lança a venda com pagamento dividido, registra a sangria e fecha. Se faltar ou sobrar, a diferença aparece na tela. Ela já estava lá, só que agora você vê.\n\nChama no WhatsApp (link na bio) que a gente te mostra.\n\n#restaurante #caixa #gestaoderestaurante",
+      "alt_text": "Capa em fundo grafite com a frase \"Seu caixa nunca tem diferença? Então ninguém conferiu.\" e as palavras \"ninguém conferiu\" em coral, com o @mazzisystems."
+    },
+    {
+      "id": "S3",
+      "dia": "2026-11-27",
+      "horario": "20:40",
+      "tipo": "stories",
+      "arquivos": [
+        "2026-11-23-S3-01.jpg",
+        "2026-11-23-S3-02.jpg",
+        "2026-11-23-S3-03.jpg",
+        "2026-11-23-S3-04.jpg",
+        "2026-11-23-S3-05.jpg"
+      ],
+      "tema": "comum · Stories: como entrar na Mazzi",
+      "gancho": "Fim de mês chegando e o caderno de novo aberto na mesa?",
+      "ramo": "comum",
+      "objetivo": "conversa",
+      "ia": false,
+      "origem": "agente",
+      "fatos": [
+        "comum.celular",
+        "comum.marca-propria"
+      ],
+      "tentativas": 1
+    }
+  ]
+}

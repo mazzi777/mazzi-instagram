@@ -1,0 +1,107 @@
+{
+  "semana": "2026-11-23",
+  "criado_em": "2026-11-21",
+  "tentativas": 1,
+  "pecas": [
+    {
+      "dia": "2026-11-23",
+      "horario": "11:40",
+      "tipo": "carrossel",
+      "ramo": "clinica",
+      "objetivo": "conversa",
+      "conteudo": "dor",
+      "tema": "Paciente que confirmou e não veio",
+      "angulo": "A paciente que disse 'tô confirmada' no zap solto, sumiu no meio de outras conversas e não apareceu. O lembrete pronto em 1 clique, com link pra confirmar ou pedir remarcação, e a agenda que não deixa dois pacientes no mesmo horário.",
+      "fatos": [
+        "clin.lembrete-1-clique",
+        "clin.agenda"
+      ],
+      "exploracao": false,
+      "id": "A",
+      "situacao": "pulada"
+    },
+    {
+      "dia": "2026-11-23",
+      "horario": "20:40",
+      "tipo": "stories",
+      "ramo": "clinica",
+      "objetivo": "conversa",
+      "conteudo": "dor",
+      "tema": "Stories: como você lembra seus pacientes hoje?",
+      "angulo": "Abre com a cena da segunda de manhã olhando a agenda de papel e vendo buracos. Pede 'me responde aqui nesse story' como você lembra hoje (zap, ligação, de cabeça). Fecha com o lembrete pronto em 1 clique e 'chama no WhatsApp, link na bio'.",
+      "fatos": [
+        "clin.lembrete-1-clique",
+        "clin.agenda"
+      ],
+      "exploracao": false,
+      "id": "S1",
+      "situacao": "pulada"
+    },
+    {
+      "dia": "2026-11-25",
+      "horario": "07:40",
+      "tipo": "stories",
+      "ramo": "restaurante",
+      "objetivo": "conversa",
+      "conteudo": "ensina",
+      "tema": "Stories: o que o cliente vê na tela da balança",
+      "angulo": "Mostra em cartão EXEMPLO a tela da balança voltada pro cliente com peso e preço do quilo do dia. Pergunta 'me responde aqui nesse story' se o cliente confere o peso hoje ou só confia. Fecha com chamada pro WhatsApp.",
+      "fatos": [
+        "rest.balanca"
+      ],
+      "exploracao": false,
+      "id": "S2",
+      "situacao": "aprovada"
+    },
+    {
+      "dia": "2026-11-25",
+      "horario": "20:40",
+      "tipo": "reel",
+      "ramo": "restaurante",
+      "objetivo": "alcance",
+      "conteudo": "ensina",
+      "tema": "Nota do prato cobrada duas vezes na balança",
+      "angulo": "Cliente pesa o prato, a nota some no bolso e volta pra pagar de novo ou escapa sem pagar. A balança imprime nota com código de barras, o caixa lê e o valor entra sozinho; nota já cobrada é recusada. Texto animado, termina pedindo pra salvar e mandar pra quem tem self-service.",
+      "fatos": [
+        "rest.balanca"
+      ],
+      "exploracao": true,
+      "id": "B",
+      "situacao": "pulada"
+    },
+    {
+      "dia": "2026-11-27",
+      "horario": "18:40",
+      "tipo": "carrossel",
+      "ramo": "restaurante",
+      "objetivo": "conversa",
+      "conteudo": "opiniao",
+      "tema": "Caixa que sempre bate é caixa que ninguém conferiu",
+      "angulo": "Opinião: no caderno o caixa sempre fecha porque ninguém separa o que entrou. Mostra abertura, venda com pagamento dividido, sangria e fechamento com a diferença na tela (cartão EXEMPLO). Diferença aparecer não é defeito, é o que se vê.",
+      "fatos": [
+        "rest.caixa"
+      ],
+      "exploracao": false,
+      "id": "C",
+      "situacao": "aprovada"
+    },
+    {
+      "dia": "2026-11-27",
+      "horario": "20:40",
+      "tipo": "stories",
+      "ramo": "comum",
+      "objetivo": "conversa",
+      "conteudo": "convite",
+      "tema": "Stories: como entrar na Mazzi",
+      "angulo": "Convite direto no fim de semana de fechamento do mês: a Mazzi é gestão online pra clínica e restaurante pequeno, funciona no computador e no celular com seu logo e suas cores. Não tem cadastro aberto: chama no WhatsApp (link na bio) e recebe o convite.",
+      "fatos": [
+        "comum.marca-propria",
+        "comum.celular"
+      ],
+      "exploracao": false,
+      "id": "S3",
+      "situacao": "aprovada"
+    }
+  ],
+  "porque": "N = semana ISO 48. Segunda: Carrossel A é clínica tema 1 (paciente que falta). Como \"Paciente faltou de novo?\" já foi usado, o ângulo é a paciente que confirmou e não veio, com lembrete em 1 clique. Quarta: o reel cai em restaurante tema 4 (balança e quilo), porque N é par. O preço por dia já foi usado em 18/11, então o ângulo é a nota do prato cobrada duas vezes. Sexta: Carrossel B é restaurante tema 1 (caixa), com ângulo de opinião, diferente de \"caixa não fechou\" e de sangria. Feed tem 3 posts (2 conversa, 1 alcance, cerca de 70%), um por dia, formatos alternados. Stories segunda, quarta e sexta (clínica, restaurante, convite). A exploração é o reel às 20:40, horário pouco testado, e é 1 de 6 peças. Não há dados de métricas, então segui o guia. Nada de preço, NFC-e, cliente ou número."
+}
