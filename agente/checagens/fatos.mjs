@@ -21,7 +21,12 @@ Para cada uma:
 - "tipo": funcao | preco | numero | cliente | depoimento | resultado | promocao | opiniao | outro;
 - "funcao_id": o id da função da base que comprova a afirmação, ou null se nenhuma comprova EXATAMENTE (não force: função parecida não serve);
 - "em_exemplo": true só se o trecho está dentro de um cartão de interface marcado "EXEMPLO".
-Dor do dia a dia do dono ("o caixa não fecha", "paciente falta") é "opiniao", não afirmação sobre o produto.
+Como classificar:
+- "funcao": o que o produto faz ou mostra ("o lembrete sai pronto pro WhatsApp", "você vê em qual sessão ela está", "o relatório mostra se sobrou");
+- "resultado": promessa de resultado de negócio ou de procedimento, em geral com número ou garantia ("fatura 30% mais", "acaba com as faltas");
+- "opiniao": dor do dia a dia do dono, cena de exemplo sem nome real, posição sobre gestão ("o caixa não fecha", "paciente falta");
+- "outro": a chamada para o WhatsApp, o link na bio e o convite para entrar (é como se entra na Mazzi; NÃO é preço nem promoção);
+- "preco"/"promocao": só quando fala de valor, "grátis", desconto ou oferta.
 Não julgue se pode ou não; só liste. Responda só no formato pedido.`;
 
 /** Regras do código sobre a lista do juiz. Devolve os motivos de reprovação. */

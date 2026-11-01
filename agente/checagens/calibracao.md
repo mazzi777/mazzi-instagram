@@ -55,7 +55,7 @@ O log mistura ganchos fortes com frases de abertura que não eram gancho (ex.: c
 ## G5: sem cara de IA
 
 - Textos humanos (respostas do FAQ e fatos da base, escritos à mão): 29; notas de 62 a 100
-- Textos com cara de IA: 5; notas 25, 31, 27, 20, 24
+- Textos com cara de IA: 5; notas 26, 32, 31, 21, 25
 - **AUC: 1.00**
 - Com nota >= 70: 24 de 29 humanos e 0 de 5 de IA
 

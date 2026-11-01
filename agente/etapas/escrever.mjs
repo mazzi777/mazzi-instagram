@@ -4,7 +4,7 @@ import { checarGancho } from '../checagens/gancho.mjs';
 import { checarLegenda } from '../checagens/legenda.mjs';
 import { checarHumano } from '../checagens/humano.mjs';
 import { checarNunca } from '../checagens/nunca.mjs';
-import { checarFatos } from '../checagens/fatos.mjs';
+import { checarFatos, resumoParaJuiz } from '../checagens/fatos.mjs';
 import { checarRepeticao } from '../checagens/repeticao.mjs';
 import { Afirmacoes, ProblemasMarca } from '../lib/schemas.mjs';
 import { contextoMarca } from './contexto.mjs';
@@ -59,11 +59,12 @@ export async function checarTexto({ item, conteudo, produto, juizFatos, juizMarc
     motivos.push(...legenda.motivos);
     if (!legenda.detalhe.visivel.includes(conteudo.gancho.replace(/[.?!]+$/, '').slice(0, 30))) motivos.push('legenda: o gancho não está no começo da legenda');
   }
-  const humano = checarHumano(textoCorrido(item.tipo, conteudo), c.humano);
+  // Stories: cada quadro é uma tela, então variação de tamanho entre frases não se aplica.
+  const humano = checarHumano(textoCorrido(item.tipo, conteudo), { ...c.humano, semVariacao: item.tipo === 'stories' });
   notas.humano = humano.nota;
   motivos.push(...humano.motivos);
   const tudo = textoDaPeca(item.tipo, conteudo);
-  const [nunca, fatos] = await Promise.all([checarNunca(tudo, { juiz: juizMarca }), checarFatos(tudo, { juiz: juizFatos, produto })]);
+  const [nunca, fatos] = await Promise.all([checarNunca(tudo, { juiz: juizMarca, base: resumoParaJuiz(produto) }), checarFatos(tudo, { juiz: juizFatos, produto })]);
   motivos.push(...nunca.motivos, ...fatos.motivos);
   motivos.push(...checarRepeticao(conteudo.gancho, usados, { hoje, limite: c.repeticao.limite }).motivos);
   return { ok: motivos.length === 0, motivos, notas, fatos: fatos.fatos };

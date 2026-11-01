@@ -35,7 +35,8 @@ function variacao(texto) {
   const tamanhos = frases(texto).map((f) => f.split(/\s+/).length);
   if (tamanhos.length < 4) return [null, 'curto demais para julgar'];
   const cv = desvioPadrao(tamanhos) / media(tamanhos);
-  return [escala(cv, 0.70, 0.22), `variação ${cv.toFixed(2)} em ${tamanhos.length} frases (ideal: 0,55+)`];
+  // Calibrado para a marca (frases curtas por regra): 0,50 já é variação de gente; o original pedia 0,70.
+  return [escala(cv, 0.50, 0.12), `variação ${cv.toFixed(2)} em ${tamanhos.length} frases (ideal: 0,40+)`];
 }
 
 function concreto(texto) {
@@ -79,14 +80,15 @@ function voz(texto) {
   const marcas = ESTRUTURAS.filter((e) => (texto.match(e.re) ?? []).length).map((e) => e.id);
   const tamanhosLista = [...texto.matchAll(/^\s*[-*•]\s+(.+)$/gm)].map((m) => m[1].split(/\s+/).length);
   const uniforme = tamanhosLista.length >= 3 && desvioPadrao(tamanhosLista) < 1.6;
-  let nota = escala(coloquial, 3, 0) * 0.35 + escala(pessoa, 8, 1) * 0.35 + limitar(100 - marcas.length * 22) * 0.30;
+  // Coloquial ajuda mas não é obrigatório (o original exigia 3 a cada 100 palavras, o que reprovava legenda limpa).
+  let nota = escala(coloquial, 1.5, 0) * 0.25 + escala(pessoa, 5, 1) * 0.45 + limitar(100 - marcas.length * 22) * 0.30;
   if (uniforme) { nota -= 12; marcas.push('lista-uniforme'); }
   return [limitar(nota), `${coloquial.toFixed(1)} coloquiais e ${pessoa.toFixed(1)} pronomes de pessoa a cada 100 palavras, ${marcas.length} estrutura(s) de IA${marcas.length ? ` [${marcas.slice(0, 4).join(', ')}]` : ''}`];
 }
 
 /** { nota, veredito: PASSA|REVISAR|SINALIZADO, criterios } */
-export function notaHumano(texto) {
-  const criterios = { VARIACAO: variacao(texto), CONCRETO: concreto(texto), PALAVRAS_IA: palavrasIa(texto), TIPOGRAFIA: tipografia(texto), VOZ: voz(texto) };
+export function notaHumano(texto, { semVariacao = false } = {}) {
+  const criterios = { VARIACAO: semVariacao ? [null, 'não se aplica'] : variacao(texto), CONCRETO: concreto(texto), PALAVRAS_IA: palavrasIa(texto), TIPOGRAFIA: tipografia(texto), VOZ: voz(texto) };
   // Critério sem texto suficiente fica de fora (no original valia 50 e reprovava toda legenda curta).
   const notas = CRITERIOS.map((c) => criterios[c][0]).filter((n) => n !== null);
   const nota = notaGeral(notas);
@@ -95,8 +97,8 @@ export function notaHumano(texto) {
 }
 
 /** Checagem G5. Travessão, caractere invisível e sobra de modelo reprovam sozinhos (regra da marca). */
-export function checarHumano(texto, { notaMinima = 70, criterioMinimo = 55 } = {}) {
-  const r = notaHumano(texto);
+export function checarHumano(texto, { notaMinima = 70, criterioMinimo = 55, semVariacao = false } = {}) {
+  const r = notaHumano(texto, { semVariacao });
   const motivos = [];
   if (r.nota < notaMinima) motivos.push(`texto com cara de IA: nota ${r.nota} (mínimo ${notaMinima})`);
   for (const c of CRITERIOS) if (r.criterios[c][0] !== null && r.criterios[c][0] < criterioMinimo) motivos.push(`cara de IA em ${c}: ${r.criterios[c][1]}`);

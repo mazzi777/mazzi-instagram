@@ -16,8 +16,7 @@
         "clin.pacotes"
       ],
       "exploracao": false,
-      "id": "S1",
-      "situacao": "pulada"
+      "id": "S1"
     },
     {
       "dia": "2026-11-16",
@@ -34,8 +33,7 @@
         "clin.agenda"
       ],
       "exploracao": false,
-      "id": "A",
-      "situacao": "pulada"
+      "id": "A"
     },
     {
       "dia": "2026-11-18",
@@ -51,8 +49,7 @@
         "clin.agenda"
       ],
       "exploracao": false,
-      "id": "B",
-      "situacao": "pulada"
+      "id": "B"
     },
     {
       "dia": "2026-11-18",
@@ -67,8 +64,7 @@
         "rest.estoque"
       ],
       "exploracao": true,
-      "id": "S2",
-      "situacao": "pulada"
+      "id": "S2"
     },
     {
       "dia": "2026-11-20",
@@ -84,8 +80,7 @@
         "rest.estoque"
       ],
       "exploracao": false,
-      "id": "C",
-      "situacao": "pulada"
+      "id": "C"
     },
     {
       "dia": "2026-11-20",
@@ -101,8 +96,7 @@
         "comum.celular"
       ],
       "exploracao": false,
-      "id": "S3",
-      "situacao": "pulada"
+      "id": "S3"
     },
     {
       "dia": "2026-11-22",
@@ -119,8 +113,7 @@
         "comum.backup"
       ],
       "exploracao": true,
-      "id": "D",
-      "situacao": "pulada"
+      "id": "D"
     }
   ],
   "porque": "Semana ISO 47. Pelo rodízio, o carrossel de segunda é Clínica tema 6 (pacotes e comissão) e o de sexta é Restaurante tema 6 (quanto sobrou de verdade). O reel não está ligado. A quarta ficou com imagem de orçamento (tema do reel de clínica), mas com ângulo novo: o que acontece depois da aprovação, para não repetir os ganchos de orçamento sem resposta. São 4 posts de feed, 3 de conversa e 1 de alcance (75%), com os dois ramos presentes. Stories em 4 dias (segunda, quarta, sexta e domingo ficou sem story para não saturar). Exploração: story de bebida às 20:40 e imagem de domingo às 18:40. Sem dados de métricas, segui os padrões do guia."
