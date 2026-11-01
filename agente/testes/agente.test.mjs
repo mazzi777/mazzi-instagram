@@ -204,6 +204,24 @@ test('orquestrador: produz os pendentes do plano, grava a agenda do agente e par
   assert.deepEqual(agenda.pecas.map((p) => p.id), ['A']);
 });
 
+test('orquestrador: limite do plano no meio de uma checagem para a rodada e deixa a peça pendente', async () => {
+  const saida = tmp();
+  const dir = path.join(saida, 'semanas', SEMANA);
+  mkdirSync(dir, { recursive: true });
+  writeFileSync(path.join(dir, 'plano.json'), JSON.stringify({ semana: SEMANA, pecas: [item] }));
+  const cerebro = { ...cerebroFalso({ conteudos: [carrosselBom] }), juiz: () => async () => { throw new ErroLimite("You've hit your 5-hour limit"); } };
+  const r = await produzirPendentes({ raiz: RAIZ, saida, semana: SEMANA, produto, config, cerebro, usados: [], hoje: '2026-11-14', registrar: criarRegistro(saida), capturar: capturaFalsa, desde: SEMANA, ate: '2026-11-22' });
+  assert.ok(r.parou instanceof ErroLimite);
+  assert.deepEqual(r.feitas, []);
+  const plano = JSON.parse(readFileSync(path.join(dir, 'plano.json'), 'utf8'));
+  assert.equal(plano.pecas[0].situacao, undefined, 'fica pendente para a próxima rodada');
+});
+
+test('cérebro: erro lançado pelo SDK também é classificado (limite de 5 horas)', async () => {
+  const c = criarCerebro({ raiz: tmp(), config, consultar: async () => { throw new Error("Claude Code returned an error result: You've hit your 5-hour limit · resets 4:20pm (UTC)"); } });
+  await assert.rejects(c.pedir({ etapa: 'x', modelo: 'm', sistema: 's', prompt: 'p', schema: z.object({}) }), ErroLimite);
+});
+
 test('orquestrador: nunca mexe numa agenda da rotina', () => {
   const saida = tmp();
   mkdirSync(path.join(saida, 'semanas', SEMANA), { recursive: true });

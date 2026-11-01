@@ -26,6 +26,7 @@ export async function checarVisual(imagens, { juiz, contexto = '' } = {}) {
     const motivos = problemas.map((p) => `visual (imagem ${p.imagem}): ${p.problema}`);
     return { ok: motivos.length === 0, motivos };
   } catch (e) {
+    if (e.parar) throw e; // limite, teto ou login: para a rodada, não reprova a peça
     return { ok: false, motivos: [`juiz visual falhou (${e.message}): na dúvida, não posta`] };
   }
 }

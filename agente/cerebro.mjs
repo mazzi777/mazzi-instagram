@@ -9,15 +9,16 @@ import path from 'node:path';
 import { z } from 'zod';
 import { validar } from './lib/schemas.mjs';
 
-export class ErroToken extends Error {}
+// Erros que param a rodada inteira (não são "peça ruim"): as checagens repassam em vez de reprovar.
+export class ErroToken extends Error { parar = true; }
 
 /** JSON Schema que o Claude Code aceita: draft-07 e sem o campo $schema. */
 export function schemaParaClaude(schema) {
   const { $schema, ...resto } = z.toJSONSchema(schema, { target: 'draft-7' });
   return resto;
 }
-export class ErroLimite extends Error {}
-export class ErroTeto extends Error {}
+export class ErroLimite extends Error { parar = true; }
+export class ErroTeto extends Error { parar = true; }
 
 /** Semana ISO ("2026-W45") de uma data. */
 export function semanaIso(data) {
@@ -29,7 +30,7 @@ export function semanaIso(data) {
   return `${d.getUTCFullYear()}-W${String(semana).padStart(2, '0')}`;
 }
 
-const LIMITE_RE = /you've hit your|you've reached your|out of usage|usage limit|rate limit|429|overloaded/i;
+const LIMITE_RE = /you.ve (?:hit|reached) your|out of usage|usage limit|5-hour limit|weekly limit|rate limit|429|overloaded/i;
 const TOKEN_RE = /401|invalid bearer|authentication|not logged in|login expired|oauth|invalid api key|unauthorized/i;
 
 /** Chamada real ao Agent SDK. Devolve { ok, saida, custo, entrada, saidaTokens, erro }. */
@@ -96,10 +97,11 @@ export function criarCerebro({ raiz, config, agora = () => new Date(), consultar
   async function pedir({ etapa, modelo, sistema, prompt, imagens = [], schema, ferramentas = [], maxTurns = 6, effort }) {
     const gasto = gastoSemana();
     if (gasto >= teto) throw new ErroTeto(`teto semanal de uso atingido (US$ ${gasto.toFixed(2)} de ${teto} equivalente)`);
+    // O SDK às vezes lança em vez de devolver um resultado de erro: os dois caminhos são tratados igual.
     const r = await consultar({
       modelo, sistema, prompt, imagens, schemaJson: schemaParaClaude(schema), ferramentas, maxTurns, effort,
       tetoUsd: Math.max(0.05, Math.min(1.5, teto - gasto)),
-    });
+    }).catch((e) => ({ ok: false, erro: e.message, custo: 0 }));
     anotar(etapa, modelo, r);
     if (!r.ok) {
       if (TOKEN_RE.test(r.erro)) throw new ErroToken(`login do Claude recusado: ${r.erro}`);

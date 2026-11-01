@@ -47,6 +47,7 @@ export async function checarNunca(texto, { juiz } = {}) {
     const { problemas } = await juiz(TAREFA_JUIZ_NUNCA, texto);
     motivos.push(...problemas.map((p) => `marca (regra ${p.regra}): ${p.motivo}${p.trecho ? ` em "${p.trecho}"` : ''}`));
   } catch (e) {
+    if (e.parar) throw e; // limite, teto ou login: para a rodada, não reprova a peça
     motivos.push(`juiz de marca falhou (${e.message}): na dúvida, não posta`);
   }
   return { ok: motivos.length === 0, motivos };

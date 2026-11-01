@@ -67,6 +67,7 @@ export async function checarFatos(texto, { juiz, produto = lerProduto() } = {}) 
   try {
     ({ afirmacoes } = await juiz(`${TAREFA_JUIZ_FATOS}\n\n${resumoParaJuiz(produto)}`, texto));
   } catch (e) {
+    if (e.parar) throw e; // limite, teto ou login: para a rodada, não reprova a peça
     return { ok: false, motivos: [`juiz de fatos falhou (${e.message}): na dúvida, não posta`], fatos: [] };
   }
   const motivos = julgarAfirmacoes(afirmacoes, produto);
