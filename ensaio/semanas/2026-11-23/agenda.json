@@ -3,6 +3,29 @@
   "produtor": "agente",
   "pecas": [
     {
+      "id": "S1",
+      "dia": "2026-11-23",
+      "horario": "20:40",
+      "tipo": "stories",
+      "arquivos": [
+        "2026-11-23-S1-01.jpg",
+        "2026-11-23-S1-02.jpg",
+        "2026-11-23-S1-03.jpg",
+        "2026-11-23-S1-04.jpg",
+        "2026-11-23-S1-05.jpg"
+      ],
+      "tema": "clinica · Stories: como você lembra seus pacientes hoje?",
+      "gancho": "Segunda de manhã, agenda de papel cheia de buraco?",
+      "ramo": "clinica",
+      "objetivo": "conversa",
+      "ia": false,
+      "origem": "agente",
+      "fatos": [
+        "clin.lembrete-1-clique"
+      ],
+      "tentativas": 1
+    },
+    {
       "id": "S2",
       "dia": "2026-11-25",
       "horario": "07:40",
