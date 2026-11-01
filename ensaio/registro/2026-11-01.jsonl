@@ -200,3 +200,7 @@
 {"em":"2026-11-01T17:50:32.679Z","tipo":"tentativa","peca":"2026-11-23/B","notas":{"gancho":90,"humano":69},"motivos":["texto com cara de IA: nota 69 (mínimo 70)","cara de IA em VARIACAO: variação 0.32 em 17 frases (ideal: 0,40+)"],"detalhe":"tentativa 3: texto"}
 {"em":"2026-11-01T17:50:32.679Z","tipo":"reprovada","peca":"2026-11-23/B","motivos":["texto com cara de IA: nota 69 (mínimo 70)","cara de IA em VARIACAO: variação 0.32 em 17 frases (ideal: 0,40+)"]}
 {"em":"2026-11-01T17:50:32.679Z","tipo":"pulada","peca":"2026-11-23/B","motivos":["texto com cara de IA: nota 69 (mínimo 70)","cara de IA em VARIACAO: variação 0.32 em 17 frases (ideal: 0,40+)"],"detalhe":"sem reserva válida: na dúvida, não posta"}
+{"em":"2026-11-01T17:53:23.303Z","tipo":"base","detalhe":"adicionadas: nenhuma; recusadas: 0; ramos sem base: nenhum"}
+{"em":"2026-11-01T17:53:41.117Z","tipo":"tentativa","peca":"2026-11-23/B","notas":{"gancho":90,"humano":73},"motivos":["roteiro: batida(s) 5 passam de 4 s: divida a fala ou mude a tela no meio"],"detalhe":"tentativa 1: texto"}
+{"em":"2026-11-01T17:54:01.478Z","tipo":"tentativa","peca":"2026-11-23/B","notas":{"gancho":90,"humano":73},"motivos":[],"detalhe":"tentativa 2: texto"}
+{"em":"2026-11-01T17:55:04.314Z","tipo":"aprovada","peca":"2026-11-23/B","notas":{"gancho":90,"humano":73},"motivos":[],"detalhe":"tentativa 2: vídeo (voz edge:pt-BR-AntonioNeural)"}

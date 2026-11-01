@@ -77,6 +77,27 @@
       "tentativas": 1
     },
     {
+      "id": "B",
+      "dia": "2026-11-25",
+      "horario": "20:40",
+      "tipo": "reel",
+      "arquivos": [
+        "2026-11-23-B.mp4"
+      ],
+      "tema": "restaurante · Nota do prato cobrada duas vezes na balança",
+      "gancho": "A nota do prato sumiu no bolso?",
+      "ramo": "restaurante",
+      "objetivo": "alcance",
+      "ia": true,
+      "origem": "agente",
+      "fatos": [
+        "rest.balanca"
+      ],
+      "tentativas": 2,
+      "legenda": "A nota do prato sumiu no bolso e voltou pra pagar de novo?\n\nSelf-service tem esse problema: o cliente pesa, a nota some, e o caixa fica na dúvida. Ou paga duas vezes, ou sai sem pagar.\n\nNa balança da Mazzi, a nota sai com código de barras. O caixa lê, o valor entra sozinho e nota que já foi cobrada é recusada.\n\nSalva esse vídeo e manda pra quem tem self-service.\n\n#selfservice #restaurante #gestaoderestaurante",
+      "capa_ms": 1000
+    },
+    {
       "id": "C",
       "dia": "2026-11-27",
       "horario": "18:40",
