@@ -3,6 +3,34 @@
   "produtor": "agente",
   "pecas": [
     {
+      "id": "A",
+      "dia": "2026-11-23",
+      "horario": "11:40",
+      "tipo": "carrossel",
+      "arquivos": [
+        "2026-11-23-A-01.jpg",
+        "2026-11-23-A-02.jpg",
+        "2026-11-23-A-03.jpg",
+        "2026-11-23-A-04.jpg",
+        "2026-11-23-A-05.jpg",
+        "2026-11-23-A-06.jpg",
+        "2026-11-23-A-07.jpg"
+      ],
+      "tema": "clinica · Paciente que confirmou e não veio",
+      "gancho": "Sua paciente confirmou e não veio?",
+      "ramo": "clinica",
+      "objetivo": "conversa",
+      "ia": false,
+      "origem": "agente",
+      "fatos": [
+        "clin.lembrete-1-clique",
+        "clin.agenda"
+      ],
+      "tentativas": 2,
+      "legenda": "Sua paciente confirmou e não veio?\n\nA mensagem \\\"tô confirmada\\\" chega no meio de outras dez conversas e você nem vê. O horário fica parado.\n\nNa Mazzi, o lembrete de consulta sai pronto num toque, com o nome da paciente e o horário. Ela recebe um link para confirmar ou pedir remarcação. E a agenda por profissional não deixa você marcar duas pessoas no mesmo horário.\n\nChama no WhatsApp (link na bio).\n\n#clinicaesterica #gestaodeclinica #harmonizacaofacial",
+      "alt_text": "Capa em fundo grafite com o texto \\\"Sua paciente confirmou e não veio?\\\", com \\\"não veio\\\" em coral, e a linha \\\"O lembrete sai pronto, com link para confirmar ou remarcar\\\". Arroba @mazzisystems no rodapé."
+    },
+    {
       "id": "S1",
       "dia": "2026-11-23",
       "horario": "20:40",
