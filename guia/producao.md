@@ -54,7 +54,7 @@ Toda peça leva `tema` e `gancho` (vão para o `guia/log.md` quando publicar, e 
 ## 4. Checklist (obrigatório antes do commit)
 
 1. Rode o validador: `node publicar/validar.mjs semanas/SEMANA`. Ele confere JSON, dias, arquivos, medidas, duração do reel, legendas, hashtags e palavras proibidas. Tem que sair `OK`.
-2. Leia cada imagem e cada legenda contra a lista NUNCA do guia (o validador só pega palavras; você confere o sentido): NFC-e, lembrete automático pela Meta, nomes de clientes, número sem "EXEMPLO", dado que pareça real, promessa estética, "grátis para sempre", `{{`.
+2. Leia cada imagem e cada legenda contra a lista NUNCA do guia (o validador só pega palavras; você confere o sentido): NFC-e, lembrete automático pela Meta, nomes de clientes, número sem "EXEMPLO", dado que pareça real, promessa estética, qualquer menção a preço ("grátis", "gratuito", valor, promoção), `{{`.
 3. Passe todas as legendas e textos de story pelo painel do `ig-human` (sem travessão —, sem palavra de IA, sem caractere invisível).
 4. Gancho diferente de todos do `guia/log.md`.
 

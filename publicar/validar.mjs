@@ -20,7 +20,7 @@ export const AVULSO = /^AV\d{1,2}$/;
 const DURACAO_MAX_LIMITE = 180; // a API da Meta aceita reel bem mais longo; 3 min basta para nós.
 
 // Só palavras: o sentido (número sem "EXEMPLO", promessa estética) é conferido por quem lê as peças.
-const PROIBIDAS = [
+export const PROIBIDAS = [
   [/nfc-?e\b|nota fiscal|cupom fiscal/i, 'NFC-e/nota fiscal (em homologação)'],
   [/lembrete autom[aá]tico|whatsapp autom[aá]tico/i, 'lembrete automático pela Meta (não está ligado)'],
   [/aj\s*clinic|jo[aã]o\s*xxiii|jo[aã]o\s*23\b/i, 'nome de cliente'],

@@ -11,9 +11,13 @@ Tudo vai ao ar **sem revisão humana** (decisão da Andressa, 30/10/2026). O Cla
 
 Sistema de gestão online para **clínicas de estética/harmonização** e **restaurantes pequenos** (self-service por quilo, marmitex, delivery). Funciona no computador e no celular. Cada cliente usa com o próprio logo e as próprias cores.
 
-- **Preço:** gratuito **por enquanto**. Nunca "grátis para sempre", nunca valores futuros.
+- **Preço:** **nunca falar de preço** (decisão da Andressa, 01/11/2026). Nada de "grátis", "gratuito", valor, promoção ou desconto. Se o assunto for preço: "chama no WhatsApp que a gente te explica".
 - **Como entrar:** não há cadastro aberto. A pessoa chama no WhatsApp (link na bio) e recebe convite.
 - **Suporte:** só pelo WhatsApp.
+
+## Clínicas
+
+Estética, harmonização (HOF) e também **odontologia** (decisão de 01/11/2026: o site já atende dentistas). O foco continua em estética/HOF; odonto aparece de vez em quando.
 
 ## O que está no ar (pode divulgar)
 
