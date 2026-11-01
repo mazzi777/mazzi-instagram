@@ -13,8 +13,8 @@ Regras para todas as tarefas:
 | # | Tarefa | Quem | Pronto quando |
 |---|---|---|---|
 | 0.1 | Chave só de leitura do `aj-clinic` (deploy key) → segredo `AJ_CLINIC_DEPLOY_KEY` | Clou | ✅ 01/11/2026 (substitui o PAT do SPEC: não vence e não precisa de login) |
-| 0.2 | `claude setup-token` → segredo `CLAUDE_CODE_OAUTH_TOKEN`; data em `agente/config.json` | Andressa aprova no navegador | o segredo aparece na lista |
-| 0.3 | Novo token da Meta com os escopos de publicar, insights, comentários e mensagens → `META_TOKEN` | Andressa logada no Gerenciador de Negócios | `debug_token` mostra os escopos; o `publicar --conferir` passa |
+| 0.2 | `claude setup-token` → segredo `CLAUDE_CODE_OAUTH_TOKEN`; data em `agente/config.json` | Andressa aprova no navegador | ✅ 01/11/2026, testado (`testar-claude.yml`). Vence ~01/11/2027. |
+| 0.3 | Novo token da Meta com os escopos de publicar, insights, comentários e mensagens → `META_TOKEN` | Andressa logada no Gerenciador de Negócios | ✅ 01/11/2026, sem validade, testado (`testar-meta.yml`): 7 permissões + insights e comentários lendo. DM do Instagram não pode ser atribuída a usuário do sistema pelo ativo do Instagram: resolver pela Página na Fase 2. |
 | 0.4 | Chave do Pexels → `PEXELS_KEY` | Andressa cria a conta (2 min) | só antes da 1c |
 | 0.5 | Vigia do heartbeat (decidir: healthchecks.io, que pede conta dela, ou workflow vigia num repositório privado pequeno) | Clou propõe | antes da 1b |
 
