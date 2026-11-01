@@ -16,7 +16,7 @@ Regras para todas as tarefas:
 | 0.2 | `claude setup-token` → segredo `CLAUDE_CODE_OAUTH_TOKEN`; data em `agente/config.json` | Andressa aprova no navegador | ✅ 01/11/2026, testado (`testar-claude.yml`). Vence ~01/11/2027. |
 | 0.3 | Novo token da Meta com os escopos de publicar, insights, comentários e mensagens → `META_TOKEN` | Andressa logada no Gerenciador de Negócios | ✅ 01/11/2026, sem validade, testado (`testar-meta.yml`): 7 permissões + insights e comentários lendo. DM do Instagram não pode ser atribuída a usuário do sistema pelo ativo do Instagram: resolver pela Página na Fase 2. |
 | 0.4 | Chave do Pexels → `PEXELS_KEY` | Andressa cria a conta (2 min) | só antes da 1c |
-| 0.5 | Vigia do heartbeat (decidir: healthchecks.io, que pede conta dela, ou workflow vigia num repositório privado pequeno) | Clou propõe | antes da 1b |
+| 0.5 | Vigia do heartbeat: healthchecks.io (conta da Andressa), check "Agente do Instagram", 1 dia + 3 h de tolerância, aviso por e-mail → segredo `HEARTBEAT_URL` | Andressa criou a conta; Clou configurou | ✅ 01/11/2026, 1º sinal recebido |
 
 ## Fase 1a: base do produto e checagens ✅ 01/11/2026
 
@@ -34,7 +34,7 @@ Feito: `agente/lib/` (texto pt-BR, schemas), `agente/base/` (produto.json + atua
 5. Calibração (`agente/checagens/calibrar.mjs`): ganchos do `guia/log.md` + 20 ganchos ruins de propósito → curva e limite. O resultado vai para `agente/checagens/calibracao.md`. Os limites de G3 e G5 em `config.json` vêm daqui.
 6. G1 (fatos: juiz mockado + ligação a ids), G2 (regex do `validar.mjs` reaproveitada + juiz semântico mockado) e G8 (similaridade com o log). Testes de reprovação obrigatórios: NFC-e, lembrete automático, cliente citado, número sem EXEMPLO, promessa estética, concorrente, "grátis para sempre", travessão, `{{`.
 
-## Fase 1b: cérebro, plano e peças de imagem ✅ 01/11/2026 (falta só o vigia, item 0.5)
+## Fase 1b: cérebro, plano e peças de imagem ✅ 01/11/2026
 
 Feito e testado de verdade no GitHub em modo ensaio (`ensaio/`, que o publicador não lê), semana de 16/11:
 plano com as regras cobradas, 5 de 7 peças aprovadas, 2 puladas por motivo justo. Uso: ~US$ 1,90 equivalente
