@@ -1,0 +1,38 @@
+{
+ "semana": "2026-W44",
+ "teto_usd": 8,
+ "chamadas": [
+  {
+   "em": "2026-11-01T15:25:23.108Z",
+   "etapa": "planejar",
+   "modelo": "claude-sonnet-5-5",
+   "custo_usd": 0.03637,
+   "entrada": 9081,
+   "saida": 3392
+  },
+  {
+   "em": "2026-11-01T15:25:35.497Z",
+   "etapa": "escrever:stories",
+   "modelo": "claude-sonnet-5-5",
+   "custo_usd": 0.01465,
+   "entrada": 8438,
+   "saida": 1066
+  },
+  {
+   "em": "2026-11-01T15:25:44.334Z",
+   "etapa": "escrever:stories",
+   "modelo": "claude-sonnet-5-5",
+   "custo_usd": 0.01094,
+   "entrada": 8707,
+   "saida": 600
+  },
+  {
+   "em": "2026-11-01T15:25:54.709Z",
+   "etapa": "escrever:stories",
+   "modelo": "claude-sonnet-5-5",
+   "custo_usd": 0.01653,
+   "entrada": 8656,
+   "saida": 1180
+  }
+ ]
+}

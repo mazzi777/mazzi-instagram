@@ -1,0 +1,127 @@
+{
+  "semana": "2026-11-16",
+  "criado_em": "2026-11-14",
+  "tentativas": 1,
+  "pecas": [
+    {
+      "dia": "2026-11-16",
+      "horario": "07:40",
+      "tipo": "stories",
+      "ramo": "clinica",
+      "objetivo": "conversa",
+      "conteudo": "dor",
+      "tema": "Pacote que ninguém sabe em qual sessão está",
+      "angulo": "Quadros do dia a dia da recepção: a paciente pergunta quantas sessões faltam e a resposta está num papel perdido. Fecha pedindo para a pessoa responder aqui no story como controla pacote hoje.",
+      "fatos": [
+        "clin.pacotes"
+      ],
+      "exploracao": false,
+      "id": "S1",
+      "situacao": "pulada"
+    },
+    {
+      "dia": "2026-11-16",
+      "horario": "11:40",
+      "tipo": "carrossel",
+      "ramo": "clinica",
+      "objetivo": "conversa",
+      "conteudo": "ensina",
+      "tema": "Pacotes de sessões e comissão",
+      "angulo": "A cliente comprou o pacote de 10 sessões e ninguém sabe em qual está. Mostra o pacote descontando uma sessão por atendimento (selo Pacote 4/10 na agenda) e a comissão de cada profissional saindo dos atendimentos, sem conta no caderno.",
+      "fatos": [
+        "clin.pacotes",
+        "clin.comissoes",
+        "clin.agenda"
+      ],
+      "exploracao": false,
+      "id": "A",
+      "situacao": "pulada"
+    },
+    {
+      "dia": "2026-11-18",
+      "horario": "18:40",
+      "tipo": "imagem",
+      "ramo": "clinica",
+      "objetivo": "conversa",
+      "conteudo": "ensina",
+      "tema": "Orçamento aprovado já vira agenda e sinal",
+      "angulo": "O que acontece depois do sim: a clínica marca o orçamento como aprovado, a agenda abre já preenchida e o sinal fica registrado. Foco no passo pós-aprovação, não na cobrança de quem sumiu.",
+      "fatos": [
+        "clin.orcamento",
+        "clin.agenda"
+      ],
+      "exploracao": false,
+      "id": "B",
+      "situacao": "pulada"
+    },
+    {
+      "dia": "2026-11-18",
+      "horario": "20:40",
+      "tipo": "stories",
+      "ramo": "restaurante",
+      "objetivo": "alcance",
+      "conteudo": "dor",
+      "tema": "Bebida que acaba sem ninguém ver",
+      "angulo": "Cena de sexta à noite: o cliente pede a lata gelada e acabou. Mostra bebida baixando sozinha na venda e o alerta de estoque mínimo. Fecha pedindo para responder aqui no story qual bebida some mais rápido.",
+      "fatos": [
+        "rest.estoque"
+      ],
+      "exploracao": true,
+      "id": "S2",
+      "situacao": "pulada"
+    },
+    {
+      "dia": "2026-11-20",
+      "horario": "11:40",
+      "tipo": "carrossel",
+      "ramo": "restaurante",
+      "objetivo": "conversa",
+      "conteudo": "opiniao",
+      "tema": "Quanto sobrou de verdade",
+      "angulo": "Faturar bem não é sobrar dinheiro. Posição: lucro é vendas menos compras. Mostra o relatório de vendas, compras e lucro bruto aproximado, dizendo claro que é aproximado e que não existe custo por prato.",
+      "fatos": [
+        "rest.relatorios",
+        "rest.estoque"
+      ],
+      "exploracao": false,
+      "id": "C",
+      "situacao": "pulada"
+    },
+    {
+      "dia": "2026-11-20",
+      "horario": "20:40",
+      "tipo": "stories",
+      "ramo": "comum",
+      "objetivo": "conversa",
+      "conteudo": "convite",
+      "tema": "Como entrar na Mazzi",
+      "angulo": "Convite direto: sistema para clínica e restaurante pequeno, com o seu logo e suas cores, no computador e no celular. Não tem cadastro aberto; chama no WhatsApp, link na bio, e recebe o convite.",
+      "fatos": [
+        "comum.marca-propria",
+        "comum.celular"
+      ],
+      "exploracao": false,
+      "id": "S3",
+      "situacao": "pulada"
+    },
+    {
+      "dia": "2026-11-22",
+      "horario": "18:40",
+      "tipo": "imagem",
+      "ramo": "clinica",
+      "objetivo": "alcance",
+      "conteudo": "opiniao",
+      "tema": "Clínica pequena não precisa de sistema de hospital",
+      "angulo": "Posição: clínica pequena precisa de agenda que não marca dois no mesmo horário, ficha com histórico e backup, não de um sistema pesado cheio de menu. Pede para salvar ou mandar pra colega que ainda usa agenda de papel.",
+      "fatos": [
+        "clin.agenda",
+        "clin.fichas",
+        "comum.backup"
+      ],
+      "exploracao": true,
+      "id": "D",
+      "situacao": "pulada"
+    }
+  ],
+  "porque": "Semana ISO 47. Pelo rodízio, o carrossel de segunda é Clínica tema 6 (pacotes e comissão) e o de sexta é Restaurante tema 6 (quanto sobrou de verdade). O reel não está ligado. A quarta ficou com imagem de orçamento (tema do reel de clínica), mas com ângulo novo: o que acontece depois da aprovação, para não repetir os ganchos de orçamento sem resposta. São 4 posts de feed, 3 de conversa e 1 de alcance (75%), com os dois ramos presentes. Stories em 4 dias (segunda, quarta, sexta e domingo ficou sem story para não saturar). Exploração: story de bebida às 20:40 e imagem de domingo às 18:40. Sem dados de métricas, segui os padrões do guia."
+}
