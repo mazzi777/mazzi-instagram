@@ -40,6 +40,14 @@ function lerJson(arquivo, padrao) {
 }
 
 /** Peças a publicar agora. Uma agenda quebrada vira erro só daquela semana; as outras seguem. */
+/** Funções citadas pela peça do agente que saíram do ar em agente/base/produto.json depois da aprovação. */
+export function fatosForaDoAr(raiz, peca) {
+  const f = path.join(raiz, 'agente', 'base', 'produto.json');
+  if (!peca.fatos?.length || !existsSync(f)) return [];
+  const noAr = new Set(JSON.parse(readFileSync(f, 'utf8')).funcoes.filter((x) => x.status === 'no_ar').map((x) => x.id));
+  return peca.fatos.filter((id) => !noAr.has(id));
+}
+
 export function escolherPecas(raiz, hoje, alvo, hora = '23:59') {
   const base = path.join(raiz, 'semanas');
   const escolhidas = [];
@@ -193,7 +201,7 @@ export async function publicar({
   }
   const semanaAtual = segundaDa(hoje);
   if (!alvo && semanaAtual >= PRIMEIRA_SEMANA_API && !existsSync(path.join(raiz, 'semanas', semanaAtual, 'agenda.json'))) {
-    resultado.erros.push({ peca: `semanas/${semanaAtual}`, mensagem: 'a semana atual não tem agenda.json: a rotina de segunda não produziu (ou não subiu) a semana' });
+    resultado.erros.push({ peca: `semanas/${semanaAtual}`, mensagem: 'a semana atual não tem agenda.json: o agente não produziu (ou não subiu) a semana' });
   }
 
   const meta = criarCliente({ token, igUserId, fetch, esperar });
@@ -228,6 +236,8 @@ export async function publicar({
       const agente = lerAgenda(dir).produtor === 'agente';
       const problemas = validarPeca(dir, semana, peca, { ...(sondar ? { sondar } : {}), agente });
       if (problemas.length) throw new Error(`não passou na validação:\n${problemas.map((e) => `  - ${e}`).join('\n')}`);
+      const foraDoAr = agente ? fatosForaDoAr(raiz, peca) : [];
+      if (foraDoAr.length) throw new Error(`usa função que não está mais no ar na base do produto (${foraDoAr.join(', ')}): na dúvida, não posta`);
 
       const urls = peca.arquivos.map((a) => `https://raw.githubusercontent.com/${repo}/${ref}/semanas/${semana}/${a}`);
       for (const url of urls) {

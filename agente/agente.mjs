@@ -3,7 +3,8 @@
 //   node agente/agente.mjs diario    métricas, produz o que falta para os próximos 3 dias e confere os tokens (03:17)
 //   node agente/agente.mjs stories   só as métricas dos stories do dia, antes de sumirem (20:10)
 // Ambiente: CLAUDE_CODE_OAUTH_TOKEN, META_TOKEN e IG_USER_ID (métricas), AGENTE_PAUSADO, AGENTE_MODO (ensaio | so_reserva),
-//           AJ_CLINIC_DIR (clone do aj-clinic), AGENTE_HOJE (opcional, AAAA-MM-DD, para testes).
+//           AJ_CLINIC_DIR (clone do aj-clinic), AGENTE_SEMANA (opcional: segunda futura que o semanal produz, para adiantar),
+//           AGENTE_HOJE (opcional, AAAA-MM-DD, só para testar a produção: as métricas sempre usam a data real).
 // Saída: commit fica com o workflow. Erros vão para agente/erros.md (o workflow abre a issue, como o publicador).
 import { readFileSync, writeFileSync, existsSync, readdirSync, mkdirSync } from 'node:fs';
 import path from 'node:path';
@@ -15,7 +16,7 @@ import { lerProduto } from './checagens/fatos.mjs';
 import { lerGanchosUsados } from './checagens/repeticao.mjs';
 import { atualizarBase } from './base/atualizar.mjs';
 import { planejarSemana } from './etapas/planejar.mjs';
-import { criarRegistro, produzirPendentes, cobrirComReserva, encherReserva, FORMATOS_PRODUZIDOS } from './orquestrador.mjs';
+import { criarRegistro, produzirPendentes, cobrirComReserva, encherReserva, agendaAlheia, FORMATOS_PRODUZIDOS } from './orquestrador.mjs';
 import { criarMeta, coletar } from './metricas.mjs';
 import { atualizarEstrategia } from './estrategia.mjs';
 import { criarReserva, situacao, lerReserva, ALERTA } from './reserva.mjs';
@@ -30,6 +31,14 @@ export const segundaSeguinte = (hoje) => {
   return dataMais(hoje, ((8 - dia) % 7) || 7);
 };
 export const segundaDa = (hoje) => dataMais(hoje, -((new Date(`${hoje}T12:00:00Z`).getUTCDay() + 6) % 7));
+
+/** Semana do semanal: AGENTE_SEMANA (para adiantar na mão) ou a segunda seguinte. Nunca uma semana já começada. */
+export function semanaAlvo(hoje, pedida) {
+  const semana = pedida || segundaSeguinte(hoje);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(semana) || segundaDa(semana) !== semana) throw new Error(`AGENTE_SEMANA ${semana} não é uma segunda-feira (AAAA-MM-DD)`);
+  if (semana <= hoje) throw new Error(`a semana ${semana} já começou: o semanal só planeja semana futura`);
+  return semana;
+}
 
 /** Ganchos das agendas do agente (além do guia/log.md), para a checagem de repetição. */
 export function ganchosDasAgendas(saida) {
@@ -111,16 +120,18 @@ export async function rodar(comando, { env = process.env, agora = () => new Date
   const ensaio = env.AGENTE_MODO === 'ensaio';
   const saida = ensaio ? path.join(RAIZ, 'ensaio') : RAIZ;
   mkdirSync(saida, { recursive: true });
-  const hoje = env.AGENTE_HOJE || hojeEmSaoPaulo(agora());
+  const hojeReal = hojeEmSaoPaulo(agora());
+  const hoje = env.AGENTE_HOJE || hojeReal;
   const config = JSON.parse(readFileSync(path.join(RAIZ, 'agente', 'config.json'), 'utf8'));
   const registrar = criarRegistro(saida, agora);
   const log = [];
   // Métricas são das publicações reais (também no ensaio) e não usam o Claude.
   if (comando === 'stories') {
-    await coletarMetricas({ env, hoje, modo: 'stories', log, erros, fetch });
+    await coletarMetricas({ env, hoje: hojeReal, modo: 'stories', log, erros, fetch });
     return { erros, log };
   }
-  if (comando === 'diario' || comando === 'semanal') await coletarMetricas({ env, hoje, modo: 'dia', log, erros, fetch });
+  // Data real sempre: com AGENTE_HOJE falso, a coleta gravaria D+7 e "ontem" de dias que ainda não aconteceram.
+  if (comando === 'diario' || comando === 'semanal') await coletarMetricas({ env, hoje: hojeReal, modo: 'dia', log, erros, fetch });
   const cerebro = { ...criarCerebro({ raiz: saida, config, agora, ...(consultar ? { consultar } : {}), log: (m) => log.push(m) }), config };
   erros.push(...avisosDeToken(config, hoje));
 
@@ -143,22 +154,28 @@ export async function rodar(comando, { env = process.env, agora = () => new Date
     return { erros, log };
   }
 
+  /** Planeja a semana se ainda não tem plano. Semana com agenda de outro produtor (rotina, Windsor) nunca. */
+  async function planejarSeFaltar(semana, novidades = []) {
+    const fPlano = path.join(saida, 'semanas', semana, 'plano.json');
+    if (existsSync(fPlano)) return false;
+    if (agendaAlheia(saida, semana)) throw new Error(`semanas/${semana} já tem agenda que não é do agente (rotina antiga ou Windsor): não planejo por cima`);
+    const estrategia = atualizarEstrategia(RAIZ, hoje, saida);
+    log.push(`Estratégia: ${estrategia.comNota.length} post(s) medidos, ${estrategia.mudancas.length} peso(s) mudaram.`);
+    const { plano, tentativas } = await planejarSemana({ raiz: RAIZ, semana, config, produto, cerebro, formatos, estadoResumo: estrategia.resumo, ganchosRecentes: usados.filter((u) => u.data >= dataMais(hoje, -42)), novidades });
+    mkdirSync(path.dirname(fPlano), { recursive: true });
+    writeFileSync(fPlano, `${JSON.stringify({ semana, criado_em: hoje, tentativas, ...plano }, null, 2)}\n`);
+    registrar({ tipo: 'plano', peca: semana, detalhe: plano.porque });
+    log.push(`Plano da semana ${semana}: ${plano.pecas.length} peças.`);
+    return true;
+  }
+
   try {
     if (comando === 'semanal') {
       const base = await atualizarBaseSePuder({ produto, cerebro, hoje, registrar });
       produto = base.produto;
       log.push(...base.avisos);
-      const semana = segundaSeguinte(hoje);
-      const fPlano = path.join(saida, 'semanas', semana, 'plano.json');
-      if (!existsSync(fPlano)) {
-        const estrategia = atualizarEstrategia(RAIZ, hoje, saida);
-        log.push(`Estratégia: ${estrategia.comNota.length} post(s) medidos, ${estrategia.mudancas.length} peso(s) mudaram.`);
-        const { plano, tentativas } = await planejarSemana({ raiz: RAIZ, semana, config, produto, cerebro, formatos, estadoResumo: estrategia.resumo, ganchosRecentes: usados.filter((u) => u.data >= dataMais(hoje, -42)), novidades: base.novidades });
-        mkdirSync(path.dirname(fPlano), { recursive: true });
-        writeFileSync(fPlano, `${JSON.stringify({ semana, criado_em: hoje, tentativas, ...plano }, null, 2)}\n`);
-        registrar({ tipo: 'plano', peca: semana, detalhe: plano.porque });
-        log.push(`Plano da semana ${semana}: ${plano.pecas.length} peças.`);
-      }
+      const semana = semanaAlvo(hoje, env.AGENTE_SEMANA);
+      await planejarSeFaltar(semana, base.novidades);
       const r = await produzirPendentes({ ...ctxBase, produto, semana, desde: semana, ate: dataMais(semana, 6) });
       log.push(`Produzidas: ${r.feitas.map((f) => `${f.id}=${f.status}`).join(', ') || 'nada'}`);
       for (const f of r.feitas.filter((x) => x.motivos)) log.push(`  ${f.id} (${f.status}), último motivo: ${f.motivos.join(' | ')}`);
@@ -175,6 +192,11 @@ export async function rodar(comando, { env = process.env, agora = () => new Date
       const f = gravarRelatorio({ saida, hoje, semanaIso: semanaIso(new Date(`${hoje}T12:00:00Z`)), raiz: RAIZ, estrategia, reserva: situacao(RAIZ, { produto, hoje }), gasto: cerebro.gastoSemana() });
       log.push(`Relatório: ${path.relative(RAIZ, f)}`);
     } else if (comando === 'diario') {
+      // Sexta a domingo: se o semanal de sábado não conseguiu planejar (limite, erro), o diário tenta de novo.
+      const proxima = segundaSeguinte(hoje);
+      if ([5, 6, 0].includes(new Date(`${hoje}T12:00:00Z`).getUTCDay()) && !agendaAlheia(saida, proxima) && await planejarSeFaltar(proxima)) {
+        log.push(`O plano de ${proxima} faltava: planejado no diário.`);
+      }
       const ate = dataMais(hoje, 3);
       for (const semana of [...new Set([segundaDa(hoje), segundaDa(ate)])]) {
         const r = await produzirPendentes({ ...ctxBase, produto, semana, desde: hoje, ate });

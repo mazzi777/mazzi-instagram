@@ -45,8 +45,14 @@ Para cada função: "id" no formato ramo.nome (rest., clin. ou comum.; minúscul
 Ignore correção de bug, segurança interna, infraestrutura e o que for só para a administradora da plataforma.
 Ignore o que estiver em homologação, em teste, pendente ou dependendo de credencial. Responda só no formato pedido.`;
 
-/** Barra candidatas proibidas, não prontas, repetidas ou inválidas. */
-export function filtrarCandidatas(candidatas, produto) {
+// No texto original da seção só os sinais fortes (o "falta" de "paciente que falta" não pode barrar a função).
+const SECAO_NAO_PRONTA = /homologa|em teste|em breve|pendente|credenciais|n[aã]o est[aá] ligad|piloto|beta\b/iu;
+
+/**
+ * Barra candidatas proibidas, não prontas, repetidas ou inválidas. `secoes` = { titulo: texto original }:
+ * a paráfrase do Claude pode perder o "(em homologação)", então o texto da seção de origem também é conferido.
+ */
+export function filtrarCandidatas(candidatas, produto, secoes = {}) {
   const existentes = new Set(produto.funcoes.map((f) => f.id));
   const aprovadas = [];
   const recusadas = [];
@@ -55,7 +61,7 @@ export function filtrarCandidatas(candidatas, produto) {
     const valida = Funcao.safeParse({ ...c, status: 'no_ar' });
     if (existentes.has(c.id)) recusadas.push({ ...c, motivo: 'já está na base' });
     else if (proibido.length) recusadas.push({ ...c, motivo: proibido[0] });
-    else if (NAO_PRONTO.test(c.fato)) recusadas.push({ ...c, motivo: 'parece não estar pronta' });
+    else if (NAO_PRONTO.test(c.fato) || SECAO_NAO_PRONTA.test(`${c.fonte}\n${secoes[c.fonte] ?? ''}`)) recusadas.push({ ...c, motivo: 'parece não estar pronta' });
     else if (!valida.success) recusadas.push({ ...c, motivo: `inválida: ${valida.error.issues[0].message}` });
     else { aprovadas.push(c); existentes.add(c.id); }
   }
@@ -74,7 +80,7 @@ export async function atualizarBase({ produto, novidadesMd, permissionsTs, extra
   if (novas.length) {
     const texto = novas.map((s) => `## ${s.titulo}\n${s.texto}`).join('\n\n');
     const { funcoes } = await extrair(TAREFA_EXTRAIR, texto);
-    ({ aprovadas: adicionadas, recusadas } = filtrarCandidatas(funcoes, produto));
+    ({ aprovadas: adicionadas, recusadas } = filtrarCandidatas(funcoes, produto, Object.fromEntries(novas.map((s) => [s.titulo, s.texto]))));
   }
   const novo = {
     ...produto,

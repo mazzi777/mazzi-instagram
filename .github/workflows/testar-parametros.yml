@@ -1,0 +1,58 @@
+name: Testar parâmetros de publicação
+
+# Só na mão. Cria contêineres na Meta com os campos que o agente usa (etiqueta de IA no reel, alt_text no
+# filho do carrossel e na imagem) e lê o limite de publicação. NUNCA chama media_publish: nada vai ao ar,
+# e contêiner não publicado expira sozinho em 24 h.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  testar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Contêineres de teste (sem publicar)
+        env:
+          META_TOKEN: ${{ secrets.META_TOKEN }}
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          RAW: https://raw.githubusercontent.com/${{ github.repository }}/main
+        run: |
+          set -e
+          g() { curl -sS -G -H "Authorization: Bearer $META_TOKEN" "https://graph.facebook.com/v25.0/$1" "${@:2}"; }
+          p() { curl -sS -X POST -H "Authorization: Bearer $META_TOKEN" "https://graph.facebook.com/v25.0/$1" "${@:2}"; }
+          falhou=0
+          echo "Limite de publicação:"
+          g "$IG_USER_ID/content_publishing_limit" --data-urlencode fields=quota_usage,config | jq -c '.data // .error'
+
+          echo "Filho de carrossel com alt_text:"
+          r=$(p "$IG_USER_ID/media" --data-urlencode "image_url=$RAW/reserva/2026-11-15-carrossel-2/2026-11-16-R2-01.jpg" --data-urlencode is_carousel_item=true --data-urlencode "alt_text=Teste de descrição")
+          echo "$r" | jq -c '{id, error: (.error | if . then {code, message} else null end)}'
+          echo "$r" | jq -e '.id' > /dev/null || falhou=1
+
+          echo "Imagem única com alt_text:"
+          r=$(p "$IG_USER_ID/media" --data-urlencode "image_url=$RAW/reserva/2026-11-15-carrossel-2/2026-11-16-R2-01.jpg" --data-urlencode "alt_text=Teste de descrição" --data-urlencode "caption=teste (não publicado)")
+          echo "$r" | jq -c '{id, error: (.error | if . then {code, message} else null end)}'
+          echo "$r" | jq -e '.id' > /dev/null || falhou=1
+
+          echo "Reel com is_ai_generated:"
+          r=$(p "$IG_USER_ID/media" --data-urlencode media_type=REELS --data-urlencode "video_url=$RAW/ensaio/semanas/2026-11-23/2026-11-23-B.mp4" --data-urlencode is_ai_generated=true --data-urlencode thumb_offset=1000 --data-urlencode "caption=teste (não publicado)")
+          echo "$r" | jq -c '{id, error: (.error | if . then {code, message} else null end)}'
+          reel=$(echo "$r" | jq -r '.id // empty')
+          [ -n "$reel" ] || falhou=1
+          if [ -n "$reel" ]; then
+            for i in $(seq 1 20); do
+              s=$(g "$reel" --data-urlencode fields=status_code,status | jq -r '.status_code')
+              echo "  status: $s"
+              [ "$s" = "FINISHED" ] || [ "$s" = "ERROR" ] && break
+              sleep 15
+            done
+            echo "  campos que a Meta devolve do contêiner:"
+            g "$reel" --data-urlencode fields=id,status_code,is_ai_generated | jq -c '.'
+            [ "$s" = "FINISHED" ] || falhou=1
+          fi
+          echo "Nada foi publicado (sem media_publish)."
+          exit $falhou

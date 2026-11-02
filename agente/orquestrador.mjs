@@ -145,8 +145,15 @@ export function gravarNaAgenda(saida, semana, entrada) {
  * Produz as peças do plano que ainda não estão na agenda nem foram puladas, com dia entre `desde` e `ate`.
  * Para ao bater no teto ou no limite do plano (a próxima rodada continua).
  */
+/** A pasta da semana já tem agenda de outro produtor (rotina antiga, Windsor)? Aí o agente não mexe em nada. */
+export function agendaAlheia(saida, semana) {
+  const f = path.join(saida, 'semanas', semana, 'agenda.json');
+  return existsSync(f) && lerJson(f, {}).produtor !== 'agente';
+}
+
 export async function produzirPendentes({ desde, ate, ...ctx }) {
   const { raiz, saida = raiz, semana, registrar } = ctx;
+  if (agendaAlheia(saida, semana)) return { feitas: [], parou: new Error(`semanas/${semana} tem agenda que não é do agente: não produzo nada nela`) };
   const fPlano = path.join(saida, 'semanas', semana, 'plano.json');
   const plano = lerJson(fPlano, null);
   if (!plano) return { feitas: [], parou: null };
@@ -158,6 +165,8 @@ export async function produzirPendentes({ desde, ate, ...ctx }) {
     try {
       const r = await produzirPeca(item, ctx);
       if (r.entrada) gravarNaAgenda(saida, semana, r.entrada);
+      // G8 também dentro da rodada: o próximo gancho da semana não pode repetir este.
+      if (r.entrada?.gancho) ctx.usados?.push({ data: item.dia, gancho: r.entrada.gancho });
       item.situacao = r.status;
       gravarJson(fPlano, plano);
       feitas.push({ id: item.id, status: r.status, ...(r.motivos ? { motivos: r.motivos } : {}) });
@@ -177,7 +186,7 @@ export async function cobrirComReserva({ desde, ate, ...ctx }) {
   const { saida = ctx.raiz, semana } = ctx;
   const fPlano = path.join(saida, 'semanas', semana, 'plano.json');
   const plano = lerJson(fPlano, null);
-  if (!plano) return { cobertas: [], descobertas: [] };
+  if (!plano || agendaAlheia(saida, semana)) return { cobertas: [], descobertas: [] };
   const prontas = new Set(lerJson(path.join(saida, 'semanas', semana, 'agenda.json'), { pecas: [] }).pecas.map((p) => p.id));
   const cobertas = [];
   const descobertas = [];

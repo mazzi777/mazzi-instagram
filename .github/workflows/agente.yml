@@ -24,8 +24,12 @@ on:
         type: choice
         options: [semanal, diario, stories]
         default: diario
+      semana:
+        description: "Só no semanal: segunda-feira futura a produzir (AAAA-MM-DD), para adiantar"
+        required: false
+        default: ""
       hoje:
-        description: "Fingir que hoje é (AAAA-MM-DD), só para teste"
+        description: "Fingir que hoje é (AAAA-MM-DD), só para teste (as métricas usam a data real)"
         required: false
         default: ""
 
@@ -141,6 +145,7 @@ jobs:
           META_TOKEN: ${{ secrets.META_TOKEN }}
           IG_USER_ID: ${{ secrets.IG_USER_ID }}
           AGENTE_HOJE: ${{ inputs.hoje }}
+          AGENTE_SEMANA: ${{ inputs.semana }}
         run: node agente/agente.mjs ${{ steps.qual.outputs.comando }}
 
       # Roda mesmo se o agente falhar: o que foi produzido e o registro do que reprovou ficam guardados.
@@ -165,7 +170,7 @@ jobs:
           exit 1
 
       - name: Vigia (heartbeat)
-        if: always() && steps.agente.outcome == 'success'
+        if: always() && steps.agente.outcome == 'success' && steps.guardar.outcome == 'success'
         env:
           HEARTBEAT_URL: ${{ secrets.HEARTBEAT_URL }}
         run: if [ -n "$HEARTBEAT_URL" ]; then curl -fsS -m 10 --retry 3 "$HEARTBEAT_URL" > /dev/null && echo "Vigia avisado."; fi
@@ -175,9 +180,12 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          AGENTE: ${{ steps.agente.outcome }}
         run: |
           titulo="Agente do Instagram: problema"
-          if [ -f agente/erros.md ]; then detalhe="$(cat agente/erros.md)"; else detalhe="Um passo falhou antes do agente rodar (instalação ou checkout). Veja a rodada."; fi
+          if [ -f agente/erros.md ]; then detalhe="$(cat agente/erros.md)"
+          elif [ "$AGENTE" = "success" ]; then detalhe="O agente rodou, mas não consegui guardar o que ele produziu no repositório (commit/push). A produção desta rodada pode ter se perdido. Veja a rodada."
+          else detalhe="Um passo falhou antes do agente rodar (instalação ou checkout). Veja a rodada."; fi
           corpo="$detalhe
 
           Rodada: $RUN_URL"
