@@ -16,7 +16,7 @@ import { lerProduto } from './checagens/fatos.mjs';
 import { lerGanchosUsados } from './checagens/repeticao.mjs';
 import { atualizarBase } from './base/atualizar.mjs';
 import { planejarSemana } from './etapas/planejar.mjs';
-import { criarRegistro, produzirPendentes, cobrirComReserva, encherReserva, agendaAlheia, revalidarAgenda, FORMATOS_PRODUZIDOS } from './orquestrador.mjs';
+import { criarRegistro, produzirPendentes, cobrirComReserva, encherReserva, agendaAlheia, assumirSemana, revalidarAgenda, FORMATOS_PRODUZIDOS } from './orquestrador.mjs';
 import { criarMeta, coletar } from './metricas.mjs';
 import { atualizarEstrategia } from './estrategia.mjs';
 import { criarReserva, situacao, lerReserva, ALERTA } from './reserva.mjs';
@@ -32,12 +32,17 @@ export const segundaSeguinte = (hoje) => {
 };
 export const segundaDa = (hoje) => dataMais(hoje, -((new Date(`${hoje}T12:00:00Z`).getUTCDay() + 6) % 7));
 
-/** Semana do semanal: AGENTE_SEMANA (para adiantar na mão) ou a segunda seguinte. Nunca uma semana já começada. */
+/**
+ * Semana do semanal: AGENTE_SEMANA (na mão) ou a segunda seguinte. Devolve { semana, desde }.
+ * A semana em curso só se pedida na mão, e aí o plano vai de amanhã a domingo. Semana passada, nunca.
+ */
 export function semanaAlvo(hoje, pedida) {
   const semana = pedida || segundaSeguinte(hoje);
   if (!/^\d{4}-\d{2}-\d{2}$/.test(semana) || segundaDa(semana) !== semana) throw new Error(`AGENTE_SEMANA ${semana} não é uma segunda-feira (AAAA-MM-DD)`);
-  if (semana <= hoje) throw new Error(`a semana ${semana} já começou: o semanal só planeja semana futura`);
-  return semana;
+  if (semana > hoje) return { semana, desde: semana };
+  const desde = dataMais(hoje, 1);
+  if (pedida && semana === segundaDa(hoje) && desde <= dataMais(semana, 6)) return { semana, desde };
+  throw new Error(`a semana ${semana} já começou: só dá para assumir a semana em curso pedindo na mão, até sábado`);
 }
 
 /** Ganchos das agendas do agente (além do guia/log.md), para a checagem de repetição. */
@@ -172,13 +177,15 @@ export async function rodar(comando, { env = process.env, agora = () => new Date
   }
 
   /** Planeja a semana se ainda não tem plano. Semana com agenda de outro produtor (rotina, Windsor) nunca. */
-  async function planejarSeFaltar(semana, novidades = []) {
+  async function planejarSeFaltar(semana, novidades = [], desde = semana) {
     const fPlano = path.join(saida, 'semanas', semana, 'plano.json');
     if (existsSync(fPlano)) return false;
     if (agendaAlheia(saida, semana)) throw new Error(`semanas/${semana} já tem agenda que não é do agente (rotina antiga ou Windsor): não planejo por cima`);
     const estrategia = atualizarEstrategia(RAIZ, hoje, saida);
     log.push(`Estratégia: ${estrategia.comNota.length} post(s) medidos, ${estrategia.mudancas.length} peso(s) mudaram.`);
-    const { plano, tentativas } = await planejarSemana({ raiz: RAIZ, semana, config, produto, cerebro, formatos, estadoResumo: estrategia.resumo, ganchosRecentes: usados.filter((u) => u.data >= dataMais(hoje, -42)), novidades });
+    const fAgenda = path.join(saida, 'semanas', semana, 'agenda.json');
+    const ocupados = new Set(existsSync(fAgenda) ? JSON.parse(readFileSync(fAgenda, 'utf8')).pecas.map((p) => p.id) : []);
+    const { plano, tentativas } = await planejarSemana({ raiz: RAIZ, semana, config, produto, cerebro, formatos, estadoResumo: estrategia.resumo, ganchosRecentes: usados.filter((u) => u.data >= dataMais(hoje, -42)), novidades, desde, ocupados });
     mkdirSync(path.dirname(fPlano), { recursive: true });
     writeFileSync(fPlano, `${JSON.stringify({ semana, criado_em: hoje, tentativas, ...plano }, null, 2)}\n`);
     registrar({ tipo: 'plano', peca: semana, detalhe: plano.porque });
@@ -191,9 +198,10 @@ export async function rodar(comando, { env = process.env, agora = () => new Date
       const base = await atualizarBaseSePuder({ produto, cerebro, hoje, registrar });
       produto = base.produto;
       log.push(...base.avisos);
-      const semana = semanaAlvo(hoje, env.AGENTE_SEMANA);
-      await planejarSeFaltar(semana, base.novidades);
-      const r = await produzirPendentes({ ...ctxBase, produto, semana, desde: semana, ate: dataMais(semana, 6) });
+      const { semana, desde } = semanaAlvo(hoje, env.AGENTE_SEMANA);
+      if (desde > semana && assumirSemana(saida, semana, hoje)) log.push(`Semana ${semana} assumida: a agenda antiga já tinha saído toda; o agente produz de ${desde} a domingo.`);
+      await planejarSeFaltar(semana, base.novidades, desde);
+      const r = await produzirPendentes({ ...ctxBase, produto, semana, desde, ate: dataMais(semana, 6) });
       log.push(`Produzidas: ${r.feitas.map((f) => `${f.id}=${f.status}`).join(', ') || 'nada'}`);
       for (const f of r.feitas.filter((x) => x.motivos)) log.push(`  ${f.id} (${f.status}), último motivo: ${f.motivos.join(' | ')}`);
       // Limite do plano no sábado não é urgente: a semana é a seguinte e o diário continua de onde parou.

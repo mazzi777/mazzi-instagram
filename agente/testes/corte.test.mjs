@@ -20,12 +20,37 @@ const SEMANA = '2026-11-02';
 const item = { id: 'A', dia: SEMANA, horario: '11:40', tipo: 'carrossel', ramo: 'clinica', objetivo: 'conversa', conteudo: 'dor', tema: 't', angulo: 'um ângulo qualquer', fatos: ['clin.agenda'] };
 const naoChama = { economico: () => false, pedir: async () => { throw new Error('não podia chamar o Claude'); }, juiz: () => async () => { throw new Error('não podia chamar o Claude'); } };
 
-test('semana alvo: segunda seguinte, ou a pedida; nunca semana começada nem dia que não é segunda', () => {
-  assert.equal(semanaAlvo('2026-11-01'), '2026-11-02');
-  assert.equal(semanaAlvo('2026-11-07'), '2026-11-09');
-  assert.equal(semanaAlvo('2026-11-01', '2026-11-09'), '2026-11-09');
-  assert.throws(() => semanaAlvo('2026-11-03', '2026-11-02'), /já começou/);
+test('semana alvo: segunda seguinte, ou a pedida; a em curso só pedida na mão (de amanhã a domingo); nunca a passada', () => {
+  assert.deepEqual(semanaAlvo('2026-11-01'), { semana: '2026-11-02', desde: '2026-11-02' });
+  assert.deepEqual(semanaAlvo('2026-11-07'), { semana: '2026-11-09', desde: '2026-11-09' });
+  assert.deepEqual(semanaAlvo('2026-11-01', '2026-11-09'), { semana: '2026-11-09', desde: '2026-11-09' });
+  assert.deepEqual(semanaAlvo('2026-11-02', '2026-11-02'), { semana: '2026-11-02', desde: '2026-11-03' });
+  assert.throws(() => semanaAlvo('2026-11-08', '2026-11-02'), /já começou/, 'domingo: não sobra dia');
+  assert.throws(() => semanaAlvo('2026-11-10', '2026-11-02'), /já começou/, 'semana passada');
   assert.throws(() => semanaAlvo('2026-11-01', '2026-11-10'), /segunda-feira/);
+});
+
+test('assumir a semana: só se tudo da agenda antiga já saiu; ids novos pulam os antigos; plano não volta no tempo', async () => {
+  const { assumirSemana } = await import('../orquestrador.mjs');
+  const { idsDoPlano, regrasDoPlano } = await import('../etapas/planejar.mjs');
+  const saida = tmp();
+  const dir = path.join(saida, 'semanas', SEMANA);
+  gravar(path.join(dir, 'agenda.json'), { semana: SEMANA, pecas: [{ id: 'A', dia: SEMANA }, { id: 'S1', dia: SEMANA }, { id: 'REEL', dia: '2026-11-04' }] });
+  gravar(path.join(dir, 'publicado.json'), { A: { completo: true }, S1: { completo: true } });
+  assert.throws(() => assumirSemana(saida, SEMANA, SEMANA), /REEL/);
+  assert.equal(agendaAlheia(saida, SEMANA), true);
+  gravar(path.join(dir, 'publicado.json'), { A: { completo: true }, S1: { completo: true }, REEL: { completo: true } });
+  assert.equal(assumirSemana(saida, SEMANA, SEMANA), true);
+  assert.equal(agendaAlheia(saida, SEMANA), false);
+  const agenda = JSON.parse(readFileSync(path.join(dir, 'agenda.json'), 'utf8'));
+  assert.equal(agenda.pecas.length, 3, 'as antigas ficam como histórico');
+  assert.equal(assumirSemana(saida, SEMANA, SEMANA), false, 'já é do agente');
+
+  const p = (dia, tipo) => ({ dia, horario: '11:40', tipo });
+  const ids = idsDoPlano({ pecas: [p('2026-11-03', 'carrossel'), p('2026-11-03', 'stories'), p('2026-11-05', 'reel'), p('2026-11-06', 'stories')] }, new Set(['A', 'B', 'S1', 'REEL']));
+  assert.deepEqual(ids.map((x) => x.id), ['C', 'S2', 'D', 'S3']);
+  const plano = { pecas: [{ ...item, dia: '2026-11-02' }] };
+  assert.match(regrasDoPlano(plano, { semana: SEMANA, config, produto, formatos: ['carrossel'], desde: '2026-11-03' }).join(), /fora do período 2026-11-03/);
 });
 
 test('semana com agenda da rotina/Windsor: o agente não produz, não renderiza e não gasta reserva', async () => {

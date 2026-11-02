@@ -195,6 +195,21 @@ export function revalidarAgenda({ raiz, saida = raiz, semana, desde, ate, regist
   return refeitas;
 }
 
+/**
+ * Assume a agenda de outro produtor (rotina, Windsor) quando TUDO nela já foi publicado: ela passa a ser do agente
+ * e as peças antigas ficam como histórico (métricas, ganchos usados). Com qualquer peça ainda por sair, não assume.
+ */
+export function assumirSemana(saida, semana, hoje) {
+  const dir = path.join(saida, 'semanas', semana);
+  const agenda = lerJson(path.join(dir, 'agenda.json'), null);
+  if (!agenda || agenda.produtor === 'agente') return false;
+  const publicado = lerJson(path.join(dir, 'publicado.json'), {});
+  const faltam = agenda.pecas.filter((p) => !publicado[p.id]?.completo).map((p) => p.id);
+  if (faltam.length) throw new Error(`semanas/${semana}: a agenda antiga ainda tem peça por sair (${faltam.join(', ')}): não assumo`);
+  gravarJson(path.join(dir, 'agenda.json'), { ...agenda, produtor: 'agente', assumida_em: hoje, produtor_anterior: agenda.produtor ?? 'rotina' });
+  return true;
+}
+
 /** A pasta da semana já tem agenda de outro produtor (rotina antiga, Windsor)? Aí o agente não mexe em nada. */
 export function agendaAlheia(saida, semana) {
   const f = path.join(saida, 'semanas', semana, 'agenda.json');

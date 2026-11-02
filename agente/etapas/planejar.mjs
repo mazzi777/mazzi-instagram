@@ -23,7 +23,7 @@ export const Plano = z.object({
 });
 
 /** Regras que o código cobra do plano. Devolve a lista de motivos (vazia = plano aceito). */
-export function regrasDoPlano(plano, { semana, config, produto, formatos }) {
+export function regrasDoPlano(plano, { semana, config, produto, formatos, desde = semana }) {
   const m = [];
   const f = config.frequencia;
   const feed = plano.pecas.filter((p) => FEED.includes(p.tipo));
@@ -40,7 +40,7 @@ export function regrasDoPlano(plano, { semana, config, produto, formatos }) {
   }
   for (const p of plano.pecas) {
     if (!formatos.includes(p.tipo)) m.push(`formato ${p.tipo} ainda não está ligado (use: ${formatos.join(', ')})`);
-    if (p.dia < semana || p.dia > fim) m.push(`${p.tema}: dia ${p.dia} fora da semana ${semana} a ${fim}`);
+    if (p.dia < desde || p.dia > fim) m.push(`${p.tema}: dia ${p.dia} fora do período ${desde} a ${fim}`);
     if (p.ramo !== 'comum' && !produto.ramos.includes(p.ramo)) m.push(`${p.tema}: ramo ${p.ramo} não está ativo`);
     for (const id of p.fatos) if (!noAr.has(id)) m.push(`${p.tema}: fato "${id}" não existe ou não está no ar`);
   }
@@ -53,18 +53,20 @@ export function regrasDoPlano(plano, { semana, config, produto, formatos }) {
   return m;
 }
 
-/** Ids da agenda: feed em ordem de dia (A, B, C...), stories S1, S2... */
-export function idsDoPlano(plano) {
+/** Ids da agenda: feed em ordem de dia (A, B, C...), stories S1, S2... Pula os `ocupados` (semana assumida). */
+export function idsDoPlano(plano, ocupados = new Set()) {
   const ordenado = [...plano.pecas].sort((a, b) => a.dia.localeCompare(b.dia) || a.horario.localeCompare(b.horario));
   let feed = 0;
   let st = 0;
-  return ordenado.map((p) => ({ ...p, id: p.tipo === 'stories' ? `S${++st}` : String.fromCharCode(65 + feed++) }));
+  const proximo = (gerar) => { let id; do id = gerar(); while (ocupados.has(id)); return id; };
+  return ordenado.map((p) => ({ ...p, id: p.tipo === 'stories' ? proximo(() => `S${++st}`) : proximo(() => String.fromCharCode(65 + feed++)) }));
 }
 
-export function promptPlano({ semana, config, formatos, estadoResumo, ganchosRecentes, novidades }) {
+export function promptPlano({ semana, config, formatos, estadoResumo, ganchosRecentes, novidades, desde = semana }) {
   const f = config.frequencia;
   return `Monte o plano do Instagram @mazzisystems para a semana de ${semana} (segunda) a ${dataMais(semana, 6)} (domingo).
-
+${desde > semana ? `A semana já começou: todas as peças entre ${desde} e ${dataMais(semana, 6)} (nada antes de ${desde}).
+` : ''}
 Faixa: ${f.feedMin} a ${f.feedMax} posts de feed (formatos ligados: ${formatos.join(', ')}; pelo menos 1 carrossel${formatos.includes('reel') ? ' e 1 reel' : ''}),
 no máximo 1 post de feed por dia, e stories em ${f.storiesDiasMin} a ${f.storiesDiasMax} dias.
 Objetivo: ${Math.round(f.objetivoConversa * 100)}% dos posts de feed com objetivo "conversa" (levar ao WhatsApp) e o resto "alcance".
@@ -83,14 +85,14 @@ Em "porque", explique em poucas linhas as escolhas da semana.`;
 }
 
 /** Pede o plano e cobra as regras (até 3 tentativas, passando os motivos de volta). */
-export async function planejarSemana({ raiz, semana, config, produto, cerebro, formatos, estadoResumo = '', ganchosRecentes = [], novidades = [] }) {
+export async function planejarSemana({ raiz, semana, config, produto, cerebro, formatos, estadoResumo = '', ganchosRecentes = [], novidades = [], desde = semana, ocupados = new Set() }) {
   const sistema = `Você é o estrategista de conteúdo do Instagram da Mazzi Systems.\n\n${contextoMarca(raiz, produto)}`;
-  let prompt = promptPlano({ semana, config, formatos, estadoResumo, ganchosRecentes, novidades });
+  let prompt = promptPlano({ semana, config, formatos, estadoResumo, ganchosRecentes, novidades, desde });
   let motivos = [];
   for (let tentativa = 1; tentativa <= 3; tentativa++) {
     const plano = await cerebro.pedir({ etapa: 'planejar', modelo: config.modelos.planejador, sistema, prompt, schema: Plano, effort: 'medium' });
-    motivos = regrasDoPlano(plano, { semana, config, produto, formatos });
-    if (!motivos.length) return { plano: { ...plano, pecas: idsDoPlano(plano) }, tentativas: tentativa };
+    motivos = regrasDoPlano(plano, { semana, config, produto, formatos, desde });
+    if (!motivos.length) return { plano: { ...plano, pecas: idsDoPlano(plano, ocupados) }, tentativas: tentativa };
     prompt = `${prompt}\n\nSEU PLANO ANTERIOR FOI RECUSADO. Corrija:\n${motivos.map((x) => `- ${x}`).join('\n')}`;
   }
   throw new Error(`plano recusado 3 vezes: ${motivos.join('; ')}`);

@@ -93,7 +93,7 @@ test('plano: regras quebradas viram motivos', () => {
   const m = regrasDoPlano(p, { semana: SEMANA, config, produto, formatos }).join('\n');
   assert.match(m, /2 posts de feed no dia 2026-11-16/);
   assert.match(m, /reel ainda não está ligado/);
-  assert.match(m, /fora da semana/);
+  assert.match(m, /fora do período/);
   assert.match(m, /fiscal\.nfce/);
 });
 
