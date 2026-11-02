@@ -103,9 +103,10 @@ aprovado no GitHub (20,6 s, 5 MB). Render de um reel: ~5 a 6 min.
 4. `agente/relatorio.mjs` → `relatorios/AAAA-Www.md` (7 dias até ontem), gerado no semanal.
 5. Testes: `agente/testes/metricas.test.mjs` (21, Meta falsa). Suíte toda: 115.
 
-## Corte
+## Corte ✅ 01/11/2026 (a Andressa pediu para ligar sem a semana de ensaio)
 
-1. Uma semana em **modo ensaio** (`AGENTE_MODO=ensaio`): produz tudo, simula a publicação e não publica.
-2. Mostrar à Andressa o ensaio: peças, notas, reprovações, registro, relatório, uso do Pro.
-3. Desligar a rotina da nuvem `trig_019Eus91BL21EhvWryEQ2Fkc` e ligar de verdade.
-4. Evidência + revisão do diff contra o SPEC por subagente (`mazzi-revisor` / `adversarial-review`) antes de dar a Fase 1 por pronta.
+1. Rotina da nuvem `trig_019Eus91BL21EhvWryEQ2Fkc` desligada (não apagada). `AGENTE_MODO` removido: modo real.
+2. Revisão adversarial por subagente contra o SPEC. Corrigido antes de ligar: semana alheia (rotina/Windsor) nunca é tocada, semanal nunca planeja semana começada (entrada `semana` para adiantar), métricas sempre com a data real, diário replaneja de sexta a domingo se o semanal falhou, G8 dentro da rodada, publicador não publica peça com função fora do ar, seção "em homologação" barra a função, heartbeat só depois de guardar.
+3. Campos novos testados na Meta sem publicar (`testar-parametros.yml`): `alt_text`, `is_ai_generated` e `content_publishing_limit` (cota 100/24 h) aceitos. A etiqueta de IA só dá para confirmar no 1º reel publicado.
+4. Semana 09/11 produzida em modo real: 6 peças do agente aprovadas + reel B do banco reserva (o reel original reprovou 3x no juiz de fatos). Achado na conferência: a legenda do reel grudava palavras ("Tácobrada?O") → corrigido, e o juiz visual ganhou a regra.
+5. Pendências da revisão para depois: `debug_token` semanal e issue fechada com "resolvido" (SPEC 9), heartbeat no publicador, limite do Pro no semanal só vira issue sem reserva, 2 posts de feed no mesmo dia na tolerância de atraso, publicador trocar por reserva quando a mídia some, lixo de tentativa reprovada em `semanas/`.
