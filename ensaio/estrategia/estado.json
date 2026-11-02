@@ -1,0 +1,43 @@
+{
+  "atualizado_em": "2026-11-15",
+  "pesos": {
+    "tipo": {
+      "reel": 1.016,
+      "carrossel": 1
+    },
+    "ramo": {
+      "comum": 0.8,
+      "clinica": 1,
+      "restaurante": 1
+    },
+    "objetivo": {
+      "conversa": 1
+    },
+    "horario": {
+      "07:40": 1
+    },
+    "conteudo": {
+      "desconhecido": 1
+    }
+  },
+  "amostras": {
+    "tipo": {
+      "reel": 6,
+      "carrossel": 2
+    },
+    "ramo": {
+      "comum": 5,
+      "clinica": 2,
+      "restaurante": 1
+    },
+    "objetivo": {
+      "conversa": 8
+    },
+    "horario": {
+      "07:40": 8
+    },
+    "conteudo": {
+      "desconhecido": 8
+    }
+  }
+}
