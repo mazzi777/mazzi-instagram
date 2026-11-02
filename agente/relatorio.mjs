@@ -59,7 +59,7 @@ export function montarRelatorio({ semanaIso, de, ate, raiz, saida = raiz, estrat
 
   L.push('', '## Melhores e piores posts', '');
   const medidos = estrategia.comNota ?? [];
-  if (medidos.length < 6) {
+  if (medidos.length < 8) {
     L.push(`Só ${medidos.length} post(s) com métrica até agora. Com tão pouco dado, qualquer "melhor" ou "pior" é sorte: o agente ainda não muda a estratégia por isso.`);
   } else {
     const ord = [...medidos].sort((a, b) => b.nota - a.nota);

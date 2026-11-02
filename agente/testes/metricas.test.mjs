@@ -144,7 +144,7 @@ test('coleta: token inválido para a rodada; outro erro fica na lista', async ()
 
 // ---------- nota e estratégia ----------
 
-const post = (dia, tipo, conversa, alcance, extra = {}) => ({ chave: dia, dia, tipo, ramo: 'clinica', objetivo: 'conversa', horario: '11:40', conteudo: 'dor', gancho: `g${dia}`, m: {}, conversa, alcance, ...extra });
+const post = (dia, tipo, conversa, alcance, extra = {}) => ({ chave: `${dia}/A`, dia, idade: 7, tipo, ramo: 'clinica', objetivo: 'conversa', horario: '11:40', conteudo: 'dor', gancho: `g${dia}`, m: {}, conversa, alcance, ...extra });
 
 test('nota: 1,0 é o normal do formato; o dobro de conversa pesa 70%', () => {
   const ps = [post('2026-10-01', 'carrossel', 10, 100), post('2026-10-02', 'carrossel', 10, 100), post('2026-10-03', 'carrossel', 10, 100), post('2026-10-04', 'carrossel', 20, 100)];
@@ -171,15 +171,23 @@ test('estratégia: menos de 4 amostras não mexe; mexe no máximo 20%; piso de 0
   const bons = [1, 2, 3, 4].map((i) => ({ ...post(`2026-11-0${i}`, 'reel', 0, 0), nota: 3 }));
   const ruins = [5, 6, 7, 8].map((i) => ({ ...post(`2026-11-0${i}`, 'carrossel', 0, 0), nota: 0.01 }));
   const poucos = [{ ...post('2026-11-09', 'imagem', 0, 0), nota: 9 }];
-  const { estado, mudancas } = ajustar({ pesos: {}, amostras: {} }, [...bons, ...ruins, ...poucos], hoje);
+  const neutros = [10, 11, 12, 13].map((i) => ({ ...post(`2026-10-${i}`, 'stories', 0, 0), nota: 1 }));
+  const { estado, mudancas } = ajustar({ pesos: {}, amostras: {} }, [...bons, ...ruins, ...poucos, ...neutros], hoje);
   assert.equal(estado.pesos.tipo.reel, 1.2);
   assert.equal(estado.pesos.tipo.carrossel, 0.8);
   assert.equal(estado.pesos.tipo.imagem, 1, 'uma amostra só não muda nada');
   assert.ok(mudancas.some((m) => m.dimensao === 'tipo' && m.valor === 'reel'));
   let e = estado;
-  for (let i = 0; i < 20; i++) e = ajustar(e, [...bons, ...ruins], hoje).estado;
+  for (let i = 0; i < 20; i++) e = ajustar(e, [...bons, ...ruins, ...neutros], hoje).estado;
   assert.equal(e.pesos.tipo.carrossel, 0.1, 'o que flopa perde espaço, mas não some');
   assert.ok(e.pesos.tipo.reel <= 3, 'o peso vai na direção da nota relativa, sem crescer sem fim');
+});
+
+test('estratégia: com menos de 12 posts maduros (D+3) de 3 semanas não mexe em nada', () => {
+  const verdes = Array.from({ length: 12 }, (_, i) => ({ ...post(`2026-11-${10 + (i % 3)}`, 'reel', 0, 0), idade: 1, nota: i }));
+  assert.deepEqual(ajustar({ pesos: {}, amostras: {} }, verdes, '2026-11-14').mudancas, []);
+  const umaSemana = Array.from({ length: 12 }, (_, i) => ({ ...post('2026-11-10', i % 2 ? 'reel' : 'carrossel', 0, 0), nota: i % 2 ? 3 : 0.1 }));
+  assert.deepEqual(ajustar({ pesos: {}, amostras: {} }, umaSemana, '2026-11-14').mudancas, []);
 });
 
 test('estratégia: post de mais de 8 semanas não conta; o semanal rodado 2x não ajusta 2x', () => {

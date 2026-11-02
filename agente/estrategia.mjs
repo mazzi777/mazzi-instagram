@@ -16,6 +16,9 @@ const MIN_AMOSTRAS = 4;
 const PISO = 0.1;
 const VARIACAO = 0.2;
 const JANELA_DIAS = 56;
+// Perfil pequeno: só mexe nos pesos com 12+ posts maduros (D+3 ou mais) de 3+ semanas diferentes.
+const MIN_MADUROS = 12;
+const MIN_SEMANAS = 3;
 
 const n = (v) => (typeof v === 'number' ? v : 0); // "<5" e null contam como 0
 const mediana = (xs) => { const s = [...xs].sort((a, b) => a - b); return s.length ? (s[(s.length - 1) >> 1] + s[s.length >> 1]) / 2 : 0; };
@@ -35,14 +38,15 @@ export function postsComMetricas(raiz) {
   for (const p of lista) if (p.tipo !== 'stories') porDia.set(p.dia, (porDia.get(p.dia) ?? 0) + 1);
   return lista.map((p) => {
     const minhas = coletas.filter((c) => p.ids.includes(c.media_id) && (c.idade_d ?? 0) <= 7);
-    if (!minhas.length) return null;
+    // Sem nenhum número (post apagado, story de teste medido como reel): não é zero, é falta de dado.
+    if (!minhas.some((c) => Object.values(c.metricas).some((v) => typeof v === 'number'))) return null;
     const idade = Math.max(...minhas.map((c) => c.idade_d ?? 0));
     const soma = {};
     for (const c of minhas.filter((x) => (x.idade_d ?? 0) === idade)) for (const [k, v] of Object.entries(c.metricas)) soma[k] = n(soma[k]) + n(v);
     const taps = p.tipo === 'stories' ? 0 : n(conta.get(p.dia)?.profile_links_taps) / Math.max(1, porDia.get(p.dia) ?? 1);
     return {
       chave: `${p.semana}/${p.peca}`, dia: p.dia, idade, tipo: p.tipo ?? 'desconhecido', ramo: ramoDe(p), objetivo: p.info.objetivo ?? 'conversa',
-      horario: p.info.horario ?? '07:40', conteudo: p.info.conteudo ?? 'desconhecido', gancho: p.info.gancho ?? '', m: soma,
+      horario: p.info.horario ?? '07:40', conteudo: p.info.conteudo ?? 'desconhecido', gancho: p.info.gancho || p.info.tema || p.peca, m: soma,
       conversa: n(soma.profile_visits) + 2 * n(soma.follows) + 1.5 * n(soma.shares) + 3 * taps + n(soma.replies),
       alcance: n(soma.reach) + 3 * n(soma.saved) + (p.tipo === 'reel' ? n(soma.ig_reels_avg_watch_time) / 1000 * 10 : 0),
     };
@@ -71,7 +75,10 @@ export function ajustar(estado, comNota, hoje) {
   const novo = structuredClone(estado);
   const mudancas = [];
   const media = (xs) => xs.reduce((a, b) => a + b, 0) / (xs.length || 1);
-  const recentes = comNota.filter((p) => p.dia >= dataMais(hoje, -JANELA_DIAS));
+  const recentes = comNota.filter((p) => p.dia >= dataMais(hoje, -JANELA_DIAS) && p.idade >= 3);
+  if (recentes.length < MIN_MADUROS || new Set(recentes.map((p) => p.chave.split('/')[0])).size < MIN_SEMANAS) {
+    return { estado: { ...novo, atualizado_em: hoje }, mudancas: [] };
+  }
   const geral = media(recentes.map((p) => p.nota)) || 1;
   for (const d of DIMENSOES) {
     novo.pesos[d] ??= {};

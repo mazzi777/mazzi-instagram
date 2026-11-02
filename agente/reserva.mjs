@@ -92,7 +92,7 @@ export function criarReserva({ raiz, saida = raiz, produto, marcar = true, sonda
 export function pautasEvergreen(produto) {
   const ramos = produto.ramos;
   const pautas = [
-    { conteudo: 'convite', tema: 'o que é a Mazzi', angulo: 'Pra quem chegou agora: sistema de gestão online para clínica e restaurante pequenos, com o logo do negócio, por convite no WhatsApp.', fatos: ['comum.marca-propria', 'comum.celular'], ramo: 'comum' },
+    { conteudo: 'dor', tema: 'o sistema com a cara do negócio', angulo: 'O cliente vê o logo e as cores do seu negócio na tela, não o de um sistema qualquer. Mostre a tela concreta, com o logo no canto.', fatos: ['comum.marca-propria', 'comum.celular'], ramo: 'comum' },
     { conteudo: 'convite', tema: 'como entrar', angulo: 'Não tem cadastro aberto: a pessoa chama no WhatsApp, a gente entende o negócio e manda o convite.', fatos: ['comum.celular'], ramo: 'comum' },
   ];
   if (ramos.includes('restaurante')) pautas.push({ conteudo: 'ensina', tema: 'o restaurante num lugar só', angulo: 'Caixa, delivery pelo teclado, balança e estoque no mesmo sistema, sem caderno.', fatos: ['rest.caixa', 'rest.delivery.teclado', 'rest.balanca', 'rest.estoque'], ramo: 'restaurante' });
