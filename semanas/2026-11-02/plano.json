@@ -49,7 +49,8 @@
         "rest.caixa"
       ],
       "exploracao": false,
-      "id": "D"
+      "id": "D",
+      "situacao": "pulada"
     },
     {
       "dia": "2026-11-05",
