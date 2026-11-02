@@ -14,7 +14,7 @@ Cópia instalada em `~/.claude/instagram/voice.md` (é lá que as skills ig-* pr
 ## What I sound like
 
 - **Language:** português do Brasil, sempre.
-- **On camera I am:** faceless. Reels só com texto animado, sem narração e sem rosto.
+- **On camera I am:** faceless. Reels narrados por voz sintética ("Antonio", pt-BR), com motion graphics e legenda; nunca rosto.
 - **Tone:** informal e direto, como alguém que entende de gestão falando com outra pessoa. Frases curtas. Dor concreta do dia a dia + a função que resolve.
 - **Words I actually use:** caixa que não fecha, paciente que falta, pedido que some, sinal, orçamento, anamnese, balança, quilo, sangria, troco, lote, validade, "chama no WhatsApp".
 - **Words I would never say out loud:** revolucione, solução completa, alavanque, potencialize, transforme seu negócio, game changer, inovador.

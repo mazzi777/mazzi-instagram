@@ -1,5 +1,8 @@
 # Produção da semana do Instagram @mazzisystems
 
+> **Desde 01/11/2026 quem produz é o agente autônomo** (`agente/`, workflow "Agente do Instagram"; veja `SPEC.md`). A rotina da nuvem foi desligada. Este passo a passo ficou só para produção manual de emergência (agente `ig-produtor`), e nunca numa semana que o agente já planejou (`semanas/AAAA-MM-DD/plano.json`).
+
+
 Passo a passo único, lido pela rotina da nuvem (toda segunda, 06:53), pela skill `mazzi-instagram` e pelo agente `ig-produtor`. Quem publica é o GitHub Actions deste repositório (`.github/workflows/publicar.yml`), todo dia às 07:30 de Brasília (as peças saem no `dia` da agenda). **Você não publica nada.**
 
 ## 0. Que semana produzir

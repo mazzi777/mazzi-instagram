@@ -1,7 +1,7 @@
 # Instagram da Mazzi Systems (@mazzisystems) — guia da marca
 
 Fonte da verdade da marca. Vale mais que qualquer resumo em prompt, skill ou memória.
-Atualizado em 30/10/2026 (junta o guia antigo e as regras do prompt da rotina de 30/10).
+Atualizado em 01/11/2026 (corte para o agente autônomo: reel narrado, etiqueta de IA, frequência em faixa).
 
 ## Regra principal
 
@@ -67,23 +67,27 @@ Português do Brasil, informal e direto, frases curtas. Dor concreta + a funçã
 | Formato | Medida | Regras |
 |---|---|---|
 | Carrossel | JPEG 1080×1350, qualidade 92, 5–8 slides | capa, problema, passos, resumo, chamada |
-| Reel | MP4 1080×1920, 20–30 s, H.264 yuv420p, +faststart, áudio AAC silencioso | sem narração; texto animado, máx. 6 palavras por cartão, 1 cartão a cada 3 s; gancho no 1º, chamada no último; texto entre y=230 e y=1440 e fora dos 230 px da direita; quadros com Playwright a 30 fps + ffmpeg |
-| Stories | JPEG 1080×1920, 4–5 quadros por dia | texto entre y=250 e y=1600; a API não aceita figurinhas: no lugar de enquete/pergunta, "Me responde aqui nesse story"; no lugar do link, "chama no WhatsApp, link na bio" |
+| Imagem única | JPEG 1080×1350 | um recado só, com cartão de exemplo |
+| Reel | MP4 1080×1920, 20–45 s, H.264 yuv420p, +faststart, AAC 48 kHz, −14 LUFS | **narrado** (voz sintética pt-BR "Antonio"; "Mazzi" se fala "Mázi"), legenda palavra a palavra, motion graphics (cenas, atos de cor, transições, efeitos) e trilha de fundo baixinha sem Content ID; gancho na 1ª cena, chamada na última. Por ter voz sintética realista, sai com a etiqueta de IA da Meta (`is_ai_generated`) |
+| Stories | JPEG 1080×1920, 1 conjunto por dia | texto entre y=250 e y=1600; a API não aceita figurinhas: no lugar de enquete/pergunta, "Me responde aqui nesse story"; no lugar do link, "chama no WhatsApp, link na bio" |
 
 Legenda: primeira linha forte, corpo curto, chamada única, até 3 hashtags.
 
-## Rodízio de temas (N = semana ISO da semana publicada)
+## Frequência (desde 01/11/2026, quem decide é o agente, dentro da faixa)
 
-Clínica: 1 paciente que falta · 2 anamnese e termo no tablet · 3 orçamento pelo WhatsApp que vira agendamento e sinal · 4 antes e depois · 5 produto vencendo (lote e validade) · 6 pacotes de sessões e comissão.
+- 3 a 5 posts de feed por semana (no máximo 1 por dia), com pelo menos 1 reel e 1 carrossel, e os dois ramos aparecendo.
+- Stories em 3 a 5 dias da semana.
+- Cerca de 70% dos posts com objetivo "conversa" (levar ao WhatsApp) e 30% "alcance". Cerca de 20% é exploração (formato, tema ou horário pouco testado).
+- Horários: 07:40, 11:40, 18:40 ou 20:40 (Brasília).
 
-Restaurante: 1 caixa que não fecha · 2 pedido de delivery que some · 3 delivery pelo teclado · 4 balança e preço do quilo por dia · 5 bebida que acaba sem ninguém ver · 6 quanto sobrou de verdade.
+## Temas que funcionam (lista de partida, não rodízio fixo)
 
-- Carrossel A (segunda) = Clínica tema (N mod 6) + 1.
-- Carrossel B (sexta) = Restaurante tema (N mod 6) + 1.
-- Reel (quarta) = Restaurante tema ((N + 3) mod 6) + 1 se N for par; Clínica, mesmo cálculo, se N for ímpar.
-- Stories: S1 (segunda) clínica, S2 (quarta) restaurante, S3 (sexta) convite.
+Clínica: paciente que falta · anamnese e termo no tablet · orçamento pelo WhatsApp que vira agendamento e sinal · antes e depois · produto vencendo (lote e validade) · pacotes de sessões e comissão.
+
+Restaurante: caixa que não fecha · pedido de delivery que some · delivery pelo teclado · balança e preço do quilo por dia · bebida que acaba sem ninguém ver · quanto sobrou de verdade.
+
+O agente não repete gancho nem ângulo das últimas 6 semanas e puxa as funções novas da base do produto.
 
 ## Nomes dos arquivos
 
-`semanas/AAAA-MM-DD/` com AAAA-MM-DD = segunda-feira da semana publicada:
-`AAAA-MM-DD-A-01.jpg`, `AAAA-MM-DD-B-01.jpg`, `AAAA-MM-DD-REEL.mp4`, `AAAA-MM-DD-S1-01.jpg`, `S2`, `S3`.
+`semanas/AAAA-MM-DD/` com AAAA-MM-DD = segunda-feira da semana publicada. Semanas do agente (`produtor: "agente"`): ids A, B, C... para o feed e S1, S2... para os stories, arquivos `AAAA-MM-DD-<id>-01.jpg` ou `AAAA-MM-DD-<id>.mp4`. Semanas antigas da rotina usavam A, B, REEL, S1–S3.

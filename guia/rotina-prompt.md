@@ -1,5 +1,8 @@
 # Prompt da rotina "Mazzi Instagram semanal"
 
+> **Histórico.** A rotina "Mazzi Instagram semanal" foi desligada em 01/11/2026: quem produz agora é o agente autônomo (`agente/`, `SPEC.md`).
+
+
 Rotina da nuvem (claude.ai), toda **segunda às 06:53** (`CRON_TZ=America/Sao_Paulo 53 6 * * 1`). ID: `trig_019Eus91BL21EhvWryEQ2Fkc`.
 Este arquivo é a versão oficial do prompt. Se mudar aqui, atualize a rotina com o texto abaixo.
 
