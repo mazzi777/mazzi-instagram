@@ -52,6 +52,30 @@
       "tentativas": 2
     },
     {
+      "tipo": "reel",
+      "arquivos": [
+        "2026-11-09-B.mp4"
+      ],
+      "tema": "clinica · a clínica num lugar só",
+      "gancho": "Agenda, ficha e termo em lugares diferentes?",
+      "ramo": "clinica",
+      "objetivo": "conversa",
+      "ia": true,
+      "fatos": [
+        "clin.fichas",
+        "clin.agenda",
+        "clin.anamnese-termo",
+        "clin.orcamento",
+        "clin.lembrete-1-clique"
+      ],
+      "legenda": "Agenda num lugar, ficha em outro e termo na gaveta?\n\nNa Mazzi, a agenda não deixa marcar duas pessoas no mesmo horário. A ficha guarda histórico e fotos. Anamnese e termo são assinados com o dedo na tela, com alerta de alergia. O orçamento vai pelo WhatsApp e o lembrete de consulta sai com um toque.\n\nQuer ver como funciona? Chama no WhatsApp (link na bio).\n\n#clinicaestetica #gestaodeclinica #harmonizacao",
+      "capa_ms": 1000,
+      "id": "B",
+      "dia": "2026-11-11",
+      "horario": "11:40",
+      "origem": "reserva"
+    },
+    {
       "id": "S2",
       "dia": "2026-11-12",
       "horario": "20:40",
