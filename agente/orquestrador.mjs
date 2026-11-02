@@ -4,7 +4,7 @@
 // Tudo vai para registro/AAAA-MM-DD.jsonl. Retomável: o plano fica em semanas/SEMANA/plano.json e
 // a rodada diária produz o que ainda falta.
 // `raiz` é o repositório (guias, base); `saida` é onde vão semanas/, registro/ e uso/ (no ensaio: ensaio/).
-import { readFileSync, writeFileSync, existsSync, mkdirSync, appendFileSync, rmSync, mkdtempSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, mkdirSync, appendFileSync, rmSync, mkdtempSync, readdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { validarPeca, dataMais } from '../publicar/validar.mjs';
@@ -45,9 +45,19 @@ function entradaAgenda(item, conteudo, arquivos, fatos, tentativa) {
   return e;
 }
 
+/**
+ * Apaga as mídias de uma peça na pasta da semana (slides e vídeo, inclusive o .parcial de um ffmpeg que caiu).
+ * Roda antes de cada tentativa: a 1ª com 8 slides e a 2ª com 6 deixariam o 07 e o 08 sobrando no repositório.
+ */
+export function limparPeca(pasta, semana, id) {
+  if (!existsSync(pasta)) return;
+  for (const f of readdirSync(pasta)) if (f.startsWith(`${semana}-${id}-`) || f.startsWith(`${semana}-${id}.`)) rmSync(path.join(pasta, f), { force: true });
+}
+
 /** Reel: voz + legenda + vídeo. Devolve { arquivos, entrada, tecnica[], quadros[], limpar() }. */
 async function produzirReel(item, conteudo, texto, tentativa, { semana, pasta, ctx }) {
   const destino = path.join(pasta, `${semana}-${item.id}.mp4`);
+  limparPeca(pasta, semana, item.id);
   const m = await (ctx.montarReel ?? montarReel)({ roteiro: conteudo, item: { ...item, semana }, destino, log: (l) => ctx.registrar({ tipo: 'tentativa', peca: `${semana}/${item.id}`, detalhe: l }) });
   const limpar = () => m.trabalho && rmSync(m.trabalho, { recursive: true, force: true });
   if (!m.arquivo) return { arquivos: [], tecnica: m.motivos, quadros: [], limpar };
@@ -103,6 +113,7 @@ export async function produzirPeca(item, ctx) {
       }
 
       const paginas = paginasDaPeca({ semana, id: item.id, tipo: item.tipo, ramo: item.ramo, conteudo, pasta });
+      limparPeca(pasta, semana, item.id);
       arquivos = await (ctx.capturar ?? capturar)(paginas, { navegador: ctx.navegador });
       const entrada = entradaAgenda(item, conteudo, arquivos.map((a) => path.basename(a)), texto.fatos, tentativa);
       const tecnica = [...validarPeca(pasta, semana, entrada, { agente: true }), ...(arquivos.problemas ?? []).map((p) => `diagramação: ${p}`)];
@@ -117,6 +128,7 @@ export async function produzirPeca(item, ctx) {
     }
   }
   for (const a of arquivos) rmSync(a, { force: true });
+  limparPeca(pasta, semana, item.id);
   registrar({ tipo: 'reprovada', peca: onde, motivos });
   return { ...(await usarReserva(item, ctx, motivos)), motivos };
 }
@@ -145,6 +157,44 @@ export function gravarNaAgenda(saida, semana, entrada) {
  * Produz as peças do plano que ainda não estão na agenda nem foram puladas, com dia entre `desde` e `ate`.
  * Para ao bater no teto ou no limite do plano (a próxima rodada continua).
  */
+/**
+ * SPEC 6.2.3: confere de novo as peças prontas de `desde` a `ate` que ainda não começaram a sair. Mídia sumida ou
+ * quebrada, ou função que saiu do ar na base: a peça sai da agenda e volta para o plano, e o diário refaz
+ * (ou usa a reserva). Devolve os ids refeitos com o motivo.
+ */
+export function revalidarAgenda({ raiz, saida = raiz, semana, desde, ate, registrar, sondar }) {
+  const dir = path.join(saida, 'semanas', semana);
+  const fAgenda = path.join(dir, 'agenda.json');
+  const fPlano = path.join(dir, 'plano.json');
+  if (!existsSync(fAgenda) || !existsSync(fPlano) || agendaAlheia(saida, semana)) return [];
+  const agenda = lerJson(fAgenda, null);
+  const plano = lerJson(fPlano, null);
+  const publicado = lerJson(path.join(dir, 'publicado.json'), {});
+  const noAr = new Set(lerJson(path.join(raiz, 'agente', 'base', 'produto.json'), { funcoes: [] }).funcoes.filter((f) => f.status === 'no_ar').map((f) => f.id));
+  const refeitas = [];
+  for (const p of agenda.pecas) {
+    if (p.dia < desde || p.dia > ate || publicado[p.id]) continue;
+    if (p.tipo === 'reel' && !sondar) process.env.FFPROBE ??= ffprobe();
+    const motivos = [
+      ...validarPeca(dir, semana, p, { agente: true, ...(sondar ? { sondar } : {}) }),
+      ...(p.fatos ?? []).filter((f) => !noAr.has(f)).map((f) => `a função ${f} não está mais no ar na base`),
+    ];
+    if (!motivos.length) continue;
+    refeitas.push({ id: p.id, motivos });
+    limparPeca(dir, semana, p.id);
+    const item = plano.pecas.find((x) => x.id === p.id);
+    if (item) delete item.situacao;
+    registrar({ tipo: 'reprovada', peca: `${semana}/${p.id}`, motivos, detalhe: 'ficou inválida depois de aprovada: volta para ser refeita' });
+  }
+  if (refeitas.length) {
+    const fora = new Set(refeitas.map((r) => r.id));
+    agenda.pecas = agenda.pecas.filter((p) => !fora.has(p.id));
+    gravarJson(fAgenda, agenda);
+    gravarJson(fPlano, plano);
+  }
+  return refeitas;
+}
+
 /** A pasta da semana já tem agenda de outro produtor (rotina antiga, Windsor)? Aí o agente não mexe em nada. */
 export function agendaAlheia(saida, semana) {
   const f = path.join(saida, 'semanas', semana, 'agenda.json');

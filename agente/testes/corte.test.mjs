@@ -73,3 +73,33 @@ test('base: seção "em homologação" barra a função mesmo se a paráfrase do
   const ok = { id: 'clin.falta-aviso', ramo: 'clinica', fato: 'Mostra na agenda quem faltou 3 vezes.', fonte: 'Aviso de faltas' };
   assert.equal(filtrarCandidatas([ok], produto, { 'Aviso de faltas': 'Paciente que falta 3 vezes ganha um aviso na agenda.' }).aprovadas.length, 1, '"falta" do texto não barra');
 });
+
+test('limparPeca: apaga só as mídias da peça (slides que sobraram e .parcial), não as de outra', async () => {
+  const { limparPeca } = await import('../orquestrador.mjs');
+  const dir = tmp();
+  for (const f of ['2026-11-09-A-01.jpg', '2026-11-09-A-08.jpg', '2026-11-09-A1-01.jpg', '2026-11-09-B.mp4', '2026-11-09-B.mp4.parcial.mp4', 'agenda.json']) writeFileSync(path.join(dir, f), 'x');
+  limparPeca(dir, '2026-11-09', 'A');
+  limparPeca(dir, '2026-11-09', 'B');
+  assert.deepEqual(readdirSync(dir).sort(), ['2026-11-09-A1-01.jpg', 'agenda.json']);
+});
+
+test('revalidarAgenda: mídia sumida ou função fora do ar tira a peça da agenda para refazer; publicada não mexe', async () => {
+  const { revalidarAgenda } = await import('../orquestrador.mjs');
+  const raiz = tmp();
+  gravar(path.join(raiz, 'agente', 'base', 'produto.json'), { funcoes: [{ id: 'clin.agenda', status: 'no_ar' }, { id: 'clin.velha', status: 'proibido' }] });
+  const semana = '2026-11-09';
+  const dir = path.join(raiz, 'semanas', semana);
+  const jpg = () => { const b = Buffer.alloc(21); b.set([0xff, 0xd8, 0xff, 0xc0, 0x00, 0x11, 0x08]); b.writeUInt16BE(1920, 7); b.writeUInt16BE(1080, 9); b.set([0xff, 0xd9], 19); return b; };
+  const story = (id, fatos) => ({ id, dia: '2026-11-10', horario: '07:40', tipo: 'stories', arquivos: [`${semana}-${id}-01.jpg`], fatos });
+  mkdirSync(dir, { recursive: true });
+  for (const id of ['S1', 'S2', 'S4']) writeFileSync(path.join(dir, `${semana}-${id}-01.jpg`), jpg());
+  gravar(path.join(dir, 'agenda.json'), { semana, produtor: 'agente', pecas: [story('S1', ['clin.agenda']), story('S2', ['clin.velha']), story('S3', ['clin.agenda']), story('S4', ['clin.velha'])] });
+  gravar(path.join(dir, 'plano.json'), { semana, pecas: ['S1', 'S2', 'S3', 'S4'].map((id) => ({ id, situacao: 'aprovada' })) });
+  gravar(path.join(dir, 'publicado.json'), { S4: { completo: true } });
+  const r = revalidarAgenda({ raiz, semana, desde: '2026-11-09', ate: '2026-11-12', registrar: () => {} });
+  assert.deepEqual(r.map((x) => x.id), ['S2', 'S3']);
+  assert.deepEqual(JSON.parse(readFileSync(path.join(dir, 'agenda.json'), 'utf8')).pecas.map((p) => p.id), ['S1', 'S4']);
+  const plano = JSON.parse(readFileSync(path.join(dir, 'plano.json'), 'utf8')).pecas;
+  assert.deepEqual(plano.map((p) => p.situacao), ['aprovada', undefined, undefined, 'aprovada']);
+  assert.equal(existsSync(path.join(dir, `${semana}-S2-01.jpg`)), false);
+});

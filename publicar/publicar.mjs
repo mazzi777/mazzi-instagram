@@ -52,6 +52,9 @@ export function escolherPecas(raiz, hoje, alvo, hora = '23:59') {
   const base = path.join(raiz, 'semanas');
   const escolhidas = [];
   const erros = [];
+  const feed = (peca) => peca.tipo !== 'stories';
+  let feedAgendadoHoje = false;
+  let feedPublicadoHoje = false;
   if (!existsSync(base)) return { escolhidas, erros };
   for (const nome of readdirSync(base).sort()) {
     const dir = path.join(base, nome);
@@ -75,6 +78,8 @@ export function escolherPecas(raiz, hoje, alvo, hora = '23:59') {
       }
       vistos.add(peca.id);
       const registro = publicado[peca.id];
+      if (feed(peca) && peca.dia === hoje && !registro?.vencida) feedAgendadoHoje = true;
+      if (feed(peca) && registro?.completo && registro.em && hojeEmSaoPaulo(new Date(registro.em)) === hoje) feedPublicadoHoje = true;
       if (alvo) {
         if (chave === alvo && !registro?.completo) escolhidas.push({ semana: agenda.semana, dir, peca, vencida: false });
         continue;
@@ -84,7 +89,17 @@ export function escolherPecas(raiz, hoje, alvo, hora = '23:59') {
       escolhidas.push({ semana: agenda.semana, dir, peca, vencida: peca.dia < dataMais(hoje, -ATRASO_MAXIMO_DIAS) });
     }
   }
-  return { escolhidas, erros };
+  if (alvo) return { escolhidas, erros };
+  // No máximo 1 post de feed por dia: a peça do dia tem a vez; atrasada só entra em dia sem feed (senão, vence e avisa).
+  let feedLivre = !feedPublicadoHoje;
+  const filtradas = [];
+  for (const e of [...escolhidas].sort((a, b) => b.peca.dia.localeCompare(a.peca.dia))) {
+    if (e.vencida || !feed(e.peca)) { filtradas.push(e); continue; }
+    if (!feedLivre || (e.peca.dia < hoje && feedAgendadoHoje)) continue;
+    feedLivre = false;
+    filtradas.push(e);
+  }
+  return { escolhidas: escolhidas.filter((e) => filtradas.includes(e)), erros };
 }
 
 export function criarCliente({ token, igUserId, fetch, esperar }) {

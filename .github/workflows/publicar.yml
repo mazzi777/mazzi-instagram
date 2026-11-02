@@ -116,3 +116,18 @@ jobs:
           Rodada: $RUN_URL"
           num=$(gh issue list --state open --author "app/github-actions" --search "\"$titulo\" in:title" --json number -q '.[0].number')
           if [ -n "$num" ]; then gh issue comment "$num" --body "$corpo"; else gh issue create --title "$titulo" --body "$corpo"; fi
+
+      # SPEC 9: rodada limpa fecha o aviso aberto com "resolvido". Menos quando o aviso pede ação à mão
+      # (registro não gravado): esse fica aberto até alguém conferir.
+      - name: Fechar aviso resolvido
+        if: success() && github.event.inputs.simular != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          num=$(gh issue list --state open --author "app/github-actions" --search "\"Instagram: falha ao publicar\" in:title" --json number -q '.[0].number')
+          [ -n "$num" ] || exit 0
+          if gh issue view "$num" --json body,comments -q '.body, .comments[].body' | grep -q "não foi gravado"; then
+            echo "O aviso #$num pede conferência à mão: fica aberto."; exit 0
+          fi
+          gh issue close "$num" --comment "Resolvido: a rodada seguinte publicou sem erro ($RUN_URL). Se o aviso era de peça vencida, ela não sai sozinha."

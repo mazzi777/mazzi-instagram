@@ -16,7 +16,7 @@ import { lerProduto } from './checagens/fatos.mjs';
 import { lerGanchosUsados } from './checagens/repeticao.mjs';
 import { atualizarBase } from './base/atualizar.mjs';
 import { planejarSemana } from './etapas/planejar.mjs';
-import { criarRegistro, produzirPendentes, cobrirComReserva, encherReserva, agendaAlheia, FORMATOS_PRODUZIDOS } from './orquestrador.mjs';
+import { criarRegistro, produzirPendentes, cobrirComReserva, encherReserva, agendaAlheia, revalidarAgenda, FORMATOS_PRODUZIDOS } from './orquestrador.mjs';
 import { criarMeta, coletar } from './metricas.mjs';
 import { atualizarEstrategia } from './estrategia.mjs';
 import { criarReserva, situacao, lerReserva, ALERTA } from './reserva.mjs';
@@ -89,6 +89,22 @@ async function coletarMetricas({ env, hoje, modo, log, erros, fetch }) {
   }
 }
 
+export const PERMISSOES_META = ['instagram_basic', 'instagram_content_publish', 'instagram_manage_insights'];
+
+/** SPEC 9: conferência semanal da chave da Meta (o publicador já confere se ela abre a conta; aqui, as permissões). */
+async function conferirChaveMeta({ env, erros, log, fetch }) {
+  if (!env.META_TOKEN || !env.IG_USER_ID) return;
+  try {
+    const tem = await criarMeta({ token: env.META_TOKEN, igUserId: env.IG_USER_ID, ...(fetch ? { fetch } : {}) }).permissoes();
+    const faltam = PERMISSOES_META.filter((p) => !tem.includes(p));
+    if (faltam.length) erros.push({ peca: 'token da Meta', mensagem: `a chave da Meta perdeu a(s) permissão(ões) ${faltam.join(', ')}. Ela precisa ser refeita no Gerenciador de Negócios.` });
+    else log.push('Chave da Meta: permissões OK.');
+  } catch (e) {
+    if (e.chave || e.codigo === 190) erros.push({ peca: 'token da Meta', mensagem: `a Meta recusou a chave (${e.message}). Ela precisa ser refeita no Gerenciador de Negócios.` });
+    else log.push(`Conferência da chave da Meta falhou nesta rodada: ${e.message}`);
+  }
+}
+
 /** Avisos do banco reserva: poucas peças válidas (depois que ele já encheu uma vez) ou 2 horários seguidos sem post. */
 export function avisosDaReserva({ saida, hoje, produto, banco = RAIZ }) {
   const avisos = [];
@@ -132,6 +148,7 @@ export async function rodar(comando, { env = process.env, agora = () => new Date
   }
   // Data real sempre: com AGENTE_HOJE falso, a coleta gravaria D+7 e "ontem" de dias que ainda não aconteceram.
   if (comando === 'diario' || comando === 'semanal') await coletarMetricas({ env, hoje: hojeReal, modo: 'dia', log, erros, fetch });
+  if (comando === 'semanal') await conferirChaveMeta({ env, erros, log, fetch });
   const cerebro = { ...criarCerebro({ raiz: saida, config, agora, ...(consultar ? { consultar } : {}), log: (m) => log.push(m) }), config };
   erros.push(...avisosDeToken(config, hoje));
 
@@ -179,7 +196,9 @@ export async function rodar(comando, { env = process.env, agora = () => new Date
       const r = await produzirPendentes({ ...ctxBase, produto, semana, desde: semana, ate: dataMais(semana, 6) });
       log.push(`Produzidas: ${r.feitas.map((f) => `${f.id}=${f.status}`).join(', ') || 'nada'}`);
       for (const f of r.feitas.filter((x) => x.motivos)) log.push(`  ${f.id} (${f.status}), último motivo: ${f.motivos.join(' | ')}`);
-      if (r.parou) erros.push(erroComoAviso(r.parou));
+      // Limite do plano no sábado não é urgente: a semana é a seguinte e o diário continua de onde parou.
+      if (r.parou instanceof ErroLimite) log.push(`Limite do plano: ${r.parou.message}. O diário continua a produção nos próximos dias.`);
+      else if (r.parou) erros.push(erroComoAviso(r.parou));
       else {
         try {
           const repostas = await encherReserva({ ...ctxBase, produto, semana, banco: RAIZ, maximo: 2 });
@@ -199,6 +218,7 @@ export async function rodar(comando, { env = process.env, agora = () => new Date
       }
       const ate = dataMais(hoje, 3);
       for (const semana of [...new Set([segundaDa(hoje), segundaDa(ate)])]) {
+        for (const x of revalidarAgenda({ raiz: RAIZ, saida, semana, desde: hoje, ate, registrar })) log.push(`${semana}/${x.id} ficou inválida e vai ser refeita: ${x.motivos.join(' | ')}`);
         const r = await produzirPendentes({ ...ctxBase, produto, semana, desde: hoje, ate });
         if (r.feitas.length) log.push(`${semana}: ${r.feitas.map((f) => `${f.id}=${f.status}`).join(', ')}`);
         if (r.parou) {

@@ -174,8 +174,9 @@ test('reel avulso sai no dia dele, com legenda e capa, e fica registrado', async
   const m = metaFalsa();
   const r = await rodar(raiz, '2026-11-10', { fetch: m.fetch });
   assert.deepEqual(r.erros, []);
-  // Na terça saem A e S1 (atrasadas até 2 dias) e o avulso; o REEL da semana só na quarta.
-  assert.deepEqual(r.publicadas.map((p) => p.peca), [`${SEMANA}/A`, `${SEMANA}/S1`, `${SEMANA}/AV1`]);
+  // Na terça saem S1 (story atrasado) e o avulso do dia; o carrossel A atrasado não, porque já tem feed no dia
+  // (no máximo 1 post de feed por dia). O REEL da semana só na quarta.
+  assert.deepEqual(r.publicadas.map((p) => p.peca), [`${SEMANA}/S1`, `${SEMANA}/AV1`]);
   const reel = m.posts().find((c) => c.corpo?.video_url?.endsWith('AV1.mp4'));
   assert.equal(reel.corpo.media_type, 'REELS');
   assert.equal(reel.corpo.thumb_offset, '2300');
@@ -205,7 +206,8 @@ test('escolhe só as peças do dia ou atrasadas até 2 dias, sem as já publicad
   assert.deepEqual(ids('2026-11-08'), []);
   assert.deepEqual(ids('2026-11-09'), ['S1']);
   assert.deepEqual(ids('2026-11-11'), ['S1', 'REEL', 'S2']);
-  assert.deepEqual(ids('2026-11-13'), ['S1(vencida)', 'REEL', 'S2', 'B', 'S3']);
+  assert.deepEqual(ids('2026-11-13'), ['S1(vencida)', 'S2', 'B', 'S3'], 'REEL atrasado não sai em dia que já tem o B');
+  assert.deepEqual(ids('2026-11-12'), ['S1(vencida)', 'REEL', 'S2'], 'dia sem feed próprio: o atrasado pode sair');
 });
 
 test('agenda quebrada de outra semana não impede a de hoje (revisão: falha 3)', async () => {
@@ -358,7 +360,7 @@ test('simular confere tudo, não chama a Meta e não grava nada', async () => {
   const f = metaFalsa();
   const r = await rodar(raiz, '2026-11-13', { simular: true, env: {}, fetch: f.fetch });
   assert.deepEqual(r.erros.map((e) => e.peca), [`${SEMANA}/A`, `${SEMANA}/S1`]); // vencidas: avisa, mas não grava
-  assert.equal(r.publicadas.length, 4);
+  assert.equal(r.publicadas.length, 3);
   assert.equal(f.meta().length, 0);
   assert.ok(!existsSync(path.join(dir, 'publicado.json')));
 });
@@ -488,11 +490,13 @@ test('agente: peça do dia só sai a partir do próprio horário', () => {
 test('agente: alt_text na capa, etiqueta de IA só quando ia: true, imagem única sem media_type', async () => {
   const { raiz } = montarAgente([
     carrosselAgente({ ia: true }),
-    { id: 'I1', dia: SEMANA, horario: '11:40', tipo: 'imagem', arquivos: [`${SEMANA}-I1-01.jpg`], legenda: LEGENDA_A, tema: 't', gancho: 'g', alt_text: 'Imagem' },
+    { id: 'I1', dia: '2026-11-10', horario: '11:40', tipo: 'imagem', arquivos: [`${SEMANA}-I1-01.jpg`], legenda: LEGENDA_A, tema: 't', gancho: 'g', alt_text: 'Imagem' },
   ]);
   const m = metaFalsa();
   const r = await rodar(raiz, SEMANA, { fetch: m.fetch, hora: '11:40' });
   assert.equal(r.erros.length, 0, JSON.stringify(r.erros));
+  const r2 = await rodar(raiz, '2026-11-10', { fetch: m.fetch, hora: '11:40' });
+  assert.equal(r2.erros.length, 0, JSON.stringify(r2.erros));
   const posts = m.posts().map((c) => c.corpo);
   assert.equal(posts.find((c) => c.is_carousel_item && c.image_url.endsWith('A-01.jpg')).alt_text, 'Capa: paciente faltou?');
   assert.equal(posts.find((c) => c.is_carousel_item && c.image_url.endsWith('A-02.jpg')).alt_text, undefined);
@@ -520,4 +524,22 @@ test('kill switch: pausado não chama a Meta; o ensaio do agente não muda o pub
   const ensaio = await rodar(raiz, SEMANA, { fetch: m.fetch, hora: '11:40', env: { META_TOKEN: TOKEN, IG_USER_ID: IG, AGENTE_MODO: 'ensaio' } });
   assert.equal(ensaio.publicadas.length, 1);
   assert.equal(ensaio.publicadas[0].simulado, undefined);
+});
+
+test('no máximo 1 post de feed por dia: já saiu um hoje, o atrasado espera; stories não contam', () => {
+  const { raiz } = montarAgente([
+    carrosselAgente({ id: 'A', dia: SEMANA }),
+    carrosselAgente({ id: 'B', dia: '2026-11-10', arquivos: Array.from({ length: 5 }, (_, i) => `${SEMANA}-B-0${i + 1}.jpg`) }),
+    { id: 'S1', dia: '2026-11-10', horario: '07:40', tipo: 'stories', arquivos: [`${SEMANA}-S1-01.jpg`] },
+  ]);
+  semanaAgente(raiz, SEMANA, [
+    carrosselAgente({ id: 'A', dia: SEMANA }),
+    carrosselAgente({ id: 'B', dia: '2026-11-10', arquivos: Array.from({ length: 5 }, (_, i) => `${SEMANA}-B-0${i + 1}.jpg`) }),
+    { id: 'S1', dia: '2026-11-10', horario: '07:40', tipo: 'stories', arquivos: [`${SEMANA}-S1-01.jpg`] },
+  ]);
+  const ids = (hora) => escolherPecas(raiz, '2026-11-10', null, hora).escolhidas.map((e) => e.peca.id);
+  assert.deepEqual(ids('07:40'), ['S1'], 'A (ontem) não sai: o B é o feed de hoje, mesmo antes do horário dele');
+  assert.deepEqual(ids('11:40'), ['B', 'S1']);
+  writeFileSync(path.join(raiz, 'semanas', SEMANA, 'publicado.json'), JSON.stringify({ B: { completo: true, em: '2026-11-10T14:40:00Z', ids: ['1'] } }));
+  assert.deepEqual(ids('20:40'), ['S1'], 'o feed do dia já saiu');
 });

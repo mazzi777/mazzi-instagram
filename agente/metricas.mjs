@@ -34,6 +34,11 @@ export function criarMeta({ token, igUserId, fetch = globalThis.fetch }) {
   const valor = (m) => m.total_value?.value ?? m.values?.[0]?.value ?? null;
   return {
     midia: (id) => get(id, { fields: 'id,media_type,media_product_type,timestamp,permalink' }),
+    /** Permissões concedidas à chave (para a conferência semanal). */
+    async permissoes() {
+      const { data = [] } = await get('me/permissions');
+      return data.filter((p) => p.status === 'granted').map((p) => p.permission);
+    },
     /** Métricas de um post; se o pedido junto falhar (métrica não suportada), pede uma a uma e pula a que falhar. */
     async insights(id, tipo) {
       const lista = METRICAS[tipo] ?? METRICAS.FEED;

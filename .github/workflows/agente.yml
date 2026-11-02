@@ -169,6 +169,22 @@ jobs:
           echo "::error::Não consegui guardar o que o agente produziu."
           exit 1
 
+      # O vigia (heartbeat) é um só e quem pinga é o agente; aqui o agente confere que o publicador também está rodando.
+      - name: Publicador vivo?
+        id: publicador
+        if: always() && steps.agente.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          ultima=$(gh run list -R "$GITHUB_REPOSITORY" -w publicar.yml -L 1 --json createdAt -q '.[0].createdAt')
+          if [ -z "$ultima" ]; then echo "Publicador nunca rodou?"; exit 0; fi
+          horas=$(( ( $(date -u +%s) - $(date -u -d "$ultima" +%s) ) / 3600 ))
+          echo "Última rodada do publicador: $ultima (há ${horas} h)"
+          if [ "$horas" -gt 30 ]; then
+            printf '### publicador parado\n\nO workflow "Publicar no Instagram" não roda há %s horas (última: %s). Confira em Actions se ele foi desativado.\n' "$horas" "$ultima" > agente/erros.md
+            exit 1
+          fi
+
       - name: Vigia (heartbeat)
         if: always() && steps.agente.outcome == 'success' && steps.guardar.outcome == 'success'
         env:
@@ -191,3 +207,13 @@ jobs:
           Rodada: $RUN_URL"
           num=$(gh issue list --state open --author "app/github-actions" --search "\"$titulo\" in:title" --json number -q '.[0].number')
           if [ -n "$num" ]; then gh issue comment "$num" --body "$corpo"; else gh issue create --title "$titulo" --body "$corpo"; fi
+
+      # SPEC 9: quando a rodada passa limpa, o aviso aberto do agente é fechado com "resolvido" (o GitHub manda o e-mail).
+      - name: Fechar aviso resolvido
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          num=$(gh issue list --state open --author "app/github-actions" --search "\"Agente do Instagram: problema\" in:title" --json number -q '.[0].number')
+          if [ -n "$num" ]; then gh issue close "$num" --comment "Resolvido: a rodada seguinte passou sem erro ($RUN_URL)."; fi
