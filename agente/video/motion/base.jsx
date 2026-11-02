@@ -105,6 +105,26 @@ export function Icone({ nome, tamanho = 64, cor = 'currentColor', traco = 2.2 })
 }
 export { ICONES } from './icones.mjs';
 
+/**
+ * Quantas linhas um texto ocupa (estimativa por quebra de palavra, conservadora: ~0,6 em por letra na Inter
+ * pesada). Serve para o conteúdo da cena não ficar por cima de um título que quebrou em mais linhas.
+ */
+export function linhasEstimadas(texto, tamanho, largura, porLetra = 0.6) {
+  const cabe = largura / (tamanho * porLetra);
+  let linhas = 1;
+  let atual = 0;
+  for (const p of texto.split(/\s+/).filter(Boolean)) {
+    const n = p.length + (atual ? 1 : 0);
+    if (atual && atual + n > cabe) { linhas++; atual = p.length; } else atual += n;
+  }
+  return linhas;
+}
+
+/** O maior tamanho da lista em que o texto cabe em `maxLinhas`. */
+export function tamanhoQueCabe(texto, largura, tamanhos, maxLinhas = 2) {
+  return tamanhos.find((t) => linhasEstimadas(texto, t, largura) <= maxLinhas) ?? tamanhos.at(-1);
+}
+
 /** Texto grande com a palavra de destaque colorida (as palavras entram uma a uma, no tempo das batidas). */
 export function TituloCinetico({ texto, destaque, tamanho, inicio = 0, passo = 4, estilo, sublinhar }) {
   const f = useCurrentFrame();

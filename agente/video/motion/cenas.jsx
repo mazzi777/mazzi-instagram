@@ -4,7 +4,7 @@
 import React from 'react';
 import { AbsoluteFill, interpolate, useCurrentFrame, useVideoConfig, staticFile } from 'remotion';
 import { loadFont } from '@remotion/fonts';
-import { COR, ATOS, tw, mola, SAI, ENTRA_SAI, useCena, naBatida, Fundo, Camera, Rabisco, Icone, TituloCinetico, Rotulo, MarcaMazzi } from './base.jsx';
+import { COR, ATOS, tw, mola, SAI, ENTRA_SAI, useCena, naBatida, Fundo, Camera, Rabisco, Icone, TituloCinetico, Rotulo, MarcaMazzi, linhasEstimadas, tamanhoQueCabe } from './base.jsx';
 
 loadFont({ family: 'Caveat', url: staticFile('caveat-600.woff2'), weight: '600' });
 
@@ -21,13 +21,17 @@ function Exemplo({ titulo, cor = '#8b8f97' }) {
   return <div style={{ fontSize: 24, fontWeight: 800, letterSpacing: '0.16em', color: cor }}>EXEMPLO{titulo ? ` · ${titulo.toUpperCase()}` : ''}</div>;
 }
 
-/** Título da cena no alto (menor que o do gancho). */
+/**
+ * Título da cena no alto (menor que o do gancho). Sempre em até 2 linhas (diminui se precisar): o conteúdo das
+ * cenas começa em y ≥ 520 e um título de 3 linhas ficava por baixo dele.
+ */
 function Topo({ tela, destaque, ramo, tamanho = 84 }) {
+  const tam = tamanhoQueCabe(tela, LARG, [tamanho, tamanho - 8, tamanho - 16, 60, 54, 48]);
   return (
     <>
       {ramo ? <Rotulo texto={ramo} /> : null}
       <div style={{ position: 'absolute', left: ESQ, top: 310, width: LARG }}>
-        <TituloCinetico texto={tela} destaque={destaque} tamanho={tamanho} passo={3} sublinhar="linha" />
+        <TituloCinetico texto={tela} destaque={destaque} tamanho={tam} passo={3} sublinhar="linha" />
       </div>
     </>
   );
@@ -65,18 +69,21 @@ export function Digitando({ texto, chip, ramo }) {
   const fimDigitacao = 4 + Math.ceil(texto.length * 1.6);
   const pop = chip ? mola(f, fps, fimDigitacao + 2) : 0;
   const clique = chip ? tw(f, fimDigitacao + 14, fimDigitacao + 18, 1, 0.9) * tw(f, fimDigitacao + 18, fimDigitacao + 22, 1, 1.11) : 1;
+  // O chip fica embaixo da frase PRONTA (que pode quebrar em 2 linhas), não numa altura fixa.
+  const tam = tamanhoQueCabe(texto, LARG, [92, 80, 68, 60]);
+  const topoChip = 520 + linhasEstimadas(texto, tam, LARG) * tam * 1.05 + 56;
   const mx = tw(f, fimDigitacao + 2, fimDigitacao + 14, 900, 640);
-  const my = tw(f, fimDigitacao + 2, fimDigitacao + 14, 1100, 760);
+  const my = tw(f, fimDigitacao + 2, fimDigitacao + 14, topoChip + 400, topoChip + 60);
   return (
     <Camera>
       <Fundo />
       {ramo ? <Rotulo texto={ramo} /> : null}
-      <div style={{ position: 'absolute', left: ESQ, top: 520, width: LARG, fontSize: 92, fontWeight: 800, letterSpacing: '-0.04em', lineHeight: 1.05, color: ato.texto }}>
+      <div style={{ position: 'absolute', left: ESQ, top: 520, width: LARG, fontSize: tam, fontWeight: 800, letterSpacing: '-0.04em', lineHeight: 1.05, color: ato.texto }}>
         {texto.slice(0, n)}
-        <span style={{ display: 'inline-block', width: 8, height: 92, marginLeft: 6, verticalAlign: 'text-bottom', background: ato.destaque, opacity: Math.floor(f / 8) % 2 ? 0.2 : 1 }} />
+        <span style={{ display: 'inline-block', width: 8, height: tam, marginLeft: 6, verticalAlign: 'text-bottom', background: ato.destaque, opacity: Math.floor(f / 8) % 2 ? 0.2 : 1 }} />
       </div>
       {chip ? (
-        <div style={{ position: 'absolute', left: ESQ, top: 700, display: 'flex', alignItems: 'center', gap: 18, padding: '18px 30px', borderRadius: 26, background: ato.destaque, color: ato.fundo, fontSize: 56, fontWeight: 900, transform: `scale(${pop * clique}) rotate(${(1 - pop) * -8}deg)`, transformOrigin: 'left center', boxShadow: '0 24px 60px rgba(0,0,0,0.35)' }}>
+        <div style={{ position: 'absolute', left: ESQ, top: topoChip, display: 'flex', alignItems: 'center', gap: 18, padding: '18px 30px', borderRadius: 26, background: ato.destaque, color: ato.fundo, fontSize: 56, fontWeight: 900, transform: `scale(${pop * clique}) rotate(${(1 - pop) * -8}deg)`, transformOrigin: 'left center', boxShadow: '0 24px 60px rgba(0,0,0,0.35)' }}>
           <Icone nome={chip.icone} tamanho={60} cor={ato.fundo} traco={2.6} />
           {chip.rotulo}
         </div>
