@@ -52,27 +52,6 @@
       "tentativas": 2
     },
     {
-      "id": "B",
-      "dia": "2026-11-11",
-      "horario": "11:40",
-      "tipo": "reel",
-      "arquivos": [
-        "2026-11-09-B.mp4"
-      ],
-      "tema": "restaurante · Balança ligada ao caixa: nota cobrada não passa de novo",
-      "gancho": "A mesma nota passou duas vezes no caixa?",
-      "ramo": "restaurante",
-      "objetivo": "conversa",
-      "ia": true,
-      "origem": "agente",
-      "fatos": [
-        "rest.balanca"
-      ],
-      "tentativas": 3,
-      "legenda": "A mesma nota passou duas vezes no caixa?\n\nNa Mazzi, o prato vai pra balança, que desconta o peso do prato e imprime a nota com código de barras. O caixa lê o código e o valor entra sozinho. Se a nota já foi cobrada, o sistema recusa.\n\nTem também tela pro cliente e preço do quilo por dia da semana.\n\nQuer ver como funciona? Chama no WhatsApp (link na bio).\n\n#selfservice #restaurante #gestao",
-      "capa_ms": 1000
-    },
-    {
       "id": "S2",
       "dia": "2026-11-12",
       "horario": "20:40",

@@ -159,8 +159,9 @@ export function Legenda({ palavras }) {
       <span style={{ background: 'rgba(17,19,22,0.86)', boxDecorationBreak: 'clone', WebkitBoxDecorationBreak: 'clone', padding: '6px 16px', borderRadius: 14 }}>
         {trecho.map((p) => {
           const ativo = p.i === atual;
-          const k = ativo ? tw(f, Math.round(p.inicio * fps), Math.round(p.inicio * fps) + 4, 1.12, 1) : 1;
-          return <span key={p.i} style={{ display: 'inline-block', marginRight: 14, transform: `scale(${k})`, color: ativo ? COR.coral : COR.papel, opacity: p.i <= atual ? 1 : 0.72 }}>{p.texto}</span>;
+          // A palavra da vez sobe um pouco (não cresce de lado: crescer cobria o espaço e grudava as palavras).
+          const y = ativo ? tw(f, Math.round(p.inicio * fps), Math.round(p.inicio * fps) + 4, -10, 0) : 0;
+          return <span key={p.i} style={{ display: 'inline-block', marginRight: 16, transform: `translateY(${y}px)`, color: ativo ? COR.coral : COR.papel, opacity: p.i <= atual ? 1 : 0.72 }}>{p.texto}</span>;
         })}
       </span>
     </div>

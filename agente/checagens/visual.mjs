@@ -17,7 +17,8 @@ As imagens vêm na ordem (1, 2, 3...). Aponte só problemas reais, um por linha,
 7. qualquer coisa que pareça print de sistema real, dado de pessoa real, nome de cliente ou marca de outra empresa;
 8. imagem vazia, quebrada ou com caractere estranho (quadrado, interrogação no lugar de acento);
 9. pessoa com o rosto identificável em destaque no vídeo de fundo (pode mão, objeto, lugar, pessoa de costas ou desfocada);
-10. legenda ou texto difícil de ler sobre o vídeo de fundo.
+10. legenda ou texto difícil de ler sobre o vídeo de fundo;
+11. palavras grudadas, sem o espaço entre elas (ex.: "Tácobrada?O caixa", "entrasozinho").
 Se estiver tudo certo, devolva a lista vazia.
 
 Se forem quadros de um REEL (vídeo): a legenda de baixo acende palavra por palavra no tempo da fala. Num quadro parado ela
