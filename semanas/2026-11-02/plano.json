@@ -1,0 +1,123 @@
+{
+  "semana": "2026-11-02",
+  "criado_em": "2026-11-02",
+  "tentativas": 1,
+  "pecas": [
+    {
+      "dia": "2026-11-03",
+      "horario": "18:40",
+      "tipo": "carrossel",
+      "ramo": "clinica",
+      "objetivo": "conversa",
+      "conteudo": "ensina",
+      "tema": "Lembrete em 1 clique com link de confirmar",
+      "angulo": "A paciente confirmou 'depois eu vejo' e o horário ficou vazio. Mostra o lembrete pronto no WhatsApp, com nome, dia e hora, e o link pra confirmar ou pedir remarcação. Termina chamando no WhatsApp.",
+      "fatos": [
+        "clin.lembrete-1-clique",
+        "clin.agenda"
+      ],
+      "exploracao": false,
+      "id": "C",
+      "situacao": "aprovada"
+    },
+    {
+      "dia": "2026-11-03",
+      "horario": "20:40",
+      "tipo": "stories",
+      "ramo": "clinica",
+      "objetivo": "conversa",
+      "conteudo": "dor",
+      "tema": "Retorno que ninguém lembrou de chamar",
+      "angulo": "Quem deveria voltar neste mês e ninguém chamou. Quadros curtos sobre a lista de retornos, pedido de resposta no story e chamada pro WhatsApp.",
+      "fatos": [
+        "clin.retornos"
+      ],
+      "exploracao": false,
+      "id": "S2",
+      "situacao": "aprovada"
+    },
+    {
+      "dia": "2026-11-04",
+      "horario": "11:40",
+      "tipo": "reel",
+      "ramo": "restaurante",
+      "objetivo": "conversa",
+      "conteudo": "dor",
+      "tema": "Sangria sem anotar no caixa",
+      "angulo": "Dinheiro saiu da gaveta pra pagar o motoboy e ninguém anotou. No reel narrado, a sangria registrada no caixa e o fechamento mostrando a diferença. Cartão EXEMPLO, sem valor real.",
+      "fatos": [
+        "rest.caixa"
+      ],
+      "exploracao": false,
+      "id": "D",
+      "situacao": "pulada"
+    },
+    {
+      "dia": "2026-11-05",
+      "horario": "07:40",
+      "tipo": "stories",
+      "ramo": "restaurante",
+      "objetivo": "alcance",
+      "conteudo": "opiniao",
+      "tema": "Caixa conferido ou caixa de caderno",
+      "angulo": "Opinião: caixa fechado no caderno sempre bate porque ninguém confere. Pede 'me responde aqui nesse story': como você confere o caixa hoje?",
+      "fatos": [
+        "rest.caixa"
+      ],
+      "exploracao": true,
+      "id": "S3",
+      "situacao": "aprovada"
+    },
+    {
+      "dia": "2026-11-06",
+      "horario": "20:40",
+      "tipo": "imagem",
+      "ramo": "clinica",
+      "objetivo": "alcance",
+      "conteudo": "opiniao",
+      "tema": "Foto de antes e depois fora do WhatsApp pessoal",
+      "angulo": "Opinião: foto de paciente não mora no celular da equipe nem na conversa solta. Cartão EXEMPLO com antes e depois lado a lado na ficha, sem prometer resultado. Pede salvar e compartilhar.",
+      "fatos": [
+        "clin.antes-depois",
+        "clin.fichas"
+      ],
+      "exploracao": true,
+      "id": "E",
+      "situacao": "aprovada"
+    },
+    {
+      "dia": "2026-11-07",
+      "horario": "11:40",
+      "tipo": "carrossel",
+      "ramo": "restaurante",
+      "objetivo": "conversa",
+      "conteudo": "ensina",
+      "tema": "Prato cobrado duas vezes na balança",
+      "angulo": "Cliente pesa o prato, a nota se perde e vira confusão no caixa. Passo a passo: balança desconta o prato, nota com código de barras, caixa lê e o valor entra; nota já cobrada é recusada.",
+      "fatos": [
+        "rest.balanca",
+        "rest.caixa"
+      ],
+      "exploracao": false,
+      "id": "F",
+      "situacao": "reserva"
+    },
+    {
+      "dia": "2026-11-08",
+      "horario": "20:40",
+      "tipo": "stories",
+      "ramo": "clinica",
+      "objetivo": "conversa",
+      "conteudo": "convite",
+      "tema": "Quem na equipe vê o que não devia",
+      "angulo": "Recepção vendo comissão e relatório inteiro? Cada cargo vê só o que a permissão deixa e as ações importantes ficam registradas. Fecha com 'chama no WhatsApp, link na bio'.",
+      "fatos": [
+        "comum.equipe-cargos"
+      ],
+      "exploracao": false,
+      "id": "S4",
+      "situacao": "aprovada"
+    }
+  ],
+  "porque": "Quatro posts de feed (3 conversa, 1 alcance, cerca de 75/25): dois carrosséis (clínica na terça, restaurante no sábado), um reel de restaurante na quarta e uma imagem de clínica na sexta. Os dois ramos aparecem e nenhum formato se repete em dias seguidos. Stories em 3 dias (terça, quinta, domingo). Como há pouco dado de métrica, variei horários e formatos. As explorações são o story das 07:40 e a imagem às 20:40. Evitei todos os ganchos e ângulos já usados ou agendados: orçamento sem resposta, lucro do dia 30, delivery sem papel, anticoagulante, preço do quilo, pacotes, lote vencendo e bebida. Usei só funções da base e nada de preço, número ou NFC-e."
+}

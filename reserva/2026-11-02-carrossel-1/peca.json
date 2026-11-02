@@ -1,0 +1,30 @@
+{
+  "rid": "2026-11-02-carrossel-1",
+  "criado_em": "2026-11-02",
+  "usada_em": [],
+  "tipo": "carrossel",
+  "arquivos": [
+    "2026-11-02-R1-01.jpg",
+    "2026-11-02-R1-02.jpg",
+    "2026-11-02-R1-03.jpg",
+    "2026-11-02-R1-04.jpg",
+    "2026-11-02-R1-05.jpg",
+    "2026-11-02-R1-06.jpg",
+    "2026-11-02-R1-07.jpg",
+    "2026-11-02-R1-08.jpg"
+  ],
+  "tema": "clinica · a clínica num lugar só",
+  "gancho": "Paciente chegou e a ficha sumiu?",
+  "ramo": "clinica",
+  "objetivo": "conversa",
+  "ia": false,
+  "fatos": [
+    "clin.agenda",
+    "clin.fichas",
+    "clin.anamnese-termo",
+    "clin.orcamento",
+    "clin.lembrete-1-clique"
+  ],
+  "legenda": "Paciente chegou e a ficha sumiu?\n\nQuando agenda, ficha e termo ficam cada um num canto, você perde tempo procurando e a paciente espera.\n\nA Mazzi tem agenda por profissional que não marca duas pessoas no mesmo horário, ficha com histórico, fotos e lote do produto, anamnese e termo assinados com o dedo na tela, orçamento enviado pelo WhatsApp e lembrete de consulta pronto pra enviar com um toque.\n\nChama no WhatsApp (link na bio).\n\n#gestaodeclinica #esteticaprofissional #harmonizacaofacial",
+  "alt_text": "Capa em fundo grafite com o texto grande \"Paciente chegou e a ficha sumiu?\", com \"ficha sumiu\" em coral, e a linha \"Da agenda ao lembrete, passo a passo\". Logo @mazzisystems."
+}

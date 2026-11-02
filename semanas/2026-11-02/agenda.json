@@ -2,9 +2,206 @@
   "semana": "2026-11-02",
   "observacao": "Semana publicada antecipadamente pelo Windsor.ai em 30/10/2026, antes do publicador próprio. S2 e S3 não foram produzidos. Legendas não guardadas aqui.",
   "pecas": [
-    { "id": "A", "dia": "2026-11-02", "tipo": "carrossel", "arquivos": ["2026-11-02-A-01.jpg", "2026-11-02-A-02.jpg", "2026-11-02-A-03.jpg", "2026-11-02-A-04.jpg", "2026-11-02-A-05.jpg", "2026-11-02-A-06.jpg", "2026-11-02-A-07.jpg", "2026-11-02-A-08.jpg"], "legenda": "" },
-    { "id": "S1", "dia": "2026-11-02", "tipo": "stories", "arquivos": ["2026-11-02-S1-01.jpg", "2026-11-02-S1-02.jpg", "2026-11-02-S1-03.jpg", "2026-11-02-S1-04.jpg", "2026-11-02-S1-05.jpg"] },
-    { "id": "REEL", "dia": "2026-11-04", "tipo": "reel", "arquivos": ["2026-11-02-REEL.mp4"], "legenda": "", "capa_ms": 2500 },
-    { "id": "B", "dia": "2026-11-06", "tipo": "carrossel", "arquivos": ["2026-11-02-B-01.jpg", "2026-11-02-B-02.jpg", "2026-11-02-B-03.jpg", "2026-11-02-B-04.jpg", "2026-11-02-B-05.jpg", "2026-11-02-B-06.jpg", "2026-11-02-B-07.jpg", "2026-11-02-B-08.jpg"], "legenda": "" }
-  ]
+    {
+      "id": "A",
+      "dia": "2026-11-02",
+      "tipo": "carrossel",
+      "arquivos": [
+        "2026-11-02-A-01.jpg",
+        "2026-11-02-A-02.jpg",
+        "2026-11-02-A-03.jpg",
+        "2026-11-02-A-04.jpg",
+        "2026-11-02-A-05.jpg",
+        "2026-11-02-A-06.jpg",
+        "2026-11-02-A-07.jpg",
+        "2026-11-02-A-08.jpg"
+      ],
+      "legenda": ""
+    },
+    {
+      "id": "S1",
+      "dia": "2026-11-02",
+      "tipo": "stories",
+      "arquivos": [
+        "2026-11-02-S1-01.jpg",
+        "2026-11-02-S1-02.jpg",
+        "2026-11-02-S1-03.jpg",
+        "2026-11-02-S1-04.jpg",
+        "2026-11-02-S1-05.jpg"
+      ]
+    },
+    {
+      "id": "C",
+      "dia": "2026-11-03",
+      "horario": "18:40",
+      "tipo": "carrossel",
+      "arquivos": [
+        "2026-11-02-C-01.jpg",
+        "2026-11-02-C-02.jpg",
+        "2026-11-02-C-03.jpg",
+        "2026-11-02-C-04.jpg",
+        "2026-11-02-C-05.jpg",
+        "2026-11-02-C-06.jpg",
+        "2026-11-02-C-07.jpg"
+      ],
+      "tema": "clinica · Lembrete em 1 clique com link de confirmar",
+      "gancho": "Ela disse \"depois eu vejo\" e o horário ficou vazio?",
+      "ramo": "clinica",
+      "objetivo": "conversa",
+      "ia": false,
+      "origem": "agente",
+      "fatos": [
+        "clin.lembrete-1-clique",
+        "clin.agenda"
+      ],
+      "tentativas": 2,
+      "legenda": "Ela disse \"depois eu vejo\" e o horário ficou vazio?\n\nMensagem solta no WhatsApp se perde fácil. A paciente lê, deixa pra depois e some.\n\nNa Mazzi, o lembrete da consulta vem pronto pra enviar com um toque: nome, dia e horário já na mensagem, e um link pra ela confirmar ou pedir pra remarcar.\n\nChama no WhatsApp (link na bio).\n\n#clinicaestetica #gestaodeclinica #harmonizacaofacial",
+      "alt_text": "Capa de carrossel com fundo grafite e texto claro: \"Ela disse depois eu vejo e o horário ficou vazio?\", com \"depois eu vejo\" destacado em coral e o @mazzisystems."
+    },
+    {
+      "id": "S2",
+      "dia": "2026-11-03",
+      "horario": "20:40",
+      "tipo": "stories",
+      "arquivos": [
+        "2026-11-02-S2-01.jpg",
+        "2026-11-02-S2-02.jpg",
+        "2026-11-02-S2-03.jpg",
+        "2026-11-02-S2-04.jpg",
+        "2026-11-02-S2-05.jpg"
+      ],
+      "tema": "clinica · Retorno que ninguém lembrou de chamar",
+      "gancho": "Quem devia voltar este mês e ninguém chamou?",
+      "ramo": "clinica",
+      "objetivo": "conversa",
+      "ia": false,
+      "origem": "agente",
+      "fatos": [
+        "clin.retornos"
+      ],
+      "tentativas": 1
+    },
+    {
+      "id": "REEL",
+      "dia": "2026-11-04",
+      "tipo": "reel",
+      "arquivos": [
+        "2026-11-02-REEL.mp4"
+      ],
+      "legenda": "",
+      "capa_ms": 2500
+    },
+    {
+      "id": "S3",
+      "dia": "2026-11-05",
+      "horario": "07:40",
+      "tipo": "stories",
+      "arquivos": [
+        "2026-11-02-S3-01.jpg",
+        "2026-11-02-S3-02.jpg",
+        "2026-11-02-S3-03.jpg",
+        "2026-11-02-S3-04.jpg",
+        "2026-11-02-S3-05.jpg"
+      ],
+      "tema": "restaurante · Caixa conferido ou caixa de caderno",
+      "gancho": "Caixa que sempre bate: alguém conferiu de verdade?",
+      "ramo": "restaurante",
+      "objetivo": "alcance",
+      "ia": false,
+      "origem": "agente",
+      "fatos": [
+        "rest.caixa"
+      ],
+      "tentativas": 1
+    },
+    {
+      "id": "B",
+      "dia": "2026-11-06",
+      "tipo": "carrossel",
+      "arquivos": [
+        "2026-11-02-B-01.jpg",
+        "2026-11-02-B-02.jpg",
+        "2026-11-02-B-03.jpg",
+        "2026-11-02-B-04.jpg",
+        "2026-11-02-B-05.jpg",
+        "2026-11-02-B-06.jpg",
+        "2026-11-02-B-07.jpg",
+        "2026-11-02-B-08.jpg"
+      ],
+      "legenda": ""
+    },
+    {
+      "id": "E",
+      "dia": "2026-11-06",
+      "horario": "20:40",
+      "tipo": "imagem",
+      "arquivos": [
+        "2026-11-02-E-01.jpg"
+      ],
+      "tema": "clinica · Foto de antes e depois fora do WhatsApp pessoal",
+      "gancho": "Foto de paciente no seu WhatsApp pessoal?",
+      "ramo": "clinica",
+      "objetivo": "alcance",
+      "ia": false,
+      "origem": "agente",
+      "fatos": [
+        "clin.antes-depois",
+        "clin.fichas"
+      ],
+      "tentativas": 2,
+      "legenda": "Foto de paciente no seu WhatsApp pessoal? Esse não é o lugar dela.\n\nFoto de antes e depois no celular da equipe fica misturada com conversa, fotos de família e grupo de amigos. Troca de celular, some. Alguém sem querer manda pra pessoa errada.\n\nA foto do paciente é parte da ficha dele. Na Mazzi, o antes e depois fica guardado na ficha, lado a lado ou com controle deslizante, junto com o histórico de atendimento e o lote do produto usado.\n\nConhece uma clínica que ainda guarda foto na galeria? Manda este post pra ela.\n\n#gestaodeclinica #esteticaprofissional #harmonizacaofacial",
+      "alt_text": "Imagem de fundo grafite com o título \"Foto de paciente não mora no seu celular\" e um cartão marcado EXEMPLO mostrando a ficha do paciente com antes e depois lado a lado."
+    },
+    {
+      "tipo": "carrossel",
+      "arquivos": [
+        "2026-11-02-F-01.jpg",
+        "2026-11-02-F-02.jpg",
+        "2026-11-02-F-03.jpg",
+        "2026-11-02-F-04.jpg",
+        "2026-11-02-F-05.jpg",
+        "2026-11-02-F-06.jpg",
+        "2026-11-02-F-07.jpg"
+      ],
+      "tema": "comum · como entrar",
+      "gancho": "Não achou o cadastro da Mazzi? Chama no WhatsApp",
+      "ramo": "comum",
+      "objetivo": "conversa",
+      "ia": false,
+      "fatos": [
+        "comum.celular"
+      ],
+      "legenda": "Não achou o cadastro da Mazzi? Ele não existe aberto.\n\nFunciona assim: você chama no WhatsApp, a gente entende o seu negócio (clínica ou restaurante) e manda o convite.\n\nDepois é só usar no computador ou no celular, com internet.\n\nChama no WhatsApp (link na bio).\n\n#mazzisystems #gestao #pequenosnegocios",
+      "alt_text": "Capa em fundo grafite com o texto \"Não achou o cadastro da Mazzi? Chama no WhatsApp\", com \"Não achou o cadastro\" em coral, e o @mazzisystems.",
+      "id": "F",
+      "dia": "2026-11-07",
+      "horario": "11:40",
+      "origem": "reserva"
+    },
+    {
+      "id": "S4",
+      "dia": "2026-11-08",
+      "horario": "20:40",
+      "tipo": "stories",
+      "arquivos": [
+        "2026-11-02-S4-01.jpg",
+        "2026-11-02-S4-02.jpg",
+        "2026-11-02-S4-03.jpg",
+        "2026-11-02-S4-04.jpg"
+      ],
+      "tema": "clinica · Quem na equipe vê o que não devia",
+      "gancho": "A recepção vê a comissão de todo mundo?",
+      "ramo": "clinica",
+      "objetivo": "conversa",
+      "ia": false,
+      "origem": "agente",
+      "fatos": [
+        "comum.equipe-cargos"
+      ],
+      "tentativas": 1
+    }
+  ],
+  "produtor": "agente",
+  "assumida_em": "2026-11-02",
+  "produtor_anterior": "rotina"
 }
