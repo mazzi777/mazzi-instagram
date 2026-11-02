@@ -2,12 +2,13 @@ name: Agente do Instagram
 
 # O "funcionário" do @mazzisystems (SPEC.md). Produz; quem publica é o workflow "Publicar no Instagram".
 #   sábado 02:17 (Brasília)  semanal: atualiza a base do produto, planeja e produz a semana seguinte
-#   todo dia 03:17           diário: produz/regera o que falta para os próximos 3 dias e confere os tokens
+#   todo dia 03:17           diário: métricas, produz/regera o que falta para os próximos 3 dias e confere os tokens
+#   todo dia 20:10           stories: só as métricas dos stories do dia (a Meta apaga em 24 h); não usa o Claude
 #
 # Variáveis do repositório (Settings › Variables), o kill switch:
 #   AGENTE_PAUSADO = true      pausa tudo (o publicador também respeita)
 #   AGENTE_MODO    = ensaio    produz em ensaio/ (o publicador não lê) | so_reserva | vazio = real
-# Segredos: CLAUDE_CODE_OAUTH_TOKEN (assinatura), AJ_CLINIC_DEPLOY_KEY (leitura do aj-clinic),
+# Segredos: CLAUDE_CODE_OAUTH_TOKEN (assinatura), META_TOKEN e IG_USER_ID (só leitura das métricas), AJ_CLINIC_DEPLOY_KEY (leitura do aj-clinic),
 #           TRILHAS_DEPLOY_KEY (leitura do repositório privado mazzi-trilhas: músicas do Pixabay, que não podem ficar públicas),
 #           HEARTBEAT_URL (opcional: vigia que avisa se o agente parar de rodar).
 
@@ -15,12 +16,13 @@ on:
   schedule:
     - cron: "17 5 * * 6"   # sábado 02:17 em Brasília
     - cron: "17 6 * * *"   # todo dia 03:17 em Brasília
+    - cron: "10 23 * * *"  # todo dia 20:10 em Brasília (métricas dos stories)
   workflow_dispatch:
     inputs:
       comando:
-        description: "semanal ou diario"
+        description: "semanal, diario ou stories"
         type: choice
-        options: [semanal, diario]
+        options: [semanal, diario, stories]
         default: diario
       hoje:
         description: "Fingir que hoje é (AAAA-MM-DD), só para teste"
@@ -63,7 +65,11 @@ jobs:
         run: |
           c="${{ inputs.comando }}"
           if [ -z "$c" ]; then
-            if [ "${{ github.event.schedule }}" = "17 5 * * 6" ]; then c=semanal; else c=diario; fi
+            case "${{ github.event.schedule }}" in
+              "17 5 * * 6") c=semanal ;;
+              "10 23 * * *") c=stories ;;
+              *) c=diario ;;
+            esac
           fi
           echo "comando=$c" >> "$GITHUB_OUTPUT"
           echo "Rodada: $c (modo: ${AGENTE_MODO:-real})"
@@ -76,22 +82,27 @@ jobs:
       - run: npm ci
 
       - name: Chromium (captura das imagens)
+        if: steps.qual.outputs.comando != 'stories'
         run: npx playwright install --with-deps chromium
 
       # Reel narrado: ffmpeg (acabamento e medidas), Whisper (legenda sincronizada) e o navegador do Remotion.
       - name: ffmpeg
+        if: steps.qual.outputs.comando != 'stories'
         run: command -v ffmpeg || (sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg)
 
       - uses: actions/setup-python@v5
+        if: steps.qual.outputs.comando != 'stories'
         with:
           python-version: "3.12"
           cache: pip
           cache-dependency-path: agente/ferramentas/requisitos.txt
 
       - name: Whisper (faster-whisper)
+        if: steps.qual.outputs.comando != 'stories'
         run: pip install -q -r agente/ferramentas/requisitos.txt
 
       - name: Cache do modelo do Whisper e do navegador do Remotion
+        if: steps.qual.outputs.comando != 'stories'
         uses: actions/cache@v4
         with:
           path: |
@@ -112,6 +123,7 @@ jobs:
           echo "AJ_CLINIC_DIR=$RUNNER_TEMP/aj-clinic" >> "$GITHUB_ENV"
 
       - name: Clonar as trilhas (repositório privado, só leitura)
+        if: steps.qual.outputs.comando != 'stories'
         env:
           CHAVE: ${{ secrets.TRILHAS_DEPLOY_KEY }}
         run: |
@@ -126,6 +138,8 @@ jobs:
         id: agente
         env:
           CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          META_TOKEN: ${{ secrets.META_TOKEN }}
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
           AGENTE_HOJE: ${{ inputs.hoje }}
         run: node agente/agente.mjs ${{ steps.qual.outputs.comando }}
 
@@ -136,7 +150,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          for p in semanas registro uso ensaio agente/base/produto.json; do if [ -e "$p" ]; then git add -A -- "$p"; fi; done
+          for p in semanas registro uso ensaio metricas estrategia reserva relatorios agente/base/produto.json; do if [ -e "$p" ]; then git add -A -- "$p"; fi; done
           if git diff --cached --quiet; then echo "Nada novo para guardar."; exit 0; fi
           git commit -q -m "Agente: rodada ${{ steps.qual.outputs.comando }} de $(TZ=America/Sao_Paulo date +%d/%m/%Y)"
           for i in 1 2 3 4 5; do

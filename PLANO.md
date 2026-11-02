@@ -95,12 +95,13 @@ efeitos), efeitos CC0 da Kenney no repositório, 12 trilhas do Pixabay sem Conte
 `mazzi777/mazzi-trilhas` (deploy key só de leitura `TRILHAS_DEPLOY_KEY`). Pexels saiu. Reel do ensaio de 23/11
 aprovado no GitHub (20,6 s, 5 MB). Render de um reel: ~5 a 6 min.
 
-## Fase 1d: métricas, estratégia, reserva e relatório
+## Fase 1d: métricas, estratégia, reserva e relatório ✅ código 01/11/2026 (falta a rodada real no GitHub)
 
-1. `agente/metricas.mjs`: coletas D+1/D+3/D+7/D+28, stories às 20:10, conta diária. Trata o atraso de 48 h, o erro 10 (<5) e o vazio. Testes com respostas gravadas da Meta.
-2. `agente/estrategia.mjs`: nota normalizada (70% conversa, 30% alcance), pesos com ±20% por semana, ≥ 4 amostras, 20% de exploração, piso de 10%.
-3. `agente/reserva.mjs`: mantém ≥ 6 peças, revalida antes de usar, 90 dias entre usos, alerta com < 3.
-4. `agente/relatorio.mjs` → `relatorios/AAAA-Www.md`.
+1. `agente/metricas.mjs`: coletas D+1/D+3/D+7/D+28 (atrasou até 2 dias: só a idade mais madura), stories às 20:10 (comando `stories`, sem Claude), conta diária com `profile_links_taps` por botão. Erro 10 de story com poucos espectadores vira "<5"; erro de chave ou de permissão para a rodada e vira issue.
+2. `agente/estrategia.mjs`: nota normalizada (70% conversa, 30% alcance) pela mediana das últimas 8 do formato; pesos andam na direção da nota relativa das últimas 8 semanas, ±20% por semana, ≥ 4 amostras, piso de 0,1, uma vez por semana. Com menos de 8 posts medidos o planejador recebe "ainda pouco dado".
+3. `agente/reserva.mjs`: banco real em `reserva/` (2 carrosséis/imagens, 2 reels, 2 stories). Antes de usar: base atual, palavras proibidas, valor em reais, arquivos e o validador do publicador; 90 dias entre usos; no ensaio não gasta a vez. O semanal repõe até 2 por semana pelo mesmo laço de qualidade. Sem Claude (limite do plano ou `AGENTE_MODO=so_reserva`), o que é do dia sai do banco; issue só se ficar sem post, se 2 horários seguidos ficarem vazios ou se o banco (depois de cheio) cair abaixo de 3.
+4. `agente/relatorio.mjs` → `relatorios/AAAA-Www.md` (7 dias até ontem), gerado no semanal.
+5. Testes: `agente/testes/metricas.test.mjs` (21, Meta falsa). Suíte toda: 115.
 
 ## Corte
 

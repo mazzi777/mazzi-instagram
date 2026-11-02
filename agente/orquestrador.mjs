@@ -4,7 +4,8 @@
 // Tudo vai para registro/AAAA-MM-DD.jsonl. Retomável: o plano fica em semanas/SEMANA/plano.json e
 // a rodada diária produz o que ainda falta.
 // `raiz` é o repositório (guias, base); `saida` é onde vão semanas/, registro/ e uso/ (no ensaio: ensaio/).
-import { readFileSync, writeFileSync, existsSync, mkdirSync, appendFileSync, rmSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, mkdirSync, appendFileSync, rmSync, mkdtempSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { validarPeca, dataMais } from '../publicar/validar.mjs';
 import { ErroLimite, ErroTeto, ErroToken } from './cerebro.mjs';
@@ -14,6 +15,7 @@ import { capturar, paginasDaPeca } from './imagens/capturar.mjs';
 import { montarReel } from './ferramentas/montar_video.mjs';
 import { ffprobe } from './ferramentas/binarios.mjs';
 import { Registro, validar } from './lib/schemas.mjs';
+import { situacao, guardar, pautasEvergreen, lerReserva } from './reserva.mjs';
 
 export const FORMATOS_COM_IMAGEM = ['carrossel', 'imagem', 'stories'];
 export const FORMATOS_PRODUZIDOS = [...FORMATOS_COM_IMAGEM, 'reel'];
@@ -65,6 +67,7 @@ export async function produzirPeca(item, ctx) {
   const { raiz, saida = raiz, semana, produto, config, cerebro, usados, hoje, registrar } = ctx;
   const pasta = path.join(saida, 'semanas', semana);
   const onde = `${semana}/${item.id}`;
+  if (ctx.soReserva) return usarReserva(item, ctx, ['modo só reserva (sem Claude)']);
   const juizes = juizesDeTexto(cerebro);
   const juizVisual = cerebro.juiz(ProblemasVisuais, 'juiz:visual', config.modelos.juizVisual);
   const maxTentativas = 1 + (cerebro.economico() ? 0 : config.checagens.regeracoes);
@@ -164,6 +167,62 @@ export async function produzirPendentes({ desde, ate, ...ctx }) {
     }
   }
   return { feitas, parou: null };
+}
+
+/**
+ * Sem Claude (limite do plano ou modo só reserva): as peças de `desde` a `ate` que ainda não estão prontas
+ * entram do banco reserva. Devolve { cobertas[], descobertas[] } (descoberta = vai ficar sem post).
+ */
+export async function cobrirComReserva({ desde, ate, ...ctx }) {
+  const { saida = ctx.raiz, semana } = ctx;
+  const fPlano = path.join(saida, 'semanas', semana, 'plano.json');
+  const plano = lerJson(fPlano, null);
+  if (!plano) return { cobertas: [], descobertas: [] };
+  const prontas = new Set(lerJson(path.join(saida, 'semanas', semana, 'agenda.json'), { pecas: [] }).pecas.map((p) => p.id));
+  const cobertas = [];
+  const descobertas = [];
+  for (const item of plano.pecas) {
+    if (prontas.has(item.id) || item.situacao === 'pulada' || item.dia < desde || item.dia > ate) continue;
+    const r = await usarReserva(item, ctx, ['sem Claude nesta rodada']);
+    if (r.entrada) { gravarNaAgenda(saida, semana, r.entrada); cobertas.push(item.id); } else descobertas.push(item.id);
+    item.situacao = r.status;
+  }
+  gravarJson(fPlano, plano);
+  return { cobertas, descobertas };
+}
+
+/**
+ * Repõe o banco reserva aos poucos (SPEC 8.5): produz até `maximo` peças evergreen do formato que falta,
+ * pelo mesmo laço de qualidade, numa pasta temporária, e guarda as aprovadas em <banco>/reserva/.
+ * ctx igual ao de produzirPeca + { banco (pasta do banco), semana (só para nomes e dia) }.
+ */
+export async function encherReserva({ banco, maximo = 1, ...ctx }) {
+  const { produto, hoje, semana, cerebro } = ctx;
+  const falta = situacao(banco, { produto, hoje }).faltam;
+  if (!falta.length || cerebro.economico()) return [];
+  const pautas = pautasEvergreen(produto);
+  const jaTem = lerReserva(banco).length;
+  const feitas = [];
+  for (const [k, tipo] of falta.slice(0, maximo).entries()) {
+    const pauta = pautas[(jaTem + k) % pautas.length];
+    const item = {
+      id: `R${k + 1}`, dia: semana, horario: '07:40', tipo, objetivo: 'conversa', exploracao: false, ...pauta,
+      angulo: `${pauta.angulo} (Peça de reserva: precisa valer daqui a meses. Nada de data, "essa semana", novidade ou lançamento.)`,
+    };
+    const tmp = mkdtempSync(path.join(tmpdir(), 'mazzi-reserva-'));
+    try {
+      const r = await produzirPeca(item, { ...ctx, saida: tmp, reserva: null, soReserva: false });
+      if (r.status === 'aprovada') {
+        const rid = `${hoje}-${tipo}-${k + 1}`;
+        guardar(banco, r.entrada, path.join(tmp, 'semanas', semana), { rid, hoje });
+        ctx.registrar({ tipo: 'aprovada', peca: `reserva/${rid}`, detalhe: `banco reserva: ${pauta.tema}` });
+      }
+      feitas.push({ tipo, status: r.status });
+    } finally {
+      rmSync(tmp, { recursive: true, force: true });
+    }
+  }
+  return feitas;
 }
 
 export const fimDaSemana = (semana) => dataMais(semana, 6);
