@@ -37,8 +37,7 @@ test('semana com agenda da rotina/Windsor: o agente não produz, não renderiza 
   assert.equal(agendaAlheia(saida, SEMANA), true);
   const ctx = { raiz: RAIZ, saida, semana: SEMANA, produto, config, cerebro: naoChama, usados: [], hoje: SEMANA, registrar: criarRegistro(saida) };
   const r = await produzirPendentes({ ...ctx, desde: SEMANA, ate: SEMANA });
-  assert.deepEqual(r.feitas, []);
-  assert.match(r.parou.message, /não é do agente/);
+  assert.deepEqual(r, { feitas: [], parou: null, alheia: true }, 'não é erro: o diário passa pelas semanas antigas todo dia');
   let pegou = false;
   const c = await cobrirComReserva({ ...ctx, reserva: { pegar: async () => { pegou = true; return null; } }, desde: SEMANA, ate: SEMANA });
   assert.deepEqual(c, { cobertas: [], descobertas: [] });

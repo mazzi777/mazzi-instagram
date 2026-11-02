@@ -203,7 +203,8 @@ export function agendaAlheia(saida, semana) {
 
 export async function produzirPendentes({ desde, ate, ...ctx }) {
   const { raiz, saida = raiz, semana, registrar } = ctx;
-  if (agendaAlheia(saida, semana)) return { feitas: [], parou: new Error(`semanas/${semana} tem agenda que não é do agente: não produzo nada nela`) };
+  // Semana da rotina antiga ou do Windsor: não é erro (o diário passa por elas até a 1ª semana do agente), só não mexe.
+  if (agendaAlheia(saida, semana)) return { feitas: [], parou: null, alheia: true };
   const fPlano = path.join(saida, 'semanas', semana, 'plano.json');
   const plano = lerJson(fPlano, null);
   if (!plano) return { feitas: [], parou: null };
