@@ -26,6 +26,9 @@ Como classificar:
 - "resultado": promessa de resultado de negócio ou de procedimento, em geral com número ou garantia ("fatura 30% mais", "acaba com as faltas");
 - "opiniao": dor do dia a dia do dono, cena de exemplo sem nome real, posição sobre gestão ("o caixa não fecha", "paciente falta");
 - "outro": a chamada para o WhatsApp, o link na bio e o convite para entrar (é como se entra na Mazzi; NÃO é preço nem promoção);
+- cartão, painel ou celular marcado EXEMPLO: é a ilustração da tela de uma função. Liste o cartão INTEIRO como UMA afirmação
+  "funcao" (em_exemplo true) com o id da função cuja tela ele mostra; não liste cada rótulo ou selo ("Peso líquido = exemplo",
+  "Pagamento = aguardando") como função separada. Use funcao_id null só se o cartão mostra algo que nenhuma função da base faz;
 - "preco"/"promocao": só quando fala de valor, "grátis", desconto ou oferta.
 Não julgue se pode ou não; só liste. Responda só no formato pedido.`;
 
