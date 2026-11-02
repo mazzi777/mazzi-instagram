@@ -92,6 +92,27 @@
       "capa_ms": 2500
     },
     {
+      "tipo": "reel",
+      "arquivos": [
+        "2026-11-02-D.mp4"
+      ],
+      "tema": "comum · o sistema com a cara do negócio",
+      "gancho": "Seu cliente vê o logo de quem no sistema?",
+      "ramo": "comum",
+      "objetivo": "conversa",
+      "ia": true,
+      "fatos": [
+        "comum.marca-propria",
+        "comum.celular"
+      ],
+      "legenda": "Seu cliente vê o logo de quem quando abre o sistema?\n\nNa Mazzi, o sistema usa o logo, as cores e a fonte do seu negócio. Isso aparece na tela, nos impressos e no ícone do aplicativo no celular.\n\nFunciona no navegador do computador e do celular, e dá pra instalar na tela inicial. Precisa de internet.\n\nChama no WhatsApp (link na bio).\n\n#gestao #clinica #restaurante",
+      "capa_ms": 1000,
+      "id": "D",
+      "dia": "2026-11-04",
+      "horario": "11:40",
+      "origem": "reserva"
+    },
+    {
       "id": "S3",
       "dia": "2026-11-05",
       "horario": "07:40",

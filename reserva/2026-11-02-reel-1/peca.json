@@ -6,15 +6,17 @@
   "arquivos": [
     "2026-11-02-R1.mp4"
   ],
-  "tema": "comum · o sistema com a cara do negócio",
-  "gancho": "Seu cliente vê o logo de quem no sistema?",
-  "ramo": "comum",
+  "tema": "restaurante · o restaurante num lugar só",
+  "gancho": "Seu caixa ainda fecha no caderno?",
+  "ramo": "restaurante",
   "objetivo": "conversa",
   "ia": true,
   "fatos": [
-    "comum.marca-propria",
-    "comum.celular"
+    "rest.caixa",
+    "rest.delivery.teclado",
+    "rest.balanca",
+    "rest.estoque"
   ],
-  "legenda": "Seu cliente vê o logo de quem quando abre o sistema?\n\nNa Mazzi, o sistema usa o logo, as cores e a fonte do seu negócio. Isso aparece na tela, nos impressos e no ícone do aplicativo no celular.\n\nFunciona no navegador do computador e do celular, e dá pra instalar na tela inicial. Precisa de internet.\n\nChama no WhatsApp (link na bio).\n\n#gestao #clinica #restaurante",
+  "legenda": "Seu caixa ainda fecha no caderno?\n\nCaderno pro caixa, papel pro delivery, bloco pro estoque. Aí o pedido some e a conta não bate.\n\nNa Mazzi tem caixa com sangria e fechamento que mostra a diferença, delivery pelo teclado, balança do self-service e estoque que baixa a bebida sozinha.\n\nChama no WhatsApp (link na bio) que a gente te mostra.\n\n#restaurante #selfservice #gestaoderestaurante",
   "capa_ms": 1000
 }
