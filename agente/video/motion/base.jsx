@@ -119,10 +119,21 @@ export function TituloCinetico({ texto, destaque, tamanho, inicio = 0, passo = 4
         const v = tw(f, q, q + 7, 0, 1);
         const desfoque = (1 - v) * 14;
         const eDestaque = iDest >= 0 && i >= iDest && i < iDest + (destaque?.split(/\s+/).length ?? 1);
+        // Marca-texto ATRÁS da palavra, do tamanho real dela e dentro da própria linha: não corta letra nem invade
+        // a linha de cima ou de baixo (o círculo antigo era desenhado por cima, com largura estimada, e cortava).
+        const marcar = eDestaque && sublinhar;
+        const m = marcar ? tw(f, q + 8, q + 16, 0, 1, ENTRA_SAI) : 0;
         return (
           <span key={i} style={{ position: 'relative', display: 'inline-block', opacity: v, transform: `translateY(${(1 - v) * 40}px) scale(${1.12 - 0.12 * v})`, filter: `blur(${desfoque}px)`, color: eDestaque ? ato.destaque : undefined }}>
             {p}
-            {eDestaque && sublinhar && i === iDest ? <Rabisco inicio={q + 8} cor={ato.destaque} tipo={sublinhar} largura={Math.max(260, p.length * tam * 0.62)} altura={tam * 1.25} estilo={{ left: -tam * 0.3, top: sublinhar === 'circulo' ? -tam * 0.22 : tam * 0.55 }} /> : null}
+            {/* Marca e a mesma palavra em grafite aparecem pela MESMA janela que corre da esquerda para a direita:
+                a letra escura anda junto com a marca, então nunca fica cor sobre a mesma cor. */}
+            {marcar ? (
+              <span aria-hidden="true" style={{ position: 'absolute', left: '-0.08em', right: '-0.08em', top: 0, bottom: 0, clipPath: `inset(-0.1em ${(1 - m) * 100}% -0.1em 0)` }}>
+                <span style={{ position: 'absolute', left: 0, right: 0, top: '0.1em', bottom: 0, borderRadius: '0.12em', background: ato.destaque, transform: 'rotate(-1.2deg)' }} />
+                <span style={{ position: 'absolute', left: '0.08em', top: 0, whiteSpace: 'nowrap', color: COR.grafite }}>{p}</span>
+              </span>
+            ) : null}
           </span>
         );
       })}
