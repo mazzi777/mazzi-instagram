@@ -1,0 +1,25 @@
+{
+  "rid": "2026-11-01-carrossel-1",
+  "criado_em": "2026-11-01",
+  "usada_em": [],
+  "tipo": "carrossel",
+  "arquivos": [
+    "2026-11-09-R1-01.jpg",
+    "2026-11-09-R1-02.jpg",
+    "2026-11-09-R1-03.jpg",
+    "2026-11-09-R1-04.jpg",
+    "2026-11-09-R1-05.jpg",
+    "2026-11-09-R1-06.jpg",
+    "2026-11-09-R1-07.jpg"
+  ],
+  "tema": "comum · como entrar",
+  "gancho": "Não achou o cadastro da Mazzi? Chama no WhatsApp",
+  "ramo": "comum",
+  "objetivo": "conversa",
+  "ia": false,
+  "fatos": [
+    "comum.celular"
+  ],
+  "legenda": "Não achou o cadastro da Mazzi? Ele não existe aberto.\n\nFunciona assim: você chama no WhatsApp, a gente entende o seu negócio (clínica ou restaurante) e manda o convite.\n\nDepois é só usar no computador ou no celular, com internet.\n\nChama no WhatsApp (link na bio).\n\n#mazzisystems #gestao #pequenosnegocios",
+  "alt_text": "Capa em fundo grafite com o texto \"Não achou o cadastro da Mazzi? Chama no WhatsApp\", com \"Não achou o cadastro\" em coral, e o @mazzisystems."
+}

@@ -1,0 +1,171 @@
+{
+  "semana": "2026-11-09",
+  "produtor": "agente",
+  "pecas": [
+    {
+      "id": "A",
+      "dia": "2026-11-09",
+      "horario": "18:40",
+      "tipo": "carrossel",
+      "arquivos": [
+        "2026-11-09-A-01.jpg",
+        "2026-11-09-A-02.jpg",
+        "2026-11-09-A-03.jpg",
+        "2026-11-09-A-04.jpg",
+        "2026-11-09-A-05.jpg",
+        "2026-11-09-A-06.jpg",
+        "2026-11-09-A-07.jpg"
+      ],
+      "tema": "clinica · Anamnese em papel que ninguém acha na hora",
+      "gancho": "Sua paciente toma anticoagulante e a ficha sumiu?",
+      "ramo": "clinica",
+      "objetivo": "conversa",
+      "ia": false,
+      "origem": "agente",
+      "fatos": [
+        "clin.anamnese-termo"
+      ],
+      "tentativas": 3,
+      "legenda": "Sua paciente toma anticoagulante e a ficha sumiu?\n\nTá na pasta, na outra sala, ou ninguém acha na hora. E o aviso estava escrito lá, só que você não viu.\n\nNo tablet, a paciente assina a anamnese e o termo com o dedo. O alerta aparece na ficha antes do atendimento, e o documento fica guardado com data, hora e um código que mostra se foi alterado.\n\nChama no WhatsApp (link na bio).\n\n#clinicadeestetica #harmonizacaofacial #gestaodeclinica",
+      "alt_text": "Capa em fundo grafite com o texto grande \"Sua paciente toma anticoagulante e a ficha sumiu?\", com \"a ficha sumiu\" em coral, e o arroba @mazzisystems."
+    },
+    {
+      "id": "S1",
+      "dia": "2026-11-10",
+      "horario": "07:40",
+      "tipo": "stories",
+      "arquivos": [
+        "2026-11-09-S1-01.jpg",
+        "2026-11-09-S1-02.jpg",
+        "2026-11-09-S1-03.jpg",
+        "2026-11-09-S1-04.jpg"
+      ],
+      "tema": "restaurante · Preço do quilo muda no dia, a balança acompanha",
+      "gancho": "Esqueceu de trocar o preço do quilo de novo?",
+      "ramo": "restaurante",
+      "objetivo": "alcance",
+      "ia": false,
+      "origem": "agente",
+      "fatos": [
+        "rest.balanca"
+      ],
+      "tentativas": 2
+    },
+    {
+      "id": "B",
+      "dia": "2026-11-11",
+      "horario": "11:40",
+      "tipo": "reel",
+      "arquivos": [
+        "2026-11-09-B.mp4"
+      ],
+      "tema": "restaurante · Balança ligada ao caixa: nota cobrada não passa de novo",
+      "gancho": "A mesma nota passou duas vezes no caixa?",
+      "ramo": "restaurante",
+      "objetivo": "conversa",
+      "ia": true,
+      "origem": "agente",
+      "fatos": [
+        "rest.balanca"
+      ],
+      "tentativas": 3,
+      "legenda": "A mesma nota passou duas vezes no caixa?\n\nNa Mazzi, o prato vai pra balança, que desconta o peso do prato e imprime a nota com código de barras. O caixa lê o código e o valor entra sozinho. Se a nota já foi cobrada, o sistema recusa.\n\nTem também tela pro cliente e preço do quilo por dia da semana.\n\nQuer ver como funciona? Chama no WhatsApp (link na bio).\n\n#selfservice #restaurante #gestao",
+      "capa_ms": 1000
+    },
+    {
+      "id": "S2",
+      "dia": "2026-11-12",
+      "horario": "20:40",
+      "tipo": "stories",
+      "arquivos": [
+        "2026-11-09-S2-01.jpg",
+        "2026-11-09-S2-02.jpg",
+        "2026-11-09-S2-03.jpg",
+        "2026-11-09-S2-04.jpg",
+        "2026-11-09-S2-05.jpg"
+      ],
+      "tema": "clinica · Pacote de sessões: quantas faltam pra paciente?",
+      "gancho": "Quantas sessões faltam pra sua paciente do pacote?",
+      "ramo": "clinica",
+      "objetivo": "conversa",
+      "ia": false,
+      "origem": "agente",
+      "fatos": [
+        "clin.pacotes"
+      ],
+      "tentativas": 2
+    },
+    {
+      "id": "C",
+      "dia": "2026-11-13",
+      "horario": "20:40",
+      "tipo": "imagem",
+      "arquivos": [
+        "2026-11-09-C-01.jpg"
+      ],
+      "tema": "clinica · Produto vencido na gaveta da clínica",
+      "gancho": "Frasco vencendo na sua gaveta e ninguém viu?",
+      "ramo": "clinica",
+      "objetivo": "alcance",
+      "ia": false,
+      "origem": "agente",
+      "fatos": [
+        "clin.estoque-lote"
+      ],
+      "tentativas": 2,
+      "legenda": "Frasco vencendo na sua gaveta e ninguém viu?\n\nQuase ninguém confere a validade antes de começar. Só na hora do atendimento, com a paciente na maca, alguém vira o frasco pra ler o rótulo.\n\nA regra é simples: usa primeiro o que vence antes.\n\nNo estoque com lote e validade da Mazzi, o atendimento usa o lote que vence antes. O sistema avisa quando um lote vence em 30 dias e quando um item está acabando. O cartão do post é só um EXEMPLO.\n\nSalva esse post pra lembrar de olhar a gaveta antes da próxima semana.\n\n#gestaodeclinica #esteticaprofissional #harmonizacaofacial",
+      "alt_text": "Post em fundo grafite com o título \"Quem olha a validade antes do atendimento?\" e um cartão de exemplo do estoque da clínica, com um lote vencendo em 30 dias marcado para usar primeiro."
+    },
+    {
+      "id": "D",
+      "dia": "2026-11-14",
+      "horario": "11:40",
+      "tipo": "carrossel",
+      "arquivos": [
+        "2026-11-09-D-01.jpg",
+        "2026-11-09-D-02.jpg",
+        "2026-11-09-D-03.jpg",
+        "2026-11-09-D-04.jpg",
+        "2026-11-09-D-05.jpg",
+        "2026-11-09-D-06.jpg",
+        "2026-11-09-D-07.jpg"
+      ],
+      "tema": "restaurante · Bebida acabou e ninguém viu",
+      "gancho": "A bebida acabou e ninguém viu no sábado?",
+      "ramo": "restaurante",
+      "objetivo": "conversa",
+      "ia": false,
+      "origem": "agente",
+      "fatos": [
+        "rest.estoque",
+        "rest.relatorios"
+      ],
+      "tentativas": 1,
+      "legenda": "A bebida acabou e ninguém viu no sábado?\n\nO cliente pede, o garçom vai olhar a geladeira e volta sem nada. Aí você descobre na hora errada.\n\nNo estoque opcional da Mazzi, a bebida baixa sozinha quando vende e o sistema avisa quando chega no mínimo que você definiu. Os relatórios mostram vendas e compras lado a lado.\n\nChama no WhatsApp (link na bio).\n\n#restaurante #gestaoderestaurante #selfservice",
+      "alt_text": "Capa em fundo grafite com a pergunta \"A bebida acabou e ninguém viu?\" em letras claras, com \"ninguém viu\" em coral, e o texto @mazzisystems."
+    },
+    {
+      "id": "S3",
+      "dia": "2026-11-15",
+      "horario": "20:40",
+      "tipo": "stories",
+      "arquivos": [
+        "2026-11-09-S3-01.jpg",
+        "2026-11-09-S3-02.jpg",
+        "2026-11-09-S3-03.jpg",
+        "2026-11-09-S3-04.jpg",
+        "2026-11-09-S3-05.jpg"
+      ],
+      "tema": "restaurante · Domingo à noite: como você confere o pedido de delivery?",
+      "gancho": "Domingo à noite: faltou algum pedido do delivery?",
+      "ramo": "restaurante",
+      "objetivo": "conversa",
+      "ia": false,
+      "origem": "agente",
+      "fatos": [
+        "rest.delivery.teclado"
+      ],
+      "tentativas": 3
+    }
+  ]
+}

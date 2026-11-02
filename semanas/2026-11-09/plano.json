@@ -1,0 +1,124 @@
+{
+  "semana": "2026-11-09",
+  "criado_em": "2026-11-01",
+  "tentativas": 1,
+  "pecas": [
+    {
+      "dia": "2026-11-09",
+      "horario": "18:40",
+      "tipo": "carrossel",
+      "ramo": "clinica",
+      "objetivo": "conversa",
+      "conteudo": "dor",
+      "tema": "Anamnese em papel que ninguém acha na hora",
+      "angulo": "A ficha de papel não avisa que a paciente toma anticoagulante: no tablet o alerta aparece antes do atendimento, e o documento fica na ficha com data, hora e código.",
+      "fatos": [
+        "clin.anamnese-termo",
+        "clin.fichas"
+      ],
+      "exploracao": false,
+      "id": "A",
+      "situacao": "aprovada"
+    },
+    {
+      "dia": "2026-11-10",
+      "horario": "07:40",
+      "tipo": "stories",
+      "ramo": "restaurante",
+      "objetivo": "alcance",
+      "conteudo": "opiniao",
+      "tema": "Preço do quilo muda no dia, a balança acompanha",
+      "angulo": "Sexta o prato vende diferente de segunda e o preço do quilo precisa mudar junto sem ninguém lembrar de trocar a etiqueta; pede resposta no story.",
+      "fatos": [
+        "rest.balanca"
+      ],
+      "exploracao": false,
+      "id": "S1",
+      "situacao": "aprovada"
+    },
+    {
+      "dia": "2026-11-11",
+      "horario": "11:40",
+      "tipo": "reel",
+      "ramo": "restaurante",
+      "objetivo": "conversa",
+      "conteudo": "ensina",
+      "tema": "Balança ligada ao caixa: nota cobrada não passa de novo",
+      "angulo": "Do prato na balança à nota com código de barras: o caixa lê e o valor entra sozinho, e nota já cobrada é recusada.",
+      "fatos": [
+        "rest.balanca",
+        "rest.caixa"
+      ],
+      "exploracao": false,
+      "id": "B",
+      "situacao": "aprovada"
+    },
+    {
+      "dia": "2026-11-12",
+      "horario": "20:40",
+      "tipo": "stories",
+      "ramo": "clinica",
+      "objetivo": "conversa",
+      "conteudo": "ensina",
+      "tema": "Pacote de sessões: quantas faltam pra paciente?",
+      "angulo": "Cada atendimento desconta uma sessão e a agenda mostra o selo Pacote 4/10, sem contar no caderno; fecha pedindo para chamar no WhatsApp.",
+      "fatos": [
+        "clin.pacotes",
+        "clin.agenda"
+      ],
+      "exploracao": false,
+      "id": "S2",
+      "situacao": "aprovada"
+    },
+    {
+      "dia": "2026-11-13",
+      "horario": "20:40",
+      "tipo": "imagem",
+      "ramo": "clinica",
+      "objetivo": "alcance",
+      "conteudo": "dor",
+      "tema": "Produto vencido na gaveta da clínica",
+      "angulo": "Ninguém olha a validade até a hora do atendimento: cartão EXEMPLO com lote vencendo em 30 dias e a regra de usar primeiro o que vence antes. Pede para salvar.",
+      "fatos": [
+        "clin.estoque-lote"
+      ],
+      "exploracao": true,
+      "id": "C",
+      "situacao": "aprovada"
+    },
+    {
+      "dia": "2026-11-14",
+      "horario": "11:40",
+      "tipo": "carrossel",
+      "ramo": "restaurante",
+      "objetivo": "conversa",
+      "conteudo": "dor",
+      "tema": "Bebida acabou e ninguém viu",
+      "angulo": "A geladeira esvazia no sábado de movimento e só se descobre com cliente pedindo: estoque opcional baixa a bebida na venda e avisa o mínimo.",
+      "fatos": [
+        "rest.estoque",
+        "rest.relatorios"
+      ],
+      "exploracao": false,
+      "id": "D",
+      "situacao": "aprovada"
+    },
+    {
+      "dia": "2026-11-15",
+      "horario": "20:40",
+      "tipo": "stories",
+      "ramo": "restaurante",
+      "objetivo": "conversa",
+      "conteudo": "convite",
+      "tema": "Domingo à noite: como você confere o pedido de delivery?",
+      "angulo": "Quadro pergunta como o dono confere se faltou pedido na semana; mostra o número do dia e a conferência 'faltou o nº 4?' e convida a chamar no WhatsApp.",
+      "fatos": [
+        "rest.delivery.teclado"
+      ],
+      "exploracao": true,
+      "id": "S3",
+      "situacao": "aprovada"
+    }
+  ],
+  "porque": "Quatro posts de feed: 2 carrosséis (clínica e restaurante), 1 reel e 1 imagem. Três têm objetivo conversa e um alcance (a imagem de lote e validade, que pede salvar), o que dá 75%. Os dois ramos aparecem no feed e nunca há dois formatos iguais em dias seguidos. Os temas são novos nas últimas semanas: anamnese no tablet, balança, lote e validade, estoque de bebida, pacotes. Orçamento e delivery já apareceram bastante. Só há 7 posts medidos, então não usei métrica e variei formatos e horários. Exploração: a imagem às 20:40 no feed e o story de domingo à noite. Stories em 3 dias (terça, quinta e domingo). Nada de preço, cliente, número real ou NFC-e."
+}
