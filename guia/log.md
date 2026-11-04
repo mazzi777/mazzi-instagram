@@ -2,6 +2,8 @@
 
 Uma linha por peça, a mais nova no topo. A partir de 09/11/2026 o GitHub Actions acrescenta as linhas sozinho ao publicar (data · PUBLICADO · formato · tema · gancho · ids). A produção da semana lê este arquivo para não repetir tema nem gancho.
 
+- 03/11/2026 · PUBLICADO · stories (S2, 5 arquivo(s)) · clinica · Retorno que ninguém lembrou de chamar · "Quem devia voltar este mês e ninguém chamou?" · ids 18136686049738286, 18113430899333828, 18096908477150480, 17989279098085432, 18015246821986692 · via API da Meta
+- 03/11/2026 · PUBLICADO · carrossel (C, 7 arquivo(s)) · clinica · Lembrete em 1 clique com link de confirmar · "Ela disse "depois eu vejo" e o horário ficou vazio?" · ids 18354222820271395 · via API da Meta
 - 31/10/2026 · PUBLICADO · reel (AV1, 1 arquivo(s)) · avulso · fixado o que é a Mazzi · "Cuidar do seu negócio não precisa ser complicado." · ids 18120563644957737 · via API da Meta
 - 31/10/2026 · PUBLICADO · reel (AV2, 1 arquivo(s)) · avulso · fixado clínica · "Paciente faltou de novo?" · ids 18002977910813603 · via API da Meta
 - 31/10/2026 · PUBLICADO · reel (AV3, 1 arquivo(s)) · avulso · fixado restaurante · "O caixa não fechou de novo?" · ids 18114023189152310 · via API da Meta
