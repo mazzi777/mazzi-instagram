@@ -2,8 +2,15 @@ name: Agente do Instagram
 
 # O "funcionário" do @mazzisystems (SPEC.md). Produz; quem publica é o workflow "Publicar no Instagram".
 #   sábado 02:17 (Brasília)  semanal: atualiza a base do produto, planeja e produz a semana seguinte
-#   todo dia 03:17           diário: métricas, produz/regera o que falta para os próximos 3 dias e confere os tokens
+#   todo dia 03:17, 11:17 e 16:17  diário: métricas, produz/regera o que falta para os próximos 3 dias e confere os tokens
 #   todo dia 20:10           stories: só as métricas dos stories do dia (a Meta apaga em 24 h); não usa o Claude
+#
+# O diário roda 3 vezes porque o GitHub atrasa (até 8 h) e às vezes descarta rodadas agendadas. Repetir é seguro:
+# ele só produz peça que ainda não está na agenda nem foi pulada, as métricas não são coletadas duas vezes
+# (chave media_id|idade|dia) e o planejamento só acontece se o plano.json da semana não existe. Sem nada a
+# fazer, a rodada não chama o Claude. A concorrência "agente" impede duas rodadas ao mesmo tempo.
+# Horário: o cron do GitHub é em UTC; Brasília é UTC−3 fixo (sem horário de verão desde 2019). O minuto não é
+# garantido: o GitHub pode começar a rodada bem depois do pedido.
 #
 # Variáveis do repositório (Settings › Variables), o kill switch:
 #   AGENTE_PAUSADO = true      pausa tudo (o publicador também respeita)
@@ -15,7 +22,7 @@ name: Agente do Instagram
 on:
   schedule:
     - cron: "17 5 * * 6"   # sábado 02:17 em Brasília
-    - cron: "17 6 * * *"   # todo dia 03:17 em Brasília
+    - cron: "17 6,14,19 * * *" # todo dia 03:17, 11:17 e 16:17 em Brasília (diário)
     - cron: "10 23 * * *"  # todo dia 20:10 em Brasília (métricas dos stories)
   workflow_dispatch:
     inputs:
@@ -83,7 +90,9 @@ jobs:
           node-version: 22
           cache: npm
 
-      - run: npm ci
+      # Sem baixar o ffmpeg-static (o ffmpeg vem do apt logo abaixo) e com nova tentativa em falha passageira.
+      - name: Dependências
+        run: bash .github/instalar-dependencias.sh
 
       - name: Chromium (captura das imagens)
         if: steps.qual.outputs.comando != 'stories'
@@ -206,7 +215,11 @@ jobs:
 
           Rodada: $RUN_URL"
           num=$(gh issue list --state open --author "app/github-actions" --search "\"$titulo\" in:title" --json number -q '.[0].number')
-          if [ -n "$num" ]; then gh issue comment "$num" --body "$corpo"; else gh issue create --title "$titulo" --body "$corpo"; fi
+          if [ -z "$num" ]; then gh issue create --title "$titulo" --body "$corpo"; exit 0; fi
+          # Com o diário 3x por dia, o mesmo problema se repetiria a cada rodada: só comenta quando o motivo muda.
+          ultimo=$(gh issue view "$num" --json body,comments -q 'if (.comments | length) > 0 then .comments[-1].body else .body end')
+          if [[ "$ultimo" == *"$detalhe"* ]]; then echo "Mesmo motivo do último aviso (#$num): não comento de novo."; exit 0; fi
+          gh issue comment "$num" --body "$corpo"
 
       # SPEC 9: quando a rodada passa limpa, o aviso aberto do agente é fechado com "resolvido" (o GitHub manda o e-mail).
       - name: Fechar aviso resolvido

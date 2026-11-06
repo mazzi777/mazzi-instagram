@@ -18,10 +18,13 @@ jobs:
         with:
           node-version: 22
       - run: node --test publicar/publicar.test.mjs
-      - run: npm ci
+      # Sem baixar o ffmpeg-static e com nova tentativa em falha passageira (.github/instalar-dependencias.sh).
+      - name: Dependências
+        run: bash .github/instalar-dependencias.sh
+      # Antes dos testes do agente: sem o ffmpeg-static, eles usam o ffmpeg/ffprobe do sistema, como o agente no Actions.
+      - name: ffmpeg e ffprobe
+        run: command -v ffmpeg && command -v ffprobe || (sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg)
       - name: Testes do agente
         run: npm run test:agente
-      - name: ffprobe (mede o vídeo do reel)
-        run: command -v ffprobe || (sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg)
       - name: Semanas que ainda vão sair
         run: node publicar/validar.mjs --futuras
