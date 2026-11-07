@@ -2,6 +2,7 @@
 
 Uma linha por peça, a mais nova no topo. A partir de 09/11/2026 o GitHub Actions acrescenta as linhas sozinho ao publicar (data · PUBLICADO · formato · tema · gancho · ids). A produção da semana lê este arquivo para não repetir tema nem gancho.
 
+- 07/11/2026 · PUBLICADO · carrossel (F, 7 arquivo(s)) · comum · como entrar · "Não achou o cadastro da Mazzi? Chama no WhatsApp" · ids 18127846285909654 · via API da Meta
 - 05/11/2026 · PUBLICADO · stories (S3, 5 arquivo(s)) · restaurante · Caixa conferido ou caixa de caderno · "Caixa que sempre bate: alguém conferiu de verdade?" · ids 18101115617411267, 17965984869210054, 17974307019191669, 17926751712441528, 18114023081178811 · via API da Meta
 - 04/11/2026 · PUBLICADO · reel (D, 1 arquivo(s)) · comum · o sistema com a cara do negócio · "Seu cliente vê o logo de quem no sistema?" · ids 18105848549021020 · via API da Meta
 - 03/11/2026 · PUBLICADO · stories (S2, 5 arquivo(s)) · clinica · Retorno que ninguém lembrou de chamar · "Quem devia voltar este mês e ninguém chamou?" · ids 18136686049738286, 18113430899333828, 18096908477150480, 17989279098085432, 18015246821986692 · via API da Meta
