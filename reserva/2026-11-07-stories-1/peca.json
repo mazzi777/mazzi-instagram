@@ -1,0 +1,25 @@
+{
+  "rid": "2026-11-07-stories-1",
+  "criado_em": "2026-11-07",
+  "usada_em": [],
+  "tipo": "stories",
+  "arquivos": [
+    "2026-11-09-R1-01.jpg",
+    "2026-11-09-R1-02.jpg",
+    "2026-11-09-R1-03.jpg",
+    "2026-11-09-R1-04.jpg",
+    "2026-11-09-R1-05.jpg"
+  ],
+  "tema": "clinica · a clínica num lugar só",
+  "gancho": "Agenda num lugar, ficha em outro, termo sumiu?",
+  "ramo": "clinica",
+  "objetivo": "conversa",
+  "ia": false,
+  "fatos": [
+    "clin.agenda",
+    "clin.fichas",
+    "clin.anamnese-termo",
+    "clin.orcamento",
+    "clin.lembrete-1-clique"
+  ]
+}

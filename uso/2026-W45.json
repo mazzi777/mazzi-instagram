@@ -2033,6 +2033,38 @@
    "custo_usd": 0.05633,
    "entrada": 15144,
    "saida": 54
+  },
+  {
+   "em": "2026-11-07T11:44:34.544Z",
+   "etapa": "escrever:stories",
+   "modelo": "claude-sonnet-5-5",
+   "custo_usd": 0.05738,
+   "entrada": 9377,
+   "saida": 1941
+  },
+  {
+   "em": "2026-11-07T11:44:39.164Z",
+   "etapa": "juiz:fatos",
+   "modelo": "claude-haiku-5-5",
+   "custo_usd": 0.00133,
+   "entrada": 3440,
+   "saida": 941
+  },
+  {
+   "em": "2026-11-07T11:44:40.061Z",
+   "etapa": "juiz:marca",
+   "modelo": "claude-haiku-5-5",
+   "custo_usd": 0.00123,
+   "entrada": 3367,
+   "saida": 777
+  },
+  {
+   "em": "2026-11-07T11:44:48.765Z",
+   "etapa": "juiz:visual",
+   "modelo": "claude-sonnet-5-5",
+   "custo_usd": 0.06418,
+   "entrada": 15149,
+   "saida": 359
   }
  ]
 }
