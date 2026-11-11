@@ -2,6 +2,7 @@
 
 Uma linha por peça, a mais nova no topo. A partir de 09/11/2026 o GitHub Actions acrescenta as linhas sozinho ao publicar (data · PUBLICADO · formato · tema · gancho · ids). A produção da semana lê este arquivo para não repetir tema nem gancho.
 
+- 11/11/2026 · PUBLICADO · reel (B, 1 arquivo(s)) · clinica · a clínica num lugar só · "Agenda, ficha e termo em lugares diferentes?" · ids 18141232036639000 · via API da Meta
 - 11/11/2026 · PUBLICADO · stories (S1, 4 arquivo(s)) · restaurante · Preço do quilo muda no dia, a balança acompanha · "Esqueceu de trocar o preço do quilo de novo?" · ids 18120883643050820, 18043579187839011, 18144805798520503, 18111974258340237 · via API da Meta
 - 08/11/2026 · PUBLICADO · stories (S4, 4 arquivo(s)) · clinica · Quem na equipe vê o que não devia · "A recepção vê a comissão de todo mundo?" · ids 17870819208663219, 17871910056633075, 18351586798285213, 18119749361063287 · via API da Meta
 - 08/11/2026 · PUBLICADO · imagem (E, 1 arquivo(s)) · clinica · Foto de antes e depois fora do WhatsApp pessoal · "Foto de paciente no seu WhatsApp pessoal?" · ids 18107740505248775 · via API da Meta
