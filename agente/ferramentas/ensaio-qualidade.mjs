@@ -28,7 +28,7 @@ const cerebro = { ...criarCerebro({ raiz: saida, config, log: (m) => log.push(m)
 const reserva = criarReserva({ raiz: RAIZ, saida, produto, marcar: false });
 const usados = [...lerGanchosUsados(RAIZ), ...ganchosDasAgendas(RAIZ)];
 const hoje = semana;
-const ctx = { raiz: RAIZ, saida, config, cerebro, usados, hoje, registrar, reserva, semana };
+const ctx = { raiz: RAIZ, saida, config, cerebro, produto, usados, hoje, registrar, reserva, semana };
 
 const resultados = [];
 const pecas = plano.pecas.filter((p) => ['carrossel', 'imagem', 'stories'].includes(p.tipo)).slice(0, Number(process.env.ENSAIO_MAX ?? 4));
