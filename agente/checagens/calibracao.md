@@ -91,3 +91,8 @@ Primeiro ensaio real (Actions, pauta da semana de 09/11, regra antiga: nota >= 7
 - **Regra nova:** reprova se algum critério < 5 ou se 2 ou mais critérios < 7. Com ela, A e S2 passariam (um 6 só) e C reprovaria (dois 6, com o erro de concordância). A capa repetida, que era o motivo de A e S2, passou a ser cobrada pelo código (família da capa, G9a), antes de gastar o juiz.
 - Prompt: régua explícita (5 morno, 7 bom, 9 ótimo) e sem "prefira reprovar".
 - Rever com mais dados: o relatório semanal traz as notas do editor no registro (`editor_*`).
+
+### Ajuste depois dos ensaios 5 a 7 e do ig-revisor (12/11/2026)
+
+- Pisos por critério: clareza, humano e novidade >= 6 (os outros >= 5); no máximo 1 critério abaixo de 7.
+- O ig-revisor reprovou duas peças que o editor tinha deixado passar com 6: um story que repetia o ÂNGULO ("o documento que some") com outro tema, e uma imagem com a legenda contando outra história. A régua do prompt agora diz que ângulo repetido vale 5 ou menos em novidade e legenda que contradiz a tela vale 4 ou menos em clareza.

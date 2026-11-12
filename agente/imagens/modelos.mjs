@@ -162,7 +162,8 @@ const AJUSTE = `<script>
 document.fonts.ready.then(()=>{
 const h=document.querySelector('h1'),c=document.querySelector('.corpo'),ts=[...document.querySelectorAll('.texto')],e=document.querySelector('.escala');
 const sobra=()=>c.scrollHeight>c.clientHeight+1||(h&&h.scrollWidth>h.clientWidth+1)||ts.some((t)=>t.scrollWidth>t.clientWidth+1);
-if(h){let fs=parseFloat(getComputedStyle(h).fontSize);while(fs>56&&sobra()){fs-=4;h.style.setProperty('--fs',fs+'px')}}
+const sobraH=()=>c.scrollHeight>c.clientHeight+1||(h&&h.scrollWidth>h.clientWidth+1);
+if(h){let fs=parseFloat(getComputedStyle(h).fontSize);while(fs>56&&sobraH()){fs-=4;h.style.setProperty('--fs',fs+'px')}}
 for(const t of ts){let fs=parseFloat(getComputedStyle(t).fontSize);while(fs>30&&sobra()){fs-=2;t.style.fontSize=fs+'px'}}
 if(e){let z=1;while(z>.7&&sobra()){z-=.05;e.style.zoom=z}}
 const r=(x)=>x.getBoundingClientRect(),cr=r(c),problemas=[];

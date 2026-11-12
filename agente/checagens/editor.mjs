@@ -34,7 +34,9 @@ competente assinaria; 9 = ótimo, específico e com cara de gente. Use a régua 
   ("chega de", "diga adeus", "simples assim", "sem dor de cabeça", "praticidade"), emoji como marcador, palavra que o dono não usa.
 - marca: ${RUBRICA_MARCA[tipo === 'reel' ? 'reel' : 'imagem']}
 - novidade: comparando com AS ÚLTIMAS PEÇAS, traz cena, ângulo ou função nova? Mesma ideia com outras palavras é nota baixa.
+  Mesmo ÂNGULO com outro tema também é repetição (ex.: "o documento que some" vale para ficha, termo e anamnese): nota 5 ou menos.
 - clareza: dá para entender em 3 segundos no celular? A capa diz do que se trata? Uma ideia por tela, numa ordem que faz sentido?
+  Se a legenda contradiz alguma tela (a história muda de um para o outro), clareza 4 ou menos.
 
 Em "sugestoes", para cada nota abaixo de 7, diga em uma frase concreta o que o redator deve mudar (e a imagem, quando der).
 
@@ -61,8 +63,10 @@ const fichas = (t) => normal(t).split(' ').filter((p) => p.length >= 3);
  */
 export function trechoNaPeca(trecho, texto) {
   const t = normal(trecho);
-  if (t.length < 3 || /^(?:nenhum|nada|sem (?:problema|item))/.test(t)) return false;
+  if (t.length < 3) return false;
+  // Literal primeiro: "nenhum risco" ou "nada de dor" que estão na peça contam (re-revisão Skeptic).
   if (normal(texto).includes(t)) return true;
+  if (/^(?:nenhum|nada|sem) (?:problema|item|trecho)/.test(t)) return false;
   const doTexto = new Set(fichas(texto));
   const doTrecho = fichas(trecho).filter((p) => !/^(?:slide|imagem|quadro|tela)$/.test(p));
   return doTrecho.length >= 2 && doTrecho.filter((p) => doTexto.has(p)).length / doTrecho.length >= 0.8;
@@ -71,7 +75,7 @@ export function trechoNaPeca(trecho, texto) {
 /**
  * Motivos de editor a partir das notas: reprova se algum critério ficar abaixo do piso (`minimoCriterio`, ou o piso
  * próprio do critério em `pisos`) ou se mais de `maxAbaixoDe7` critérios ficarem abaixo de 7 (calibrado no ensaio de
- * 12/11/2026, ver checagens/calibracao.md; clareza e humano têm piso 6: peça confusa ou com voz de robô não vai ao ar).
+ * 12/11/2026, ver checagens/calibracao.md; clareza, humano e novidade têm piso 6: peça confusa, com voz de robô ou repetida não vai ao ar).
  */
 export function motivosDoEditor(r, { minimoCriterio, maxAbaixoDe7, pisos = {} }) {
   const media = CRITERIOS_EDITOR.reduce((s, c) => s + r.notas[c], 0) / CRITERIOS_EDITOR.length;

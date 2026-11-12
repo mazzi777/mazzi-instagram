@@ -6,7 +6,7 @@
     "humano": { "notaMinima": 70, "criterioMinimo": 55 },
     "repeticao": { "limite": 0.6, "janelaDias": 42 },
     "batidas": { "duracaoMin": 20, "duracaoMax": 45 },
-    "editor": { "minimoCriterio": 5, "maxAbaixoDe7": 1, "pisos": { "clareza": 6, "humano": 6 } },
+    "editor": { "minimoCriterio": 5, "maxAbaixoDe7": 1, "pisos": { "clareza": 6, "humano": 6, "novidade": 6 } },
     "regeracoes": 2
   },
   "frequencia": { "feedMin": 3, "feedMax": 5, "storiesDiasMin": 3, "storiesDiasMax": 5, "objetivoConversa": 0.7, "exploracao": 0.2 },

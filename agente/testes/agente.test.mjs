@@ -450,3 +450,15 @@ test('revisão adversarial 2: geometria do reel longe da legenda, CFM aproximado
   for (let k = 0; k < TETO_BANCO; k++) { const p = path.join(raiz, 'reserva', `r${k}`); mkdirSync(p, { recursive: true }); writeFileSync(path.join(p, 'peca.json'), JSON.stringify({ rid: `r${k}`, tipo: 'stories', arquivos: [], gancho: 'x', tema: 't' })); }
   assert.deepEqual(situacao(raiz, { produto, hoje: '2026-11-16' }).faltamNovas, []);
 });
+
+test('reconferência Skeptic: CFM literal antes do filtro; "harmonização sem risco" barra; texto largo não encolhe o título', async () => {
+  const { trechoNaPeca } = await import('../checagens/editor.mjs');
+  assert.equal(trechoNaPeca('nenhum risco', 'Harmonização com nenhum risco pra você.'), true);
+  assert.equal(trechoNaPeca('Nada de dor', 'Nada de dor no procedimento.'), true);
+  assert.equal(trechoNaPeca('nenhum problema encontrado', 'A agenda confirma a paciente.'), false);
+  const { palavrasProibidas } = await import('../checagens/nunca.mjs');
+  assert.ok(palavrasProibidas('Harmonização sem risco').length);
+  const { capturar } = await import('../imagens/capturar.mjs').catch(() => ({}));
+  void capturar; // a medição roda no navegador (vitrine); aqui só confere que o título usa a medida própria
+  assert.match(htmlSlide({ tipo: 'ideia', titulo: 'x' }, { ramo: 'clinica', numero: 2, total: 5 }), /const sobraH=\(\)=>c\.scrollHeight>c\.clientHeight\+1\|\|\(h&&h\.scrollWidth>h\.clientWidth\+1\);/);
+});

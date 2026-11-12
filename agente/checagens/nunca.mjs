@@ -21,7 +21,7 @@ export const PROIBIDAS_AGENTE = [
   [/(?<![\p{L}])(?:odonto|dentista)[\p{L}]*(?:[^.!?\n]{0,40})(?:clareamento|implante|aparelho|sorriso perfeito)/iu,
     'promessa de procedimento odontológico'],
   // Publicidade médica (Resolução CFM 2.336/2023; CRO para odonto): sem superlativo, garantia, comparação nem promessa de resultado.
-  [/(?<![\p{L}])(?:refer[eê]ncia em (?:est[eé]tica|harmoniza|sa[uú]de|odonto)|a melhor cl[ií]nica|o melhor (?:resultado|procedimento|tratamento|profissional)|livre d[ae] dor|resultados? naturais? garantid|sem cicatriz|pele perfeita|rosto perfeito|sorriso perfeito|harmoniza[cç][aã]o perfeita|risco zero|sem risco (?:nenhum|algum|para (?:a|o) paciente)|procedimento sem risco)(?![\p{L}])/iu,
+  [/(?<![\p{L}])(?:refer[eê]ncia em (?:est[eé]tica|harmoniza|sa[uú]de|odonto)|a melhor cl[ií]nica|o melhor (?:resultado|procedimento|tratamento|profissional)|livre d[ae] dor|resultados? naturais? garantid|sem cicatriz|pele perfeita|rosto perfeito|sorriso perfeito|harmoniza[cç][aã]o perfeita|risco zero|sem risco (?:nenhum|algum|para (?:a|o) paciente)|(?:procedimento|harmoniza[cç][aã]o|preenchimento|toxina|botox|aplica[cç][aã]o) sem riscos?)(?![\p{L}])/iu,
     'publicidade médica (CFM): superlativo, garantia ou promessa de resultado'],
 ];
 

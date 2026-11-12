@@ -54,6 +54,8 @@ Ruins: "Gestão eficiente para sua clínica", "Seu negócio. Organizado.", "Hoje
   - ruim: "Delivery muito mais prático." → bom: "O telefone toca, o nome do cliente já aparece."
 - Uma frase por ideia. Se a frase precisa de "e" duas vezes, são duas frases.
 - Leia em voz alta: se você não falaria assim no balcão ou na recepção, reescreva.
+- A legenda conta a MESMA história das telas (mesmo personagem, mesma dor, mesmo desfecho). Nunca invente na legenda um detalhe que contradiz a imagem.
+- Restaurante: "nota" sozinha soa como nota fiscal (proibido falar). Diga "ticket da balança" ou "nota da balança".
 
 ## Direção de arte (resumo de guia/direcao-de-arte.md)
 
