@@ -51,7 +51,7 @@ export function layoutPadrao(s, formato = 'carrossel') {
 
 const esc = (t = '') => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 
-/** Título com o destaque (no escuro é coral; no papel, marca-texto coral; no coral, sublinhado grafite). */
+/** Título com o destaque (no escuro é coral; no papel, sublinhado coral; no coral, sublinhado grafite). */
 function titulo(texto, destaque) {
   const t = esc(texto);
   if (!destaque || !texto.includes(destaque)) return t;
@@ -85,7 +85,7 @@ const CORES = {
 
 const CSS = (l, a, story, fundo) => {
   const k = CORES[fundo] ?? CORES.escuro;
-  const dest = { escuro: 'color:var(--acento)', papel: 'background:linear-gradient(transparent 66%,rgba(255,122,80,.55) 66%,rgba(255,122,80,.55) 94%,transparent 94%);padding:0 .06em', coral: 'text-decoration:underline;text-decoration-thickness:.09em;text-underline-offset:.12em' }[fundo] ?? 'color:var(--acento)';
+  const dest = { escuro: 'color:var(--acento)', papel: 'text-decoration:underline;text-decoration-color:#FF7A50;text-decoration-thickness:.1em;text-underline-offset:.12em;text-decoration-skip-ink:none', coral: 'text-decoration:underline;text-decoration-thickness:.09em;text-underline-offset:.12em' }[fundo] ?? 'color:var(--acento)';
   return `
 ${fontes()}
 :root{--bg:${k.bg};--fg:${k.fg};--sub:${k.sub};--fraco:${k.fraco};--linha:${k.linha};--card:${k.card};--acento:${k.acento}}

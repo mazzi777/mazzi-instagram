@@ -18,6 +18,7 @@ import { ganchosDasAgendas, segundaSeguinte } from '../agente.mjs';
 import { hojeEmSaoPaulo } from '../../publicar/publicar.mjs';
 import { dataMais } from '../../publicar/validar.mjs';
 import { planejarSemana } from '../etapas/planejar.mjs';
+import { capasRecentes } from '../checagens/direcao.mjs';
 
 const RAIZ = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const saida = path.resolve(process.argv[2] ?? 'ensaio-qualidade');
@@ -42,7 +43,8 @@ const usados = [...lerGanchosUsados(RAIZ), ...ganchosDasAgendas(RAIZ)];
 const ctx = { raiz: RAIZ, saida, config, cerebro, produto, usados, hoje, registrar, reserva, semana };
 
 // Pauta nova, do planejador real (o mesmo do sábado), com os ganchos das últimas 6 semanas para não repetir.
-const { plano } = await planejarSemana({ raiz: RAIZ, semana, config, produto, cerebro, formatos: ['carrossel', 'imagem', 'reel', 'stories'], ganchosRecentes: usados.filter((u) => u.data >= dataMais(hoje, -42)) });
+const { plano } = await planejarSemana({ raiz: RAIZ, semana, config, produto, cerebro, formatos: ['carrossel', 'imagem', 'reel', 'stories'], ganchosRecentes: usados.filter((u) => u.data >= dataMais(hoje, -42)),
+  temasRecentes: capasRecentes([RAIZ], { limite: 30, comStories: true }).filter((t) => t.dia >= dataMais(hoje, -14) && t.tema) });
 writeFileSync(path.join(saida, 'plano.json'), `${JSON.stringify(plano, null, 2)}
 `);
 
