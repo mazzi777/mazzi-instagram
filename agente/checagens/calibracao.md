@@ -74,3 +74,20 @@ Os humanos que ficam abaixo de 70 são fatos da base escritos como descrição d
 ## Limite do que isto mede
 
 O autor do hookscore original avisa: a nota separa gancho bom de gancho ruim, mas não prevê qual de dois bons vai melhor. Aqui ela é piso de qualidade; quem escolhe entre ganchos bons são as métricas (seção 11 do SPEC).
+
+## G9b: editor (revisão final), ensaio de 12/11/2026
+
+Primeiro ensaio real (Actions, pauta da semana de 09/11, regra antiga: nota >= 7 em todos os 5 critérios). Notas do editor nas 4 avaliações que chegaram a ele:
+
+| Peça | original | humano | marca | novidade | clareza | Motivo principal |
+|---|---|---|---|---|---|---|
+| A carrossel | 7 | 7 | 7 | 6 | 7 | capa de texto grande igual às últimas |
+| S1 stories | 7 | 7 | 8 | 7 | 7 | aprovada |
+| S2 stories | 7 | 7 | 8 | 6 | 7 | de novo abre só com texto |
+| C imagem | 6 | 6 | 8 | 7 | 8 | pergunta retórica e erro de concordância ("falta 30 dias") |
+
+- O editor usa uma faixa estreita (6 a 8). Exigir 7 em tudo reprovou 3 de 4, quase sempre por um único 6 em "novidade".
+- O que ele aponta é real: capa repetida no grid e erro de português que o juiz visual deixou passar.
+- **Regra nova:** reprova se algum critério < 5 ou se 2 ou mais critérios < 7. Com ela, A e S2 passariam (um 6 só) e C reprovaria (dois 6, com o erro de concordância). A capa repetida, que era o motivo de A e S2, passou a ser cobrada pelo código (família da capa, G9a), antes de gastar o juiz.
+- Prompt: régua explícita (5 morno, 7 bom, 9 ótimo) e sem "prefira reprovar".
+- Rever com mais dados: o relatório semanal traz as notas do editor no registro (`editor_*`).

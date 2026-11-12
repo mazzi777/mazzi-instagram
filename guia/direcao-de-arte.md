@@ -38,13 +38,17 @@ Para ver todos: `node agente/ferramentas/vitrine.mjs <pasta>` (renderiza cada la
 - **(código)** Carrossel: pelo menos 3 layouts diferentes (4 se tiver 7 ou mais slides); o mesmo layout nunca em dois slides seguidos (exceto `passo`); último slide `chamada`; `passo`, `lista` e `chamada` não abrem.
 - **(código)** Stories: pelo menos 2 layouts; nunca o mesmo 3 vezes seguidas.
 - **(código)** A capa (carrossel e imagem) não repete o layout das 2 últimas capas do feed, nem o fundo delas (o fundo quem escolhe é o código).
+- **(código)** Família da capa: `pergunta`, `manchete`, `frase` e `chamada` são "texto" (no grid, viram o mesmo quadrado de letra grande); `conversa`, `comparativo`, `cartao`, `bilhete`, `passo` e `lista` são "cena". Depois de 2 capas de texto, a próxima mostra uma cena. Isso veio do ensaio de 12/11: o editor apontou que capa `pergunta` depois de `manchete` "é a mesma capa".
+- **(código)** Stories: pelo menos um quadro com cena; `passo` não existe nos stories.
+- **(código)** Destaque colorido: o código mantém só os 2 primeiros (não reprova por isso).
+- **(código)** Banco reserva: quando uma peça cai na reserva, vem primeiro a que não repete as 2 últimas capas e a que já tem o visual novo. As 8 peças da reserva feitas antes de 12/11 são do molde antigo; o banco se renova sozinho conforme o agente repõe.
 - **(código)** Fundo: nada 3 vezes seguidas; coral no máximo 2 telas por peça; carrossel com pelo menos 2 fundos.
 - **(código)** "pergunta" e "chamada" com até 9 palavras no título; texto de cada tela com até 32 palavras; destaque colorido em no máximo 2 slides.
 - **(código)** Cada layout precisa do seu conteúdo: `conversa` com 2 a 4 mensagens, `comparativo` com os dois lados, `bilhete` com 2 a 4 anotações, `lista` com 3 a 5 itens, `cartao` com cartão, `passo` com número.
 
 ## O que o editor (G9b) olha
 
-Nota de 0 a 10, mínimo 7 em cada um, com as imagens prontas e as últimas 10 peças do perfil na frente:
+O editor está na mesma chamada do juiz visual (G7): uma chamada com imagens por tentativa. Ele julga só o que o redator escolhe (texto, ideia, layout, conteúdo dos cartões), nunca cor, fundo ou tamanho de letra. Nota de 0 a 10 em cada critério, com as imagens prontas e as últimas 10 peças do perfil na frente. **Passa** se nenhum critério ficar abaixo de 5 e no máximo um ficar abaixo de 7 (calibrado no ensaio de 12/11/2026, ver `agente/checagens/calibracao.md`):
 
 1. **original**: tem ideia e composição próprias, ou serve para qualquer sistema de gestão?
 2. **humano**: soa como gente que conhece o balcão e a recepção, ou como anúncio pronto?
@@ -52,7 +56,7 @@ Nota de 0 a 10, mínimo 7 em cada um, com as imagens prontas e as últimas 10 pe
 4. **novidade**: traz algo que as últimas peças não trouxeram?
 5. **clareza**: dá para entender em 3 segundos no celular?
 
-Mais a lista de **ética médica (CFM)** nas peças de clínica: qualquer item reprova.
+Mais a lista de **ética médica (CFM)** nas peças de clínica: qualquer trecho que exista de verdade no texto reprova (o código confere o trecho).
 
 ## Escolher o layout pelo conteúdo (exemplos)
 

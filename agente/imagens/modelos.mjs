@@ -20,20 +20,20 @@ export const MEDIDAS = { carrossel: [1080, 1350], imagem: [1080, 1350], story: [
 const ROTULO = { clinica: 'para clínicas', restaurante: 'para restaurantes', comum: 'Mazzi Systems' };
 
 /**
- * Os layouts. `fundos`: onde ele funciona (o 1º é o preferido); `capa`: pode abrir o carrossel / ser a imagem única;
+ * Os layouts. `familia`: 'texto' (só letra grande) ou 'cena' (mostra algo: conversa, caderno, cartão...); `fundos`: onde ele funciona (o 1º é o preferido); `capa`: pode abrir o carrossel / ser a imagem única;
  * `precisa`: campo do conteúdo sem o qual o layout não tem o que mostrar.
  */
 export const LAYOUTS = {
-  manchete: { fundos: ['escuro', 'papel'], capa: true, uso: 'título grande à esquerda e um texto curto; o padrão para explicar uma ideia' },
-  pergunta: { fundos: ['papel', 'coral', 'escuro'], capa: true, uso: 'uma pergunta ou frase curta enorme, centralizada, quase sem texto; para a dor e para a capa' },
-  passo: { fundos: ['escuro', 'papel'], capa: false, precisa: 'passo', uso: 'número gigante vazado + título + texto; SÓ quando os slides são uma sequência de verdade (passo 1, 2, 3)' },
-  conversa: { fundos: ['papel', 'escuro'], capa: true, precisa: 'conversa', uso: 'bolhas de conversa (EXEMPLO) entre o negócio e o cliente/paciente; para orçamento, confirmação, pedido' },
-  comparativo: { fundos: ['escuro', 'papel'], capa: true, precisa: 'lados', uso: 'dois lados: à esquerda o jeito de caderno (manuscrito e riscado), à direita o que a tela mostra' },
-  cartao: { fundos: ['escuro', 'papel', 'coral'], capa: true, precisa: 'cartao', uso: 'cartão de interface EXEMPLO grande e levemente inclinado, título curto em cima; para mostrar a função' },
-  bilhete: { fundos: ['escuro', 'coral'], capa: true, precisa: 'anotacoes', uso: 'folha de caderno com anotações à mão (algumas riscadas); para a dor do papel, da cabeça, do caderno' },
-  lista: { fundos: ['escuro', 'papel'], capa: false, precisa: 'itens', uso: 'checklist marcado; para o resumo que a pessoa printa' },
-  frase: { fundos: ['coral', 'papel'], capa: true, uso: 'uma opinião da marca em frase grande com aspas; para opinião e virada' },
-  chamada: { fundos: ['coral', 'papel', 'escuro'], capa: false, uso: 'o pedido final (WhatsApp, salvar, compartilhar), grande e sozinho' },
+  manchete: { familia: 'texto', fundos: ['escuro', 'papel'], capa: true, uso: 'título grande à esquerda e um texto curto; o padrão para explicar uma ideia' },
+  pergunta: { familia: 'texto', fundos: ['papel', 'coral', 'escuro'], capa: true, uso: 'uma pergunta ou frase curta enorme, centralizada, quase sem texto; para a dor e para a capa' },
+  passo: { familia: 'cena', fundos: ['escuro', 'papel'], capa: false, precisa: 'passo', soCarrossel: true, uso: 'número gigante vazado + título + texto; SÓ quando os slides são uma sequência de verdade (passo 1, 2, 3)' },
+  conversa: { familia: 'cena', fundos: ['papel', 'escuro'], capa: true, precisa: 'conversa', uso: 'bolhas de conversa (EXEMPLO) entre o negócio e o cliente/paciente; para orçamento, confirmação, pedido' },
+  comparativo: { familia: 'cena', fundos: ['escuro', 'papel'], capa: true, precisa: 'lados', uso: 'dois lados: à esquerda o jeito de caderno (manuscrito e riscado), à direita o que a tela mostra' },
+  cartao: { familia: 'cena', fundos: ['escuro', 'papel', 'coral'], capa: true, precisa: 'cartao', uso: 'cartão de interface EXEMPLO grande e levemente inclinado, título curto em cima; para mostrar a função' },
+  bilhete: { familia: 'cena', fundos: ['escuro', 'coral'], capa: true, precisa: 'anotacoes', uso: 'folha de caderno com anotações à mão (algumas riscadas); para a dor do papel, da cabeça, do caderno' },
+  lista: { familia: 'cena', fundos: ['escuro', 'papel'], capa: false, precisa: 'itens', uso: 'checklist marcado; para o resumo que a pessoa printa' },
+  frase: { familia: 'texto', fundos: ['coral', 'papel'], capa: true, uso: 'uma opinião da marca em frase grande com aspas; para opinião e virada' },
+  chamada: { familia: 'texto', fundos: ['coral', 'papel', 'escuro'], capa: false, uso: 'o pedido final (WhatsApp, salvar, compartilhar), grande e sozinho' },
 };
 export const NOMES_LAYOUT = Object.keys(LAYOUTS);
 export const FUNDOS = ['escuro', 'papel', 'coral'];
@@ -108,7 +108,8 @@ h1{font-weight:800;letter-spacing:-.035em;line-height:1.03;font-size:var(--fs,11
 /* manchete */
 .traco{width:96px;height:10px;border-radius:5px;background:var(--acento)}
 /* pergunta */
-.l-pergunta .corpo{align-items:center;text-align:center}
+.l-pergunta .corpo{text-align:center}
+.l-pergunta h1,.l-pergunta .texto{align-self:stretch;max-width:none}
 .l-pergunta h1{letter-spacing:-.045em;line-height:.98}
 .l-pergunta .texto{text-align:center}
 /* passo */
@@ -161,9 +162,10 @@ for(const t of ts){let fs=parseFloat(getComputedStyle(t).fontSize);while(fs>30&&
 if(e){let z=1;while(z>.7&&sobra()){z-=.05;e.style.zoom=z}}
 const r=(x)=>x.getBoundingClientRect(),cr=r(c),problemas=[];
 if(sobra())problemas.push('o conteúdo não coube na peça');
-for(const x of c.children){const b=r(x);
-if(b.top<cr.top-1||b.bottom>cr.bottom+1)problemas.push('elemento saiu da área do conteúdo e encostou no topo ou no rodapé');
-if(b.left<-30||b.right>innerWidth+30)problemas.push('elemento saiu pela lateral');}
+for(const x of c.children){const b=r(x),folga=x.matches('.grande,.folha,.escala,.numero')?40:2;
+if(b.top<cr.top-folga||b.bottom>cr.bottom+folga)problemas.push('elemento saiu da área do conteúdo e encostou no topo ou no rodapé');
+if(b.left<cr.left-folga||b.right>cr.right+folga)problemas.push('elemento saiu da margem lateral');}
+for(const x of c.querySelectorAll('h1,.texto')){if(x.scrollWidth>x.clientWidth+1)problemas.push('palavra maior que a linha (sai da margem)');}
 document.body.dataset.problema=[...new Set(problemas)].join('; ');
 document.body.dataset.pronto='1';
 });
@@ -190,7 +192,8 @@ const CORPO = {
   // O modelo numera/marca; número que o redator já tenha posto ("1.", "2)") sai.
   lista: (s) => `<h1 style="--fs:84px">${titulo(s.titulo, s.destaque)}</h1><div class="checklist escala">${(s.itens ?? []).map((t) => `<div><span class="caixa"></span><span>${esc(t.replace(/^\s*\d+\s*[.)\-:]\s*/, ''))}</span></div>`).join('')}</div>`,
   frase: (s) => `<div class="aspas">“</div><h1 style="--fs:100px">${titulo(s.titulo, s.destaque)}</h1>${paragrafo(s.texto)}`,
-  chamada: (s) => `<h1 style="--fs:128px">${titulo(s.titulo, s.destaque)}</h1>${paragrafo(s.texto)}<div class="pilula">${s.objetivo === 'alcance' ? 'salva pra depois' : 'link na bio'}</div>`,
+  // A pílula só no feed (o objetivo diz qual); no story o próprio texto faz o pedido ("me responde aqui" ou "link na bio").
+  chamada: (s) => `<h1 style="--fs:128px">${titulo(s.titulo, s.destaque)}</h1>${paragrafo(s.texto)}${s.objetivo ? `<div class="pilula">${s.objetivo === 'alcance' ? 'salva pra depois' : 'link na bio'}</div>` : ''}`,
 };
 
 function montar(s, { formato, ramo, numero, total, seguir, capa }) {

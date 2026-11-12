@@ -37,7 +37,7 @@ const Slide = z.object({
   itens: z.array(z.string().max(60)).max(5).optional(),
   cartao: Cartao.optional(),
 });
-const Quadro = z.object({ ...Visual, titulo: z.string().min(2).max(80), destaque: z.string().max(25).optional(), texto: z.string().max(140).optional(), itens: z.array(z.string().max(60)).max(5).optional(), cartao: Cartao.optional() });
+const Quadro = z.object({ ...Visual, layout: z.enum(NOMES_LAYOUT.filter((l) => !LAYOUTS[l].soCarrossel)), titulo: z.string().min(2).max(80), destaque: z.string().max(25).optional(), texto: z.string().max(140).optional(), itens: z.array(z.string().max(60)).max(5).optional(), cartao: Cartao.optional() });
 // Cenas da biblioteca de motion (agente/video/motion/cenas.jsx). O redator escolhe uma por batida.
 const Ic = z.enum(ICONES);
 const Cena = z.discriminatedUnion('tipo', [
@@ -166,21 +166,21 @@ const CENAS_PROMPT = `CENAS DISPONÍVEIS (campo "cena", escolha uma por batida):
 Regras: comece com gancho; nunca a mesma cena duas vezes seguidas; pelo menos 4 cenas diferentes; pelo menos uma cena que mostre o produto.
 Ícones permitidos: ${ICONES.join(', ')}.`;
 
-const LAYOUTS_PROMPT = `LAYOUTS (campo "layout" de cada slide, quadro ou imagem; o fundo quem escolhe é o sistema):
-${Object.entries(LAYOUTS).map(([k, v]) => `- ${k}${v.precisa ? ` (preencha "${v.precisa}")` : ''}${v.capa ? '' : ' [não serve de capa]'}: ${v.uso}.`).join('\n')}
+const layoutsPrompt = (tipo) => `LAYOUTS (campo "layout" de cada slide, quadro ou imagem; o fundo quem escolhe é o sistema):
+${Object.entries(LAYOUTS).filter(([, v]) => tipo === 'carrossel' || !v.soCarrossel).map(([k, v]) => `- ${k}${v.precisa ? ` (preencha "${v.precisa}")` : ''}${v.capa ? '' : ' [não serve de capa]'}: ${v.uso}.`).join('\n')}
 Campos: "conversa": 2 a 4 mensagens {lado: negocio|cliente, texto}; "lados": {a: {rotulo, itens}, b: {rotulo, itens}} (a = o jeito de
 caderno ou de cabeça, b = o que a tela da Mazzi mostra; até 3 itens curtos de cada lado); "anotacoes": 2 a 4 anotações de caderno
 {texto, riscado?}; "itens": 3 a 5 itens; "cartao": {titulo, linhas}.
 Direção de arte (o código confere e reprova): escolha o layout pelo que a tela PRECISA mostrar, não por costume. Carrossel com pelo menos
 3 layouts diferentes (4 se tiver 7 ou mais slides), nunca o mesmo layout em dois slides seguidos (exceto "passo"), último slide em
 "chamada". Stories com pelo menos 2 layouts. "pergunta" e "chamada" com até 9 palavras no título. Texto de cada tela com até 32 palavras.
-"destaque" (palavra colorida) em no máximo 2 slides, e só se for a palavra que dói. Guia completo: guia/direcao-de-arte.md.`;
+Stories: pelo menos um quadro que mostre uma cena (conversa, cartao, bilhete, comparativo ou lista). "destaque" (palavra colorida) só na palavra que dói, em no máximo 2 telas (o sistema tira o resto). Guia: guia/direcao-de-arte.md.`;
 
 export function promptPeca(item, motivosAnteriores = [], anterior = null, { capas = [] } = {}) {
   const formato = {
-    carrossel: `5 a 8 slides: capa (gancho), estaca, ideias (uma por slide, com "passo" numerado se for sequência), resumo (itens) e chamada. Cartão, conversa, comparativo ou bilhete de exemplo quando ajudar a VER a cena.\n${LAYOUTS_PROMPT}`,
-    imagem: `um post de imagem única: título forte, texto curto e, se ajudar, um cartão, uma conversa, um comparativo ou um bilhete de exemplo.\n${LAYOUTS_PROMPT}`,
-    stories: `4 ou 5 quadros, uma ideia por quadro, falando com "você"; o 4º é o pedido ("me responde aqui nesse story" ou "chama no WhatsApp, link na bio").\n${LAYOUTS_PROMPT}`,
+    carrossel: `5 a 8 slides: capa (gancho), estaca, ideias (uma por slide, com "passo" numerado se for sequência), resumo (itens) e chamada. Cartão, conversa, comparativo ou bilhete de exemplo quando ajudar a VER a cena.\n${layoutsPrompt(item.tipo)}`,
+    imagem: `um post de imagem única: título forte, texto curto e, se ajudar, um cartão, uma conversa, um comparativo ou um bilhete de exemplo.\n${layoutsPrompt(item.tipo)}`,
+    stories: `4 ou 5 quadros, uma ideia por quadro, falando com "você"; o 4º é o pedido ("me responde aqui nesse story" ou "chama no WhatsApp, link na bio").\n${layoutsPrompt(item.tipo)}`,
     reel: 'reel narrado de 20 a 40 segundos, em 7 a 12 batidas. Cada batida tem "fala" (o que a voz diz: frases curtas de gente, até 10 palavras para caber em 4 segundos; a 1ª fala é o gancho, até 7 palavras, e cabe em 3 segundos), "tela" (a frase grande na tela, até 6 palavras, que reforça a fala sem repetir tudo) e "cena" (o motion graphics daquela batida). A última batida é a chamada (o fechamento da marca entra sozinho nela). Escreva a fala para ser ouvida: sem siglas difíceis, sem parênteses, sem emoji.\n' + CENAS_PROMPT,
   }[item.tipo];
   const chamada = item.objetivo === 'conversa' ? 'A chamada é "chama no WhatsApp (link na bio)".' : 'A chamada pede para salvar ou compartilhar o post (uma só).';
@@ -190,7 +190,7 @@ Formato: ${item.tipo}: ${formato}
 Ramo: ${item.ramo} · Objetivo: ${item.objetivo} · Tipo de conteúdo: ${item.conteudo}
 Tema: ${item.tema}
 Ângulo: ${item.angulo}
-Fatos da base que pode usar (e só estes): ${item.fatos.join(', ')}${capas.length && ['carrossel', 'imagem'].includes(item.tipo) ? `\nAs últimas capas do feed usaram os layouts: ${capas.slice(0, 3).map((c) => c.layout).join(', ')}. A capa desta peça usa OUTRO layout.` : ''}
+Fatos da base que pode usar (e só estes): ${item.fatos.join(', ')}${capas.length && ['carrossel', 'imagem'].includes(item.tipo) ? `\nAs últimas capas do feed usaram os layouts: ${capas.slice(0, 3).map((c) => c.layout).join(', ')}. A capa desta peça usa OUTRO layout${capas.slice(0, 2).length === 2 && capas.slice(0, 2).every((c) => LAYOUTS[c.layout]?.familia !== 'cena') ? ', e precisa MOSTRAR uma cena (conversa, comparativo, cartao ou bilhete): as últimas foram só texto grande' : ''}.` : ''}
 ${item.tipo === 'stories' ? '' : `${chamada}\nA legenda começa com o gancho (primeira linha, até 125 caracteres), corpo curto, uma chamada, até 3 hashtags no fim.${item.tipo === 'reel' ? '' : '\n"alt_text" descreve a capa para quem não enxerga, em uma ou duas frases.'}`}
 "gancho" é a frase da capa / do 1º quadro: até 12 palavras, concreta, com algo em jogo, falando com o dono.
 Nunca escreva sobre o plano, o ângulo ou o próprio post ("o foco aqui é...", "neste post"): escreva só o que o dono vai ler.

@@ -1,9 +1,9 @@
 name: Ensaio de qualidade das peças
 
-# Roda o laço de qualidade (direção de arte + editor) com o Claude de verdade numa branch de trabalho, para ver as peças
-# antes de juntar no main. NÃO publica, NÃO grava no repositório (sem commit, sem push) e não usa as variáveis do
-# kill switch: a saída vai só para um artifact da rodada (imagens, registro das tentativas e o resumo).
-# Dispara sozinho em push numa branch feat/qualidade-* que mexa no agente, ou na mão (Actions › este workflow).
+# Roda o laço de qualidade (direção de arte + revisão final) com o Claude de verdade numa branch de trabalho, para ver as
+# peças antes de juntar no main. NÃO publica, NÃO grava no repositório (sem commit, sem push): a saída vai só para um
+# artifact da rodada (imagens, registro das tentativas e o resumo). Gasta o plano Pro (~US$ 1 a 2 equivalentes por rodada),
+# por isso só roda quando pedido: push numa branch feat/qualidade-* com "[ensaio]" na mensagem do commit, ou na mão.
 
 on:
   push:
@@ -21,12 +21,14 @@ permissions:
 
 concurrency:
   group: ensaio-qualidade-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   ensaio:
-    # Respeita o kill switch: pausado, nada usa o Claude.
-    if: vars.AGENTE_PAUSADO != 'true'
+    # Kill switch e modo só reserva: nada usa o Claude.
+    if: >-
+      vars.AGENTE_PAUSADO != 'true' && vars.AGENTE_MODO != 'so_reserva' &&
+      (github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[ensaio]'))
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
@@ -47,7 +49,11 @@ jobs:
         env:
           CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           AGENTE_MODO: ensaio
-        run: set -o pipefail; node agente/ferramentas/ensaio-qualidade.mjs "$RUNNER_TEMP/ensaio-qualidade" "${{ inputs.semana || '2026-11-09' }}" | tee -a "$GITHUB_STEP_SUMMARY"
+          SEMANA: ${{ inputs.semana || '2026-11-09' }}
+        run: |
+          set -o pipefail
+          [[ "$SEMANA" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]] || { echo "semana inválida: $SEMANA"; exit 1; }
+          node agente/ferramentas/ensaio-qualidade.mjs "$RUNNER_TEMP/ensaio-qualidade" "$SEMANA" | tee -a "$GITHUB_STEP_SUMMARY"
 
       - uses: actions/upload-artifact@v4
         if: always()

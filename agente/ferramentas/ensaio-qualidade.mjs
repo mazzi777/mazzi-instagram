@@ -24,27 +24,43 @@ mkdirSync(saida, { recursive: true });
 
 const log = [];
 const registrar = criarRegistro(saida);
-const cerebro = { ...criarCerebro({ raiz: saida, config, log: (m) => log.push(m) }), config };
+// raiz = repositório: o cérebro lê o uso real da semana (uso/AAAA-Www.json) e respeita o teto e o modo econômico.
+// O que ele anota fica só na cópia do runner (este workflow não faz commit).
+const base = criarCerebro({ raiz: RAIZ, config, log: (m) => log.push(m) });
+// Guarda o que o redator escreveu em cada peça, para o caso forçado reaproveitar sem pagar outro texto.
+const escrito = new Map();
+let atual = null;
+const cerebro = { ...base, config, pedir: async (q) => { const r = await base.pedir(q); if (q.etapa.startsWith('escrever:')) escrito.set(atual, r); return r; } };
 const reserva = criarReserva({ raiz: RAIZ, saida, produto, marcar: false });
 const usados = [...lerGanchosUsados(RAIZ), ...ganchosDasAgendas(RAIZ)];
 const hoje = semana;
 const ctx = { raiz: RAIZ, saida, config, cerebro, produto, usados, hoje, registrar, reserva, semana };
 
 const resultados = [];
-const pecas = plano.pecas.filter((p) => ['carrossel', 'imagem', 'stories'].includes(p.tipo)).slice(0, Number(process.env.ENSAIO_MAX ?? 4));
+const pecas = plano.pecas.filter((p) => ['carrossel', 'imagem', 'stories'].includes(p.tipo)).slice(0, Number(process.env.ENSAIO_MAX ?? 8));
 for (const item of pecas) {
+  atual = item.id;
   const r = await produzirPeca(item, ctx);
   if (r.entrada) gravarNaAgenda(saida, semana, r.entrada);
   resultados.push({ id: item.id, tipo: item.tipo, status: r.status, motivos: r.motivos ?? [], gancho: r.entrada?.gancho, visual: r.entrada?.visual });
   console.log(`${item.id} ${item.tipo}: ${r.status}`);
 }
 
-// Caso forçado: editor que nada satisfaz e sem regeração (economiza o plano). Tem que cair no banco reserva.
-const forcado = pecas.find((p) => p.tipo === 'carrossel') ?? pecas[0];
-const configForcado = { ...config, checagens: { ...config.checagens, regeracoes: 0, editor: { notaMinima: 11 } } };
-const rf = await produzirPeca({ ...forcado, id: 'X' }, { ...ctx, config: configForcado, saida: path.join(saida, 'forcado'), registrar: criarRegistro(path.join(saida, 'forcado')) });
-resultados.push({ id: 'X (forçado)', tipo: forcado.tipo, status: rf.status, motivos: rf.motivos ?? [], gancho: rf.entrada?.gancho, origem: rf.entrada?.origem });
-console.log(`X (forçado a reprovar): ${rf.status}`);
+// Caso forçado: o MESMO texto de uma peça que acabou de ser aprovada, com o editor exigindo nota impossível e sem regeração.
+// Só o editor pode reprovar aqui, e a peça tem que cair no banco reserva.
+const aprovada = resultados.find((x) => x.status === 'aprovada' && escrito.has(x.id));
+let provaReserva = 'sem peça aprovada para reaproveitar: caso forçado não rodou';
+if (aprovada) {
+  const item = pecas.find((p) => p.id === aprovada.id);
+  const pastaF = path.join(saida, 'forcado');
+  const configForcado = { ...config, checagens: { ...config.checagens, regeracoes: 0, editor: { minimoCriterio: 11, maxAbaixoDe7: 0 } } };
+  const cerebroForcado = { ...cerebro, pedir: async (q) => (q.etapa.startsWith('escrever:') ? structuredClone(escrito.get(aprovada.id)) : cerebro.pedir(q)) };
+  const rf = await produzirPeca({ ...item, id: 'X' }, { ...ctx, config: configForcado, cerebro: cerebroForcado, saida: pastaF, registrar: criarRegistro(pastaF), reserva: criarReserva({ raiz: RAIZ, saida: pastaF, produto, marcar: false }) });
+  const peloEditor = (rf.motivos ?? []).some((m) => m.startsWith('editor'));
+  provaReserva = rf.status === 'reserva' && peloEditor ? `OK: reprovada pelo editor e trocada pela reserva ${rf.entrada?.tema ?? ''}` : `FALHOU: status ${rf.status}, motivos ${(rf.motivos ?? []).join(' | ')}`;
+  resultados.push({ id: `X (forçado, texto de ${aprovada.id})`, tipo: item.tipo, status: rf.status, motivos: rf.motivos ?? [], gancho: rf.entrada?.gancho, origem: rf.entrada?.origem });
+}
+console.log(`Caso forçado: ${provaReserva}`);
 
 // Notas e motivos de cada tentativa, do registro.
 const linhas = (dir) => (existsSync(dir) ? readdirSync(dir).flatMap((f) => readFileSync(path.join(dir, f), 'utf8').trim().split('\n').map((l) => JSON.parse(l))) : []);
@@ -55,6 +71,8 @@ const resumo = [
   '| Peça | Tipo | Resultado | Gancho | Capa |',
   '|---|---|---|---|---|',
   ...resultados.map((r) => `| ${r.id} | ${r.tipo} | ${r.status}${r.origem ? ` (${r.origem})` : ''} | ${r.gancho ?? '-'} | ${r.visual ? `${r.visual.layout}/${r.visual.fundo}` : '-'} |`),
+  '',
+  `Caso forçado (reprovar e cair na reserva): ${provaReserva}`,
   '',
   '## Tentativas (notas e motivos)',
   '',
@@ -84,3 +102,4 @@ try {
   console.log(`folha antes/depois não saiu: ${e.message}`);
 }
 console.log(resumo);
+if (provaReserva.startsWith('FALHOU')) process.exit(1);

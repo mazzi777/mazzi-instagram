@@ -96,6 +96,11 @@ export function checarDirecao(tipo, conteudo, { capas = [] } = {}) {
     if (capa && LAYOUTS[capa.layout] && !LAYOUTS[capa.layout].capa) m.push(`direção: o layout "${capa.layout}" não serve de capa (use ${Object.keys(LAYOUTS).filter((k) => LAYOUTS[k].capa).join(', ')})`);
     const ultimas = capas.filter((c) => c.layout !== 'reel').slice(0, 2).map((c) => c.layout);
     if (capa && ultimas.includes(capa.layout)) m.push(`direção: capa em "${capa.layout}" repete uma das 2 últimas capas do feed (${ultimas.join(', ')}); escolha outro layout de capa`);
+    // No grid, "pergunta", "manchete" e "frase" são o mesmo quadrado de letra grande: depois de 2 capas só de texto, a próxima mostra uma cena.
+    const familia = (l) => LAYOUTS[l]?.familia ?? 'texto';
+    if (capa && LAYOUTS[capa.layout] && ultimas.length === 2 && ultimas.every((l) => familia(l) === 'texto') && familia(capa.layout) === 'texto') {
+      m.push(`direção: as 2 últimas capas do feed foram só texto grande (${ultimas.join(', ')}); esta capa precisa mostrar uma cena (${Object.keys(LAYOUTS).filter((k) => LAYOUTS[k].capa && LAYOUTS[k].familia === 'cena').join(', ')})`);
+    }
   }
   if (tipo === 'carrossel') {
     const distintos = new Set(layouts).size;
@@ -103,22 +108,29 @@ export function checarDirecao(tipo, conteudo, { capas = [] } = {}) {
     if (distintos < minimo) m.push(`direção: só ${distintos} layouts diferentes em ${telas.length} slides (mínimo ${minimo}); mude a composição de alguns slides`);
     layouts.forEach((l, i) => { if (i && l === layouts[i - 1] && l !== 'passo') m.push(`direção: layout "${l}" repetido nos slides ${i} e ${i + 1}`); });
     if (layouts.at(-1) !== 'chamada') m.push('direção: o último slide tem que ser o layout "chamada"');
-    const destaques = telas.filter((t) => t.destaque).length;
-    if (destaques > 2) m.push(`direção: destaque colorido em ${destaques} slides (no máximo 2; destaque em todo slide vira enfeite)`);
   }
   if (tipo === 'stories') {
     if (new Set(layouts).size < 2) m.push('direção: os quadros dos stories usam um layout só; use pelo menos 2');
+    if (!layouts.some((l) => LAYOUTS[l]?.familia === 'cena')) m.push('direção: nenhum quadro dos stories mostra uma cena (conversa, cartão, bilhete, comparativo ou lista); é só texto grande');
     layouts.forEach((l, i) => { if (i >= 2 && l === layouts[i - 1] && l === layouts[i - 2]) m.push(`direção: layout "${l}" 3 vezes seguidas nos stories (quadros ${i - 1} a ${i + 1})`); });
   }
   return m;
 }
 
-/** Aplica os fundos escolhidos no conteúdo (cópia). Devolve { conteudo, visual } para a agenda. */
+/**
+ * Aplica os fundos escolhidos no conteúdo (cópia) e corrige sozinho o que não precisa do redator: destaque colorido
+ * só nas 2 primeiras telas que o pediram (destaque em todo slide vira enfeite). Devolve { conteudo, visual } para a agenda.
+ */
 export function aplicarFundos(tipo, conteudo, { capas = [] } = {}) {
   const telas = telasDaPeca(tipo, conteudo);
   if (!telas.length) return { conteudo, visual: null };
   const fundos = escolherFundos(telas, { capas, formato: tipo === 'stories' ? 'story' : tipo });
-  const pintar = (lista) => lista.map((t, i) => ({ ...t, layout: telas[i].layout, fundo: fundos[i] }));
+  let destaques = 0;
+  const pintar = (lista) => lista.map((t, i) => {
+    const { destaque, ...resto } = t;
+    const manter = destaque && destaques++ < 2;
+    return { ...resto, ...(manter ? { destaque } : {}), layout: telas[i].layout, fundo: fundos[i] };
+  });
   const novo = tipo === 'carrossel' ? { ...conteudo, slides: pintar(conteudo.slides) }
     : tipo === 'stories' ? { ...conteudo, quadros: pintar(conteudo.quadros) }
       : { ...conteudo, layout: telas[0].layout, fundo: fundos[0] };

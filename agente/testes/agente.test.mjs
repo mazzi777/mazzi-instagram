@@ -13,7 +13,7 @@ import { segundaSeguinte, segundaDa, avisosDeToken } from '../agente.mjs';
 import { lerProduto } from '../checagens/fatos.mjs';
 import { htmlSlide, htmlStory } from '../imagens/modelos.mjs';
 import { checarDirecao, escolherFundos } from '../checagens/direcao.mjs';
-import { checarEditor } from '../checagens/editor.mjs';
+import { checarRevisao } from '../checagens/editor.mjs';
 
 const RAIZ = path.resolve(path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, '$1')), '..', '..');
 const config = JSON.parse(readFileSync(path.join(RAIZ, 'agente', 'config.json'), 'utf8'));
@@ -113,7 +113,7 @@ test('plano: recusado volta com os motivos e passa na 2ª tentativa', async () =
 const carrosselBom = {
   gancho: 'Paciente faltou de novo?',
   slides: [
-    { tipo: 'capa', layout: 'pergunta', titulo: 'Paciente faltou de novo?', destaque: 'de novo?', texto: 'O horário vazio custa caro pra clínica.' },
+    { tipo: 'capa', layout: 'bilhete', anotacoes: [{ texto: 'ligar pra Ana' }, { texto: 'confirmou?', riscado: true }], titulo: 'Paciente faltou de novo?', destaque: 'de novo?', texto: 'O horário vazio custa caro pra clínica.' },
     { tipo: 'estaca', layout: 'manchete', titulo: 'Horário vazio não volta', texto: 'Quem falta sem avisar deixa a agenda furada.' },
     { tipo: 'ideia', layout: 'passo', passo: 1, titulo: 'Lembrete com um toque', texto: 'Sai pronto pro WhatsApp com nome, dia e horário.', cartao: { titulo: 'amanhã', linhas: [{ rotulo: 'Consulta 14h', selo: 'Confirmou', tom: 'ok' }] } },
     { tipo: 'resumo', layout: 'lista', titulo: 'Resumo', itens: ['Mande o lembrete na véspera', 'Veja quem confirmou', 'Remarque quem pediu'] },
@@ -139,7 +139,7 @@ test('checarTexto: peça boa passa com juízes limpos; fato inventado reprova', 
   assert.equal(ruim.ok, false);
 });
 
-const EDITOR_OK = () => ({ notas: { original: 8, humano: 8, marca: 9, novidade: 8, clareza: 9 }, cfm: [], problemas: [] });
+const EDITOR_OK = () => ({ notas: { original: 8, humano: 8, marca: 9, novidade: 8, clareza: 9 }, cfm: [], sugestoes: [] });
 function cerebroFalso({ conteudos, visual = () => ({ problemas: [] }), fatos = () => ({ afirmacoes: [] }), editor = EDITOR_OK }) {
   let n = 0;
   const pedidos = [];
@@ -147,7 +147,8 @@ function cerebroFalso({ conteudos, visual = () => ({ problemas: [] }), fatos = (
     pedidos,
     economico: () => false,
     pedir: async (q) => { pedidos.push(q); return conteudos[Math.min(n++, conteudos.length - 1)]; },
-    juiz: (_schema, etapa) => async () => (etapa === 'juiz:visual' ? visual() : etapa === 'juiz:fatos' ? fatos() : etapa === 'juiz:editor' ? editor() : { problemas: [] }),
+    // G7 e G9b são uma chamada só (juiz:visual): checklist de imagem + notas do editor.
+    juiz: (_schema, etapa) => async () => (etapa === 'juiz:visual' ? { ...editor(), ...visual() } : etapa === 'juiz:fatos' ? fatos() : { problemas: [] }),
   };
 }
 
@@ -271,6 +272,11 @@ test('direção de arte (G9a): reprova molde repetido, capa igual às últimas e
   assert.ok(checarDirecao('imagem', { layout: 'conversa', titulo: 'Sumiu?' }).some((m) => /sem 2 a 4 mensagens/.test(m)));
   assert.ok(checarDirecao('carrossel', telas(['lista', 'manchete', 'passo', 'pergunta', 'chamada'])).some((m) => /não serve de capa/.test(m)));
   assert.ok(checarDirecao('stories', { quadros: [1, 2, 3, 4].map(() => ({ layout: 'pergunta', titulo: 'Oi' })) }).some((m) => /um layout só/.test(m)));
+  assert.ok(checarDirecao('stories', { quadros: ['pergunta', 'manchete', 'frase', 'chamada'].map((layout) => ({ layout, titulo: 'Oi' })) }).some((m) => /nenhum quadro dos stories mostra uma cena/.test(m)));
+  // Depois de 2 capas só de texto grande (o molde antigo conta como manchete), a capa precisa mostrar uma cena.
+  const texto2 = [{ layout: 'manchete', fundo: 'escuro' }, { layout: 'manchete', fundo: 'escuro' }];
+  assert.ok(checarDirecao('carrossel', telas(['pergunta', 'manchete', 'passo', 'lista', 'chamada']), { capas: texto2 }).some((m) => /precisa mostrar uma cena/.test(m)));
+  assert.deepEqual(checarDirecao('carrossel', telas(['cartao', 'manchete', 'passo', 'lista', 'chamada']), { capas: texto2 }), []);
   // Fundos: a capa foge das últimas capas, nada 3x seguido, coral no máximo 2x, carrossel com pelo menos 2 fundos.
   const fundos = escolherFundos(['pergunta', 'manchete', 'manchete', 'passo', 'lista', 'frase', 'chamada'].map((layout) => ({ layout })), { capas: [{ fundo: 'papel' }, { fundo: 'coral' }] });
   assert.equal(fundos[0], 'escuro');
@@ -279,22 +285,31 @@ test('direção de arte (G9a): reprova molde repetido, capa igual às últimas e
   assert.ok(new Set(fundos).size >= 2);
 });
 
-test('editor (G9b): nota baixa ou problema de CFM reprova; erro do juiz reprova; restaurante ignora "cfm"', async () => {
+test('revisão final (G7 + G9b): calibração das notas, CFM só com trecho real, erro do juiz reprova', async () => {
   const notas = (n) => ({ original: n, humano: n, marca: n, novidade: n, clareza: n });
   const it = { tipo: 'carrossel', ramo: 'clinica', objetivo: 'conversa', tema: 't' };
-  assert.equal((await checarEditor([], { juiz: async () => ({ notas: notas(8), cfm: [], problemas: [] }), texto: 'x', item: it })).ok, true);
-  const generico = await checarEditor([], { juiz: async () => ({ notas: { ...notas(8), original: 4 }, cfm: [], problemas: [{ criterio: 'original', imagem: 1, motivo: 'capa genérica, serve pra qualquer sistema' }] }), texto: 'x', item: it });
-  assert.equal(generico.ok, false);
-  assert.match(generico.motivos[0], /editor \(original 4\/10, imagem 1\): capa genérica/);
-  const cfm = await checarEditor([], { juiz: async () => ({ notas: notas(9), cfm: ['"resultado natural garantido"'], problemas: [] }), texto: 'x', item: it });
-  assert.match(cfm.motivos[0], /ética médica \(CFM\)/);
-  assert.equal((await checarEditor([], { juiz: async () => ({ notas: notas(9), cfm: ['x'], problemas: [] }), texto: 'x', item: { ...it, ramo: 'restaurante' } })).ok, true);
-  assert.match((await checarEditor([], { juiz: async () => { throw new Error('timeout'); }, texto: 'x', item: it })).motivos[0], /na dúvida, não posta/);
+  const limites = config.checagens.editor;
+  const rev = (resposta, extra = {}) => checarRevisao([], { juiz: async () => ({ problemas: [], sugestoes: [], cfm: [], ...resposta }), texto: 'A ficha avisa a alergia. Resultado natural garantido.', item: it, limites, ...extra });
+  assert.equal((await rev({ notas: notas(8) })).ok, true);
+  // Calibração do ensaio de 12/11: um critério morno (6) passa; dois reprovam; qualquer um abaixo de 5 reprova.
+  assert.equal((await rev({ notas: { ...notas(7), novidade: 6 } })).ok, true);
+  const dois = await rev({ notas: { ...notas(8), original: 6, humano: 6 }, sugestoes: [{ criterio: 'humano', imagem: 1, motivo: '"falta 30 dias" sem concordância' }] });
+  assert.equal(dois.ok, false);
+  assert.match(dois.motivos.join('\n'), /editor \(humano 6\/10, imagem 1\): "falta 30 dias"/);
+  assert.equal((await rev({ notas: { ...notas(9), original: 4 } })).ok, false);
+  // Problema de imagem (G7) reprova sozinho, com nota boa.
+  assert.match((await rev({ notas: notas(9), problemas: [{ imagem: 2, problema: 'texto cortado' }] })).motivos[0], /visual \(imagem 2\): texto cortado/);
+  // CFM: só trecho que existe no texto; "nenhum problema" e paráfrase não reprovam; restaurante ignora.
+  assert.match((await rev({ notas: notas(9), cfm: [{ trecho: 'resultado natural garantido', motivo: 'promessa' }] })).motivos[0], /ética médica \(CFM\)/);
+  assert.equal((await rev({ notas: notas(9), cfm: [{ trecho: 'Nenhum problema encontrado', motivo: 'ok' }] })).ok, true);
+  assert.equal((await rev({ notas: notas(9), cfm: [{ trecho: 'resultado natural garantido', motivo: 'x' }] }, { item: { ...it, ramo: 'restaurante' } })).ok, true);
+  const falhou = await checarRevisao([], { juiz: async () => { throw new Error('timeout'); }, texto: 'x', item: it, limites });
+  assert.match(falhou.motivos[0], /na dúvida, não posta/);
 });
 
 test('orquestrador: o editor reprova a peça genérica nas 3 tentativas e ela cai no banco reserva', async () => {
   const saida = tmp();
-  const generico = () => ({ notas: { original: 3, humano: 5, marca: 8, novidade: 4, clareza: 8 }, cfm: [], problemas: [{ criterio: 'original', imagem: 1, motivo: 'poderia ser de qualquer sistema' }] });
+  const generico = () => ({ notas: { original: 3, humano: 5, marca: 8, novidade: 4, clareza: 8 }, cfm: [], sugestoes: [{ criterio: 'original', imagem: 1, motivo: 'poderia ser de qualquer sistema' }] });
   const cerebro = cerebroFalso({ conteudos: [carrosselBom], editor: generico });
   const reserva = { pegar: async () => ({ origemId: 'R9', entrada: { id: 'A', origem: 'reserva' } }) };
   const r = await produzirPeca(item, { raiz: RAIZ, saida, semana: SEMANA, produto, config, cerebro, usados: [], hoje: '2026-11-14', registrar: criarRegistro(saida), capturar: capturaFalsa, reserva, capas: [] });
@@ -310,11 +325,11 @@ test('orquestrador: a capa repetida reprova antes de renderizar (sem gastar nave
   const saida = tmp();
   let capturas = 0;
   const cerebro = cerebroFalso({ conteudos: [carrosselBom] });
-  const r = await produzirPeca(item, { raiz: RAIZ, saida, semana: SEMANA, produto, config, cerebro, usados: [], hoje: '2026-11-14', registrar: criarRegistro(saida), capturar: async (...a) => { capturas++; return capturaFalsa(...a); }, capas: [{ layout: 'pergunta', fundo: 'papel' }] });
+  const r = await produzirPeca(item, { raiz: RAIZ, saida, semana: SEMANA, produto, config, cerebro, usados: [], hoje: '2026-11-14', registrar: criarRegistro(saida), capturar: async (...a) => { capturas++; return capturaFalsa(...a); }, capas: [{ layout: 'bilhete', fundo: 'escuro' }] });
   assert.equal(r.status, 'pulada');
   assert.equal(capturas, 0);
   assert.match(cerebro.pedidos[1].prompt, /repete uma das 2 últimas capas/);
-  assert.match(cerebro.pedidos[0].prompt, /últimas capas do feed usaram os layouts: pergunta/);
+  assert.match(cerebro.pedidos[0].prompt, /últimas capas do feed usaram os layouts: bilhete/);
 });
 
 test('diagramação: texto que não cabe é medido na própria página e vira problema (precisa de navegador)', async (t) => {
@@ -331,4 +346,12 @@ test('diagramação: texto que não cabe é medido na própria página e vira pr
   assert.match(r.problemas.join(), /não coube|saiu da área/);
   const ok = await capturar(paginasDaPeca({ semana: SEMANA, id: 'I2', tipo: 'imagem', ramo: 'clinica', conteudo: { titulo: 'Caixa fechou certo?', texto: 'Curto.' }, pasta }));
   assert.deepEqual(ok.problemas, []);
+});
+
+test('reserva: prefere a peça cuja capa não repete as 2 últimas do feed, e a de visual novo', async () => {
+  const { repeteCapa } = await import('../reserva.mjs');
+  const capas = [{ layout: 'manchete', fundo: 'escuro' }, { layout: 'manchete', fundo: 'escuro' }];
+  assert.equal(repeteCapa({ tipo: 'carrossel' }, capas), 1, 'peça antiga sem visual = manchete no escuro');
+  assert.equal(repeteCapa({ tipo: 'carrossel', visual: { layout: 'conversa', fundo: 'papel' } }, capas), 0);
+  assert.equal(repeteCapa({ tipo: 'stories' }, capas), 0, 'stories não entram na regra de capa');
 });

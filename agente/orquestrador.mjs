@@ -1,6 +1,7 @@
 // Máquina de estado de cada peça (SPEC 6.3):
 // escrever → G1–G5/G8 → G9a direção de arte (código) → imagens ou reel (voz, legenda, vídeo) → G6 técnica + G7 visual
-// → G9b editor (nota de qualidade com as últimas peças do perfil) → aprovada.
+// + G9b editor (na mesma chamada do G7: notas de qualidade com as últimas peças do perfil e ética médica) → aprovada.
+// A direção de arte (G9a) roda antes dos juízes pagos: reprovar ali não gasta Claude além do redator.
 // Reprovou: regera com os motivos (até config.checagens.regeracoes vezes). Esgotou: reserva. Sem reserva: pulada.
 // Tudo vai para registro/AAAA-MM-DD.jsonl. Retomável: o plano fica em semanas/SEMANA/plano.json e
 // a rodada diária produz o que ainda falta.
@@ -12,8 +13,7 @@ import { validarPeca, dataMais } from '../publicar/validar.mjs';
 import { ErroLimite, ErroTeto, ErroToken } from './cerebro.mjs';
 import { escreverPeca, checarTexto, juizesDeTexto, textoDaPeca } from './etapas/escrever.mjs';
 import { checarDirecao, aplicarFundos, capasRecentes } from './checagens/direcao.mjs';
-import { checarEditor, Curadoria } from './checagens/editor.mjs';
-import { checarVisual, ProblemasVisuais } from './checagens/visual.mjs';
+import { checarRevisao, RevisaoFinal } from './checagens/editor.mjs';
 import { capturar, paginasDaPeca } from './imagens/capturar.mjs';
 import { montarReel } from './ferramentas/montar_video.mjs';
 import { ffprobe } from './ferramentas/binarios.mjs';
@@ -82,12 +82,11 @@ export async function produzirPeca(item, ctx) {
   const onde = `${semana}/${item.id}`;
   if (ctx.soReserva) return usarReserva(item, ctx, ['modo só reserva (sem Claude)']);
   const juizes = juizesDeTexto(cerebro);
-  const juizVisual = cerebro.juiz(ProblemasVisuais, 'juiz:visual', config.modelos.juizVisual);
-  const juizEditor = cerebro.juiz(Curadoria, 'juiz:editor', config.modelos.editor ?? config.modelos.juizVisual);
-  const minimoEditor = config.checagens.editor?.notaMinima ?? 7;
+  const juizFinal = cerebro.juiz(RevisaoFinal, 'juiz:visual', config.modelos.juizVisual);
   // As últimas capas do feed (antes do dia desta peça): a capa nova não repete, e o editor julga a novidade com elas.
-  const capas = ctx.capas ?? capasRecentes([...new Set([saida, raiz])], { antesDe: item.dia, limite: 10 });
-  const editar = (imagens, conteudo) => checarEditor(imagens, { juiz: juizEditor, texto: textoDaPeca(item.tipo, conteudo), item, recentes: capas, notaMinima: minimoEditor });
+  // O real vem antes do ensaio: no modo ensaio, uma capa de ensaio não esconde a do feed de verdade.
+  const capas = ctx.capas ?? capasRecentes([...new Set([raiz, saida])], { antesDe: item.dia, limite: 10 });
+  const revisar = (imagens, conteudo, contexto) => checarRevisao(imagens, { juiz: juizFinal, contexto, texto: textoDaPeca(item.tipo, conteudo), item, recentes: capas, limites: config.checagens.editor });
   const maxTentativas = 1 + (cerebro.economico() ? 0 : config.checagens.regeracoes);
   let motivos = [];
   let arquivos = [];
@@ -102,6 +101,13 @@ export async function produzirPeca(item, ctx) {
     try {
       const conteudo = await escreverPeca({ raiz, item, produto, cerebro, config, motivosAnteriores: motivos, anterior, capas });
       anterior = conteudo;
+      // G9a: direção de arte por código, antes dos juízes pagos e do navegador.
+      const direcao = checarDirecao(item.tipo, conteudo, { capas });
+      if (direcao.length) {
+        motivos = direcao;
+        registrar({ tipo: 'tentativa', peca: onde, motivos, detalhe: `tentativa ${tentativa}: direção de arte` });
+        continue;
+      }
       const texto = await checarTexto({ item, conteudo, produto, ...juizes, usados, hoje, config });
       registrar({ tipo: 'tentativa', peca: onde, notas: texto.notas, motivos: texto.motivos, detalhe: `tentativa ${tentativa}: texto` });
       if (!texto.ok) { motivos = texto.motivos; continue; }
@@ -110,13 +116,9 @@ export async function produzirPeca(item, ctx) {
         const r = await produzirReel(item, conteudo, texto, tentativa, { semana, pasta, ctx });
         arquivos = r.arquivos;
         try {
-          const visual = r.tecnica.length ? { ok: false, motivos: [] } : await checarVisual(r.quadros, { juiz: juizVisual, contexto: `reel · ${conteudo.gancho} (quadros do vídeo)` });
-          motivos = [...r.tecnica, ...visual.motivos];
-          if (!motivos.length) {
-            const ed = await editar(r.quadros, conteudo);
-            Object.assign(texto.notas, ed.notas);
-            motivos = ed.motivos;
-          }
+          const rev = r.tecnica.length ? { motivos: [], notas: {} } : await revisar(r.quadros, conteudo, `reel · ${conteudo.gancho} (quadros do vídeo)`);
+          Object.assign(texto.notas, rev.notas);
+          motivos = [...r.tecnica, ...rev.motivos];
         } finally {
           r.limpar();
         }
@@ -125,26 +127,15 @@ export async function produzirPeca(item, ctx) {
         continue;
       }
 
-      // G9a: direção de arte por código, antes de gastar navegador e juiz.
-      const direcao = checarDirecao(item.tipo, conteudo, { capas });
-      if (direcao.length) {
-        motivos = direcao;
-        registrar({ tipo: 'tentativa', peca: onde, notas: texto.notas, motivos, detalhe: `tentativa ${tentativa}: direção de arte` });
-        continue;
-      }
       const { conteudo: pintado, visual: desenho } = aplicarFundos(item.tipo, conteudo, { capas });
       const paginas = paginasDaPeca({ semana, id: item.id, tipo: item.tipo, ramo: item.ramo, objetivo: item.objetivo, conteudo: pintado, pasta });
       limparPeca(pasta, semana, item.id);
       arquivos = await (ctx.capturar ?? capturar)(paginas, { navegador: ctx.navegador });
       const entrada = entradaAgenda(item, conteudo, arquivos.map((a) => path.basename(a)), texto.fatos, tentativa, desenho);
       const tecnica = [...validarPeca(pasta, semana, entrada, { agente: true }), ...(arquivos.problemas ?? []).map((p) => `diagramação: ${p}`)];
-      const visual = tecnica.length ? { ok: false, motivos: [] } : await checarVisual(arquivos, { juiz: juizVisual, contexto: `${item.tipo} · ${conteudo.gancho}` });
-      motivos = [...tecnica, ...visual.motivos];
-      if (!motivos.length) {
-        const ed = await editar(arquivos, conteudo);
-        Object.assign(texto.notas, ed.notas);
-        motivos = ed.motivos;
-      }
+      const rev = tecnica.length ? { motivos: [], notas: {} } : await revisar(arquivos, conteudo, `${item.tipo} · ${conteudo.gancho}`);
+      Object.assign(texto.notas, rev.notas);
+      motivos = [...tecnica, ...rev.motivos];
       registrar({ tipo: motivos.length ? 'tentativa' : 'aprovada', peca: onde, notas: texto.notas, motivos, detalhe: `tentativa ${tentativa}: imagens` });
       if (!motivos.length) return { status: 'aprovada', entrada };
     } catch (e) {
@@ -161,7 +152,9 @@ export async function produzirPeca(item, ctx) {
 
 async function usarReserva(item, ctx, motivos) {
   const onde = `${ctx.semana}/${item.id}`;
-  const r = ctx.reserva ? await ctx.reserva.pegar({ tipo: item.tipo, item, semana: ctx.semana, hoje: ctx.hoje }) : null;
+  // A reserva também foge da capa das últimas peças do feed (prefere a que não repete; na falta, usa a que tem).
+  const capas = ctx.capas ?? capasRecentes([...new Set([ctx.raiz, ctx.saida ?? ctx.raiz])], { antesDe: item.dia, limite: 2 });
+  const r = ctx.reserva ? await ctx.reserva.pegar({ tipo: item.tipo, item, semana: ctx.semana, hoje: ctx.hoje, capas }) : null;
   if (r) {
     ctx.registrar({ tipo: 'reserva', peca: onde, motivos, detalhe: `usou a reserva ${r.origemId}` });
     return { status: 'reserva', entrada: r.entrada };
@@ -312,7 +305,8 @@ export async function encherReserva({ banco, maximo = 1, ...ctx }) {
     };
     const tmp = mkdtempSync(path.join(tmpdir(), 'mazzi-reserva-'));
     try {
-      const r = await produzirPeca(item, { ...ctx, saida: tmp, reserva: null, soReserva: false });
+      // Peça de reserva vai ao ar daqui a semanas: não é comparada com as capas e peças de hoje (capas: []).
+      const r = await produzirPeca(item, { ...ctx, saida: tmp, reserva: null, soReserva: false, capas: [] });
       if (r.status === 'aprovada') {
         const rid = `${hoje}-${tipo}-${k + 1}`;
         guardar(banco, r.entrada, path.join(tmp, 'semanas', semana), { rid, hoje });

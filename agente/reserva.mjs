@@ -60,11 +60,12 @@ export function guardar(raiz, entrada, origem, { rid, hoje }) {
  */
 export function criarReserva({ raiz, saida = raiz, produto, marcar = true, sondar }) {
   return {
-    async pegar({ tipo, item, semana, hoje }) {
+    async pegar({ tipo, item, semana, hoje, capas = [] }) {
       const pastaSemana = path.join(saida, 'semanas', semana);
       const candidatas = lerReserva(raiz)
         .filter((r) => SUBSTITUTOS[tipo]?.includes(r.tipo) && motivosParaNaoUsar(r, { produto, hoje }).length === 0)
-        .sort((a, b) => ((a.usada_em ?? []).at(-1) ?? '').localeCompare((b.usada_em ?? []).at(-1) ?? '') || (a.ramo === item.ramo ? -1 : 1));
+        .sort((a, b) => repeteCapa(a, capas) - repeteCapa(b, capas) || novoVisual(b) - novoVisual(a)
+          || ((a.usada_em ?? []).at(-1) ?? '').localeCompare((b.usada_em ?? []).at(-1) ?? '') || (a.ramo === item.ramo ? -1 : 1));
       for (const r of candidatas) {
         mkdirSync(pastaSemana, { recursive: true });
         const arquivos = r.arquivos.map((a, i) => {
@@ -87,6 +88,12 @@ export function criarReserva({ raiz, saida = raiz, produto, marcar = true, sonda
     },
   };
 }
+
+// Direção de arte (guia/direcao-de-arte.md): peça antiga sem `visual` é do molde único (manchete no fundo escuro).
+const capaDe = (r) => r.visual ?? (r.tipo === 'reel' ? { layout: 'reel', fundo: 'video' } : { layout: 'manchete', fundo: 'escuro' });
+/** 1 se a capa da peça repete o layout ou o fundo de uma das 2 últimas capas do feed (vai para o fim da fila). */
+export const repeteCapa = (r, capas) => (r.tipo !== 'stories' && capas.slice(0, 2).some((c) => c.layout === capaDe(r).layout || (c.fundo === capaDe(r).fundo && c.fundo !== 'video')) ? 1 : 0);
+const novoVisual = (r) => (r.visual ? 1 : 0);
 
 /** Pautas que não envelhecem, para encher o banco (o agente escreve a peça a partir delas). */
 export function pautasEvergreen(produto) {

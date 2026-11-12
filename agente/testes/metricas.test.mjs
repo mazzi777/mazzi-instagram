@@ -297,7 +297,7 @@ const capturaFalsa = async (paginas) => paginas.map((p) => {
 const carrosselBom = {
   gancho: 'Paciente faltou de novo?',
   slides: [
-    { tipo: 'capa', layout: 'pergunta', titulo: 'Paciente faltou de novo?', destaque: 'de novo?', texto: 'O horário vazio custa caro pra clínica.' },
+    { tipo: 'capa', layout: 'bilhete', anotacoes: [{ texto: 'ligar pra Ana' }, { texto: 'confirmou?', riscado: true }], titulo: 'Paciente faltou de novo?', destaque: 'de novo?', texto: 'O horário vazio custa caro pra clínica.' },
     { tipo: 'estaca', layout: 'manchete', titulo: 'Horário vazio não volta', texto: 'Quem falta sem avisar deixa a agenda furada.' },
     { tipo: 'ideia', layout: 'passo', passo: 1, titulo: 'Lembrete com um toque', texto: 'Sai pronto pro WhatsApp com nome, dia e horário.', cartao: { titulo: 'amanhã', linhas: [{ rotulo: 'Consulta 14h', selo: 'Confirmou', tom: 'ok' }] } },
     { tipo: 'resumo', layout: 'lista', titulo: 'Resumo', itens: ['Mande o lembrete na véspera', 'Veja quem confirmou', 'Remarque quem pediu'] },
@@ -306,7 +306,7 @@ const carrosselBom = {
   legenda: 'Paciente faltou de novo?\n\nNa Mazzi o lembrete sai pronto pro WhatsApp com um toque, já com nome, dia e horário. Você vê quem confirmou.\n\nChama no WhatsApp (link na bio).\n\n#clinicadeestetica',
   alt_text: 'Capa escura com o texto: Paciente faltou de novo?',
 };
-const cerebroFalso = (conteudo) => ({ economico: () => false, pedir: async () => conteudo, juiz: () => async () => ({ problemas: [], afirmacoes: [], notas: { original: 8, humano: 8, marca: 8, novidade: 8, clareza: 8 }, cfm: [] }) });
+const cerebroFalso = (conteudo) => ({ economico: () => false, pedir: async () => conteudo, juiz: () => async () => ({ problemas: [], afirmacoes: [], notas: { original: 8, humano: 8, marca: 8, novidade: 8, clareza: 8 }, cfm: [], sugestoes: [] }) });
 
 test('encherReserva: produz o formato que falta e guarda a peça aprovada no banco', async () => {
   const banco = tmp();

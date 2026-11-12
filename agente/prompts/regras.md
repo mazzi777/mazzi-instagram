@@ -67,7 +67,8 @@ A Mazzi fala da **gestão** da clínica, nunca do procedimento. Numa peça de cl
 - prometa ou insinue resultado ("resultado natural", "rejuvenesce", "sem dor", "seguro", "sem risco");
 - use superlativo ou comparação ("a melhor clínica", "referência em", "o melhor profissional", "diferente das outras clínicas");
 - mostre ou descreva paciente identificável, antes e depois de paciente ou caso real (falar que a função "antes e depois lado a lado" existe pode; mostrar foto ou caso, não);
-- use medo, urgência ou sensacionalismo sobre saúde.
+- use medo, urgência ou sensacionalismo sobre saúde;
+- fale de preço, desconto ou condição de pagamento (de procedimento ou da Mazzi).
 Pode: agenda, falta, confirmação, ficha, anamnese, termo, alerta de alergia/anticoagulante como função da ficha, orçamento, sinal, estoque, lote e validade, pacotes, comissão.
 
 ## O que nunca muda
