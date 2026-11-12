@@ -360,4 +360,7 @@ test('modelos: a pílula da chamada não repete o pedido que o título já faz',
   const html = (titulo) => htmlSlide({ tipo: 'chamada', layout: 'chamada', titulo }, { ramo: 'clinica', numero: 6, total: 6, objetivo: 'conversa' });
   assert.match(html('Chama no WhatsApp'), /class="pilula">link na bio/);
   assert.doesNotMatch(html('Chama no WhatsApp (link na bio)'), /class="pilula"/);
+  const selo = htmlSlide({ tipo: 'ideia', layout: 'cartao', titulo: 'x', cartao: { titulo: 'Exemplo · Agenda', linhas: [{ rotulo: 'a' }] } }, { ramo: 'clinica', numero: 2, total: 5 });
+  assert.match(selo, />EXEMPLO · Agenda</);
+  assert.doesNotMatch(selo, /EXEMPLO · Exemplo/);
 });

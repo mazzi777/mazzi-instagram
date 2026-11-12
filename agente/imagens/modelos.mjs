@@ -30,9 +30,9 @@ export const LAYOUTS = {
   conversa: { familia: 'cena', fundos: ['papel', 'escuro'], capa: true, precisa: 'conversa', uso: 'bolhas de conversa (EXEMPLO) entre o negócio e o cliente/paciente; para orçamento, confirmação, pedido' },
   comparativo: { familia: 'cena', fundos: ['escuro', 'papel'], capa: true, precisa: 'lados', uso: 'dois lados: à esquerda o jeito de caderno (manuscrito e riscado), à direita o que a tela mostra' },
   cartao: { familia: 'cena', fundos: ['escuro', 'papel', 'coral'], capa: true, precisa: 'cartao', uso: 'cartão de interface EXEMPLO grande e levemente inclinado, título curto em cima; para mostrar a função' },
-  bilhete: { familia: 'cena', fundos: ['escuro', 'coral'], capa: true, precisa: 'anotacoes', uso: 'folha de caderno com anotações à mão (algumas riscadas); para a dor do papel, da cabeça, do caderno' },
+  bilhete: { familia: 'cena', fundos: ['escuro', 'coral'], capa: true, precisa: 'anotacoes', uso: 'folha de caderno com anotações à mão (algumas riscadas); para a dor do papel, da cabeça, do caderno. Sem nome de pessoa ("paciente das 15h", "mesa 4", nunca "Marta")' },
   lista: { familia: 'cena', fundos: ['escuro', 'papel'], capa: false, precisa: 'itens', uso: 'checklist marcado; para o resumo que a pessoa printa' },
-  frase: { familia: 'texto', fundos: ['coral', 'papel'], capa: true, uso: 'uma opinião da marca em frase grande com aspas; para opinião e virada' },
+  frase: { familia: 'texto', fundos: ['coral', 'papel'], capa: true, uso: 'uma opinião da marca em frase grande (o sistema escreve "a gente acha:" em cima); nunca fala de pessoa nem parece citação de alguém' },
   chamada: { familia: 'texto', fundos: ['coral', 'papel', 'escuro'], capa: false, uso: 'o pedido final, grande e sozinho: título curto sem parênteses ("Chama no WhatsApp"); no feed o sistema põe embaixo a pílula "link na bio" (conversa) ou "salva pra depois" (alcance), então não repita isso no título' },
 };
 export const NOMES_LAYOUT = Object.keys(LAYOUTS);
@@ -72,7 +72,9 @@ function cartao(c, fundo, grande = false) {
     const selo = l.selo ? `<span class="selo" style="background:${bg};color:${cor}">${esc(l.selo)}</span>` : '';
     return `<div class="linha"><span>${esc(l.rotulo)}</span>${selo}</div>`;
   }).join('');
-  return `<div class="cartao escala${grande ? ' grande' : ''}"><div class="exemplo">EXEMPLO${c.titulo ? ` · ${esc(c.titulo)}` : ''}</div>${linhas}</div>`;
+  // O redator às vezes já escreve "Exemplo" no título: o selo é um só.
+  const nome = (c.titulo ?? '').replace(/^\s*exemplo\s*[:·\-–]?\s*/i, '');
+  return `<div class="cartao escala${grande ? ' grande' : ''}"><div class="exemplo">EXEMPLO${nome ? ` · ${esc(nome)}` : ''}</div>${linhas}</div>`;
 }
 
 const CORES = {
@@ -83,7 +85,7 @@ const CORES = {
 
 const CSS = (l, a, story, fundo) => {
   const k = CORES[fundo] ?? CORES.escuro;
-  const dest = { escuro: 'color:var(--acento)', papel: 'background:linear-gradient(transparent 58%,#FF7A50 58%,#FF7A50 92%,transparent 92%);padding:0 .06em', coral: 'text-decoration:underline;text-decoration-thickness:.09em;text-underline-offset:.12em' }[fundo] ?? 'color:var(--acento)';
+  const dest = { escuro: 'color:var(--acento)', papel: 'background:linear-gradient(transparent 66%,rgba(255,122,80,.55) 66%,rgba(255,122,80,.55) 94%,transparent 94%);padding:0 .06em', coral: 'text-decoration:underline;text-decoration-thickness:.09em;text-underline-offset:.12em' }[fundo] ?? 'color:var(--acento)';
   return `
 ${fontes()}
 :root{--bg:${k.bg};--fg:${k.fg};--sub:${k.sub};--fraco:${k.fraco};--linha:${k.linha};--card:${k.card};--acento:${k.acento}}
@@ -142,7 +144,7 @@ background-image:repeating-linear-gradient(transparent 0 66px,#cfdcef 66px 68px)
 .caixa{flex:0 0 46px;height:46px;border-radius:12px;background:var(--acento);position:relative;margin-top:2px}
 .caixa::after{content:"";position:absolute;left:15px;top:7px;width:12px;height:22px;border:solid var(--bg);border-width:0 6px 6px 0;transform:rotate(45deg)}
 /* frase */
-.aspas{font-family:Caveat,cursive;font-weight:600;font-size:300px;line-height:.5;height:110px;color:var(--fg);opacity:.9}
+.quem{font-family:Caveat,cursive;font-weight:600;font-size:64px;line-height:1;color:var(--sub)}
 .l-frase h1{font-weight:700;letter-spacing:-.03em;line-height:1.08}
 /* chamada */
 .l-chamada h1{letter-spacing:-.045em;line-height:.98}
@@ -191,7 +193,8 @@ const CORPO = {
   bilhete: (s) => `<div class="folha escala"><ul>${(s.anotacoes ?? []).map((a) => `<li class="${a.riscado ? 'risco' : ''}">${esc(a.texto)}</li>`).join('')}</ul></div><h1 style="--fs:88px">${titulo(s.titulo, s.destaque)}</h1>${paragrafo(s.texto)}`,
   // O modelo numera/marca; número que o redator já tenha posto ("1.", "2)") sai.
   lista: (s) => `<h1 style="--fs:84px">${titulo(s.titulo, s.destaque)}</h1><div class="checklist escala">${(s.itens ?? []).map((t) => `<div><span class="caixa"></span><span>${esc(t.replace(/^\s*\d+\s*[.)\-:]\s*/, ''))}</span></div>`).join('')}</div>`,
-  frase: (s) => `<div class="aspas">“</div><h1 style="--fs:100px">${titulo(s.titulo, s.destaque)}</h1>${paragrafo(s.texto)}`,
+  // Sem aspas: aspas sem autor parecem depoimento (proibido). A linha à mão diz que a opinião é da Mazzi.
+  frase: (s) => `<div class="quem">a gente acha:</div><h1 style="--fs:100px">${titulo(s.titulo, s.destaque)}</h1>${paragrafo(s.texto)}`,
   // A pílula só no feed (o objetivo diz qual); no story o próprio texto faz o pedido ("me responde aqui" ou "link na bio").
   // Se o título ou o texto já dizem o pedido ("link na bio", "salva"), a pílula não repete.
   chamada: (s) => {
