@@ -13,6 +13,7 @@ import { lerGanchosUsados } from '../checagens/repeticao.mjs';
 import { produzirPeca, criarRegistro, gravarNaAgenda } from '../orquestrador.mjs';
 import { criarReserva } from '../reserva.mjs';
 import { ganchosDasAgendas } from '../agente.mjs';
+import { capasRecentes } from '../checagens/direcao.mjs';
 
 const RAIZ = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const saida = path.resolve(process.argv[2] ?? 'ensaio-qualidade');
@@ -34,7 +35,10 @@ const cerebro = { ...base, config, pedir: async (q) => { const r = await base.pe
 const reserva = criarReserva({ raiz: RAIZ, saida, produto, marcar: false });
 const usados = [...lerGanchosUsados(RAIZ), ...ganchosDasAgendas(RAIZ)];
 const hoje = semana;
-const ctx = { raiz: RAIZ, saida, config, cerebro, produto, usados, hoje, registrar, reserva, semana };
+// A pauta refeita é de uma semana que já foi ao ar: o editor e o G8 enxergam o que saiu nela (senão ele aprovaria
+// a mesma peça de novo). No agente real, essas peças ainda não existem quando ele produz.
+const recentes = capasRecentes([RAIZ], { limite: 14, comStories: true });
+const ctx = { raiz: RAIZ, saida, config, cerebro, produto, usados, hoje, registrar, reserva, semana, recentes };
 
 const resultados = [];
 const pecas = plano.pecas.filter((p) => ['carrossel', 'imagem', 'stories'].includes(p.tipo)).slice(0, Number(process.env.ENSAIO_MAX ?? 4));

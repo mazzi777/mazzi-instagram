@@ -86,7 +86,10 @@ export async function produzirPeca(item, ctx) {
   // As últimas capas do feed (antes do dia desta peça): a capa nova não repete, e o editor julga a novidade com elas.
   // O real vem antes do ensaio: no modo ensaio, uma capa de ensaio não esconde a do feed de verdade.
   const capas = ctx.capas ?? capasRecentes([...new Set([raiz, saida])], { antesDe: item.dia, limite: 10 });
-  const revisar = (imagens, conteudo, contexto) => checarRevisao(imagens, { juiz: juizFinal, contexto, texto: textoDaPeca(item.tipo, conteudo), item, recentes: capas, limites: config.checagens.editor });
+  // Para a "novidade" o editor vê TUDO o que já está na agenda (feed e stories, inclusive os outros dias desta semana),
+  // não só as capas de antes: o ig-revisor pegou um story repetindo o tema de outro story da mesma semana.
+  const recentes = ctx.recentes ?? capasRecentes([...new Set([raiz, saida])], { limite: 12, comStories: true }).filter((r) => !(r.dia === item.dia && r.id === item.id));
+  const revisar = (imagens, conteudo, contexto) => checarRevisao(imagens, { juiz: juizFinal, contexto, texto: textoDaPeca(item.tipo, conteudo), item, recentes, limites: config.checagens.editor });
   const maxTentativas = 1 + (cerebro.economico() ? 0 : config.checagens.regeracoes);
   let motivos = [];
   let arquivos = [];
@@ -154,7 +157,7 @@ async function usarReserva(item, ctx, motivos) {
   const onde = `${ctx.semana}/${item.id}`;
   // A reserva também foge da capa das últimas peças do feed (prefere a que não repete; na falta, usa a que tem).
   const capas = ctx.capas ?? capasRecentes([...new Set([ctx.raiz, ctx.saida ?? ctx.raiz])], { antesDe: item.dia, limite: 2 });
-  const r = ctx.reserva ? await ctx.reserva.pegar({ tipo: item.tipo, item, semana: ctx.semana, hoje: ctx.hoje, capas }) : null;
+  const r = ctx.reserva ? await ctx.reserva.pegar({ tipo: item.tipo, item, semana: ctx.semana, hoje: ctx.hoje, capas, usados: ctx.usados ?? [] }) : null;
   if (r) {
     ctx.registrar({ tipo: 'reserva', peca: onde, motivos, detalhe: `usou a reserva ${r.origemId}` });
     return { status: 'reserva', entrada: r.entrada };

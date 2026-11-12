@@ -43,7 +43,9 @@ const Ic = z.enum(ICONES);
 const Cena = z.discriminatedUnion('tipo', [
   z.object({ tipo: z.literal('gancho'), simbolo: z.enum(['?', '!', 'x']).optional() }),
   z.object({ tipo: z.literal('digitando'), texto: z.string().min(3).max(34), chip: z.object({ icone: Ic, rotulo: z.string().min(2).max(18) }).optional() }),
-  z.object({ tipo: z.literal('lista'), itens: z.array(z.object({ icone: Ic, rotulo: z.string().min(2).max(22) })).min(3).max(5) }),
+  z.object({ tipo: z.literal('lista'), estilo: z.enum(['botoes', 'pilulas']).optional(), itens: z.array(z.object({ icone: Ic, rotulo: z.string().min(2).max(22) })).min(2).max(5) }),
+  z.object({ tipo: z.literal('hub'), modulos: z.array(z.object({ icone: Ic, rotulo: z.string().min(2).max(14) })).min(3).max(6) }),
+  z.object({ tipo: z.literal('encaixe'), pecas: z.array(z.object({ icone: Ic, rotulo: z.string().min(2).max(20) })).min(2).max(4) }),
   z.object({ tipo: z.literal('cartao'), cartao: Cartao }),
   z.object({ tipo: z.literal('papel'), rabiscos: z.array(z.string().min(2).max(22)).min(3).max(5), cartao: Cartao }),
   z.object({ tipo: z.literal('checklist'), itens: z.array(z.string().min(2).max(26)).min(3).max(5) }),
@@ -68,7 +70,12 @@ export function regrasDaEdicao(batidas) {
   if (tipos[0] !== 'gancho') motivos.push('edição: a 1ª batida tem que ser a cena "gancho"');
   tipos.forEach((t, i) => { if (i && t === tipos[i - 1]) motivos.push(`edição: cena "${t}" repetida nas batidas ${i} e ${i + 1}`); });
   if (new Set(tipos).size < 4) motivos.push(`edição: só ${new Set(tipos).size} tipos de cena; use pelo menos 4 diferentes`);
-  if (!tipos.some((t) => ['cartao', 'celular', 'painel', 'lista', 'icone', 'papel', 'contador'].includes(t))) motivos.push('edição: falta uma cena que mostre o produto (cartão, celular, painel, lista, ícone, papel ou contador)');
+  batidas.forEach((b, i) => {
+    const c = b.cena;
+    if (c.tipo === 'lista' && c.estilo === 'pilulas' && c.itens.length > 3) motivos.push(`edição: pílulas com ${c.itens.length} itens na batida ${i + 1} (no máximo 3)`);
+    if (c.tipo === 'lista' && c.estilo !== 'pilulas' && c.itens.length < 3) motivos.push(`edição: lista com ${c.itens.length} itens na batida ${i + 1} (de 3 a 5; para 2 ou 3 benefícios use estilo "pilulas")`);
+  });
+  if (!tipos.some((t) => ['cartao', 'celular', 'painel', 'lista', 'icone', 'papel', 'contador', 'hub', 'encaixe'].includes(t))) motivos.push('edição: falta uma cena que mostre o produto (cartão, celular, painel, lista, ícone, papel, contador, hub ou encaixe)');
   return motivos;
 }
 
@@ -104,7 +111,9 @@ export function textoDaPeca(tipo, c) {
 function textoDaCena(c) {
   switch (c.tipo) {
     case 'digitando': return `NA TELA (digitado): ${c.texto}${c.chip ? ` [${c.chip.rotulo}]` : ''}`;
-    case 'lista': return `LISTA: ${c.itens.map((i) => i.rotulo).join('; ')}`;
+    case 'lista': return `${c.estilo === 'pilulas' ? 'PÍLULAS' : 'LISTA'}: ${c.itens.map((i) => i.rotulo).join('; ')}`;
+    case 'hub': return `HUB (a Mazzi no centro, ligada a): ${c.modulos.map((m) => m.rotulo).join('; ')}`;
+    case 'encaixe': return `ENCAIXE (base que vai enchendo, contador ${c.pecas.length} de ${c.pecas.length}): ${c.pecas.map((p) => p.rotulo).join('; ')}`;
     case 'cartao': return cartaoTexto(c.cartao);
     case 'papel': return `CADERNO (rabiscos de exemplo): ${c.rabiscos.join('; ')}\n${cartaoTexto(c.cartao)}`;
     case 'checklist': return `CHECKLIST: ${c.itens.join('; ')}`;
@@ -153,7 +162,9 @@ export async function checarTexto({ item, conteudo, produto, juizFatos, juizMarc
 const CENAS_PROMPT = `CENAS DISPONÍVEIS (campo "cena", escolha uma por batida):
 - gancho: a frase da tela bate palavra por palavra com risco à mão no "destaque" e símbolos gigantes no fundo ("simbolo": ? ! ou x). SEMPRE a 1ª batida.
 - digitando: uma frase curta sendo digitada ("texto") e um chip com ícone que salta no fim ("chip": {icone, rotulo}).
-- lista: 3 a 5 botões com ícone girando em 3D ("itens": [{icone, rotulo}]). Bom para "tudo que dá pra fazer".
+- lista: 3 a 5 botões com ícone girando em 3D ("itens": [{icone, rotulo}]). Bom para "tudo que dá pra fazer". Com "estilo": "pilulas", 2 ou 3 benefícios curtos em pílulas cheias que entram uma por batida (uma ideia por pílula).
+- hub: a Mazzi no centro e 3 a 6 módulos em volta ligados por linha fina ("modulos": [{icone, rotulo}]). Para "tudo num lugar só" (só módulos que existem na base).
+- encaixe: uma base com 2 a 4 encaixes que vão sendo ocupados, um por batida, com o contador "2/4" ("pecas": [{icone, rotulo}]). Para "cada coisa no seu lugar" (os módulos de um ramo, os passos de um fluxo). Nunca número de resultado.
 - cartao: cartão de interface EXEMPLO em vidro 3D ("cartao": {titulo, linhas: [{rotulo, selo, tom}]}).
 - papel: caderno rabiscado × cartão da Mazzi ("rabiscos": 3 a 5 anotações curtas de caderno, "cartao").
 - checklist: 3 a 5 itens que se marcam no tempo da música ("itens").

@@ -17,7 +17,7 @@ export function telasDaPeca(tipo, conteudo) {
  * Visual das capas do feed já produzidas (mais recente primeiro): [{ dia, layout, fundo }].
  * Peça sem o campo `visual` (feita antes desta regra) era toda "manchete" no escuro.
  */
-export function capasRecentes(pastas, { antesDe = '9999-99-99', limite = 6 } = {}) {
+export function capasRecentes(pastas, { antesDe = '9999-99-99', limite = 6, comStories = false } = {}) {
   const capas = [];
   for (const base of pastas) {
     const dir = path.join(base, 'semanas');
@@ -28,7 +28,7 @@ export function capasRecentes(pastas, { antesDe = '9999-99-99', limite = 6 } = {
       let agenda;
       try { agenda = JSON.parse(readFileSync(f, 'utf8')); } catch { continue; }
       for (const p of agenda.pecas ?? []) {
-        if (p.tipo === 'stories' || p.dia >= antesDe) continue;
+        if ((p.tipo === 'stories' && !comStories) || p.dia >= antesDe) continue;
         const v = p.visual ?? (p.tipo === 'reel' ? { layout: 'reel', fundo: 'video' } : { layout: 'manchete', fundo: 'escuro' });
         capas.push({ dia: p.dia, id: p.id, tipo: p.tipo, tema: p.tema, gancho: p.gancho, layout: v.layout, fundo: v.fundo });
       }

@@ -98,10 +98,11 @@ export function Digitando({ texto, chip, ramo }) {
 }
 
 // 3. LISTA: botões com ícone entram um por batida numa coluna em 3D que gira devagar (o "menu de funções").
-export function Lista({ tela, destaque, itens, ramo }) {
+export function Lista({ tela, destaque, itens, ramo, estilo }) {
   const f = useCurrentFrame();
   const { fps } = useVideoConfig();
   const { ato, nomeAto } = useCena();
+  if (estilo === 'pilulas') return <Pilulas tela={tela} destaque={destaque} itens={itens} ramo={ramo} />;
   const giro = tw(f, 0, 120, 18, 6);
   const sobe = tw(f, 0, 160, 60, -40, (x) => x);
   const claro = nomeAto === 'claro';
@@ -435,7 +436,114 @@ export function Fechamento() {
   );
 }
 
-export const CENAS = { gancho: Gancho, digitando: Digitando, lista: Lista, cartao: Cartao, papel: Papel, checklist: Checklist, contador: Contador, celular: Celular, icone: IconeApp, orbita: Orbita, ato: AtoCor, painel: Painel, fechamento: Fechamento };
+// 3b. PÍLULAS (variação da LISTA, referências de mercado de 12/11): até 3 benefícios em pílulas cheias que entram
+// uma por batida, empilhadas e levemente desalinhadas, sem giro 3D. Uma ideia por pílula.
+function Pilulas({ tela, destaque, itens, ramo }) {
+  const f = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const { ato } = useCena();
+  const desvio = [0, 70, 20];
+  return (
+    <Camera>
+      <Fundo />
+      <Topo tela={tela} destaque={destaque} ramo={ramo} tamanho={76} />
+      <div style={{ position: 'absolute', left: ESQ, top: 600, width: LARG, display: 'flex', flexDirection: 'column', gap: 34 }}>
+        {itens.slice(0, 3).map((it, i) => {
+          const m = mola(f, fps, naBatida(i) + 4);
+          return (
+            <div key={i} style={{ alignSelf: 'flex-start', marginLeft: desvio[i], display: 'flex', alignItems: 'center', gap: 22, padding: '26px 44px 26px 30px', borderRadius: 999,
+              background: i === itens.length - 1 ? ato.destaque : ato.texto, color: i === itens.length - 1 ? ato.texto : ato.fundo, fontSize: 52, fontWeight: 800,
+              opacity: m, transform: `translateY(${(1 - m) * 90}px) scale(${0.9 + 0.1 * m})`, boxShadow: '0 18px 40px rgba(0,0,0,0.22)' }}>
+              {it.icone ? <Icone nome={it.icone} tamanho={56} cor={i === itens.length - 1 ? ato.texto : ato.destaque} /> : null}
+              <span>{it.rotulo}</span>
+            </div>
+          );
+        })}
+      </div>
+    </Camera>
+  );
+}
+
+// 13. HUB: a Mazzi no centro e os módulos em volta, parados, ligados por linha fina que se desenha um por batida
+// (referências de mercado de 12/11). Para "tudo num lugar só", sem número inventado.
+export function Hub({ tela, destaque, modulos, ramo }) {
+  const f = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const { ato } = useCena();
+  const cx = 540;
+  const cy = 900;
+  const n = modulos.length;
+  const pos = modulos.map((_, i) => {
+    const ang = -Math.PI / 2 + (i / n) * Math.PI * 2;
+    return { x: cx + Math.cos(ang) * 330, y: cy + Math.sin(ang) * 250 };
+  });
+  const m0 = mola(f, fps, 2);
+  return (
+    <Camera>
+      <Fundo />
+      <Topo tela={tela} destaque={destaque} ramo={ramo} tamanho={76} />
+      <svg width="1080" height="1920" style={{ position: 'absolute', left: 0, top: 0 }} aria-hidden="true">
+        {pos.map((p, i) => {
+          const q = tw(f, naBatida(i) + 2, naBatida(i) + 14, 0, 1);
+          return <line key={i} x1={cx} y1={cy} x2={cx + (p.x - cx) * q} y2={cy + (p.y - cy) * q} stroke={ato.texto} strokeOpacity="0.35" strokeWidth="3" strokeDasharray="2 10" strokeLinecap="round" />;
+        })}
+      </svg>
+      <div style={{ position: 'absolute', left: cx - 110, top: cy - 110, width: 220, height: 220, borderRadius: 60, background: COR.coral, display: 'flex', alignItems: 'center', justifyContent: 'center', transform: `scale(${m0})`, boxShadow: '0 26px 60px rgba(255,122,80,0.4)' }}>
+        <MarcaMazzi tamanho={130} cor={COR.grafite} degrade={['#ffffff', '#ffe2d6']} />
+      </div>
+      {modulos.map((md, i) => {
+        const m = mola(f, fps, naBatida(i) + 10);
+        const p = pos[i];
+        return (
+          <div key={i} style={{ position: 'absolute', left: p.x - 120, top: p.y - 70, width: 240, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, opacity: m, transform: `scale(${0.6 + 0.4 * m})` }}>
+            <div style={{ width: 110, height: 110, borderRadius: 32, background: ato.fundo === COR.papel ? '#FFFFFF' : 'rgba(255,255,255,0.1)', border: `2px solid ${ato.fundo === COR.papel ? 'rgba(17,19,22,0.1)' : 'rgba(255,255,255,0.18)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Icone nome={md.icone} tamanho={60} cor={ato.destaque} />
+            </div>
+            <span style={{ fontSize: 36, fontWeight: 800, color: ato.texto, textAlign: 'center', lineHeight: 1.1 }}>{md.rotulo}</span>
+          </div>
+        );
+      })}
+    </Camera>
+  );
+}
+
+// 14. ENCAIXE: uma base com N encaixes vazios que vão sendo ocupados, um por batida, com o contador "2/4"
+// (referências de mercado de 12/11). Para "cada coisa no seu lugar" e para os módulos de cada ramo.
+export function Encaixe({ tela, destaque, pecas, ramo }) {
+  const f = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const { ato } = useCena();
+  const n = pecas.length;
+  const ocupados = pecas.filter((_, i) => f >= naBatida(i) + 8).length;
+  const larg = 760;
+  const alt = n <= 3 ? 190 : 150;
+  return (
+    <Camera>
+      <Fundo />
+      <Topo tela={tela} destaque={destaque} ramo={ramo} tamanho={76} />
+      <div style={{ position: 'absolute', left: (1080 - larg) / 2, top: 600, width: larg, padding: 26, borderRadius: 40, background: ato.fundo === COR.papel ? COR.papel2 : 'rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column', gap: 20 }}>
+        {pecas.map((p, i) => {
+          const m = mola(f, fps, naBatida(i) + 4, { damping: 13, stiffness: 190, mass: 0.7 });
+          return (
+            <div key={i} style={{ position: 'relative', height: alt, borderRadius: 28, border: `3px dashed ${ato.fundo === COR.papel ? 'rgba(17,19,22,0.2)' : 'rgba(255,255,255,0.2)'}` }}>
+              <div style={{ position: 'absolute', inset: -3, borderRadius: 28, background: ato.fundo === COR.papel ? '#FFFFFF' : COR.cartao, border: `2px solid ${ato.destaque}`,
+                display: 'flex', alignItems: 'center', gap: 26, padding: '0 34px', opacity: m, transform: `translateX(${(1 - m) * 700}px) rotate(${(1 - m) * 6}deg)` }}>
+                <Icone nome={p.icone} tamanho={62} cor={ato.destaque} />
+                <span style={{ fontSize: 46, fontWeight: 800, color: ato.fundo === COR.papel ? COR.grafite : COR.papel }}>{p.rotulo}</span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <div style={{ position: 'absolute', left: 0, width: 1080, top: 600 + n * (alt + 20) + 70, textAlign: 'center', color: ato.texto, fontVariantNumeric: 'tabular-nums' }}>
+        <span style={{ fontSize: 96, fontWeight: 900, letterSpacing: '-0.04em' }}>{ocupados}</span>
+        <span style={{ fontSize: 60, fontWeight: 800, opacity: 0.45 }}>/{n}</span>
+      </div>
+    </Camera>
+  );
+}
+
+export const CENAS = { gancho: Gancho, digitando: Digitando, lista: Lista, cartao: Cartao, papel: Papel, checklist: Checklist, contador: Contador, celular: Celular, icone: IconeApp, orbita: Orbita, ato: AtoCor, painel: Painel, hub: Hub, encaixe: Encaixe, fechamento: Fechamento };
 // Ato de cor de cada cena quando o código não decide outro (o agente alterna para não repetir).
-export const ATO_PADRAO = { gancho: 'escuro', digitando: 'claro', lista: 'claro', cartao: 'escuro', papel: 'escuro', checklist: 'escuro', contador: 'escuro', celular: 'escuro', icone: 'claro', orbita: 'escuro', ato: 'coral', painel: 'escuro', fechamento: 'azul' };
+export const ATO_PADRAO = { gancho: 'escuro', digitando: 'claro', lista: 'claro', cartao: 'escuro', papel: 'escuro', checklist: 'escuro', contador: 'escuro', celular: 'escuro', icone: 'claro', orbita: 'escuro', ato: 'coral', painel: 'escuro', hub: 'claro', encaixe: 'escuro', fechamento: 'azul' };
 export { ATOS };

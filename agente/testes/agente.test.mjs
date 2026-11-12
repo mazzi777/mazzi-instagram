@@ -364,3 +364,37 @@ test('modelos: a pílula da chamada não repete o pedido que o título já faz',
   assert.match(selo, />EXEMPLO · Agenda</);
   assert.doesNotMatch(selo, /EXEMPLO · Exemplo/);
 });
+
+test('reserva: gancho repetido das últimas semanas vai para o fim da fila, depois capa repetida', async () => {
+  const { ordenarReserva } = await import('../reserva.mjs');
+  const it = { ramo: 'clinica' };
+  const usados = [{ data: '2026-11-11', gancho: 'O caixa não fechou de novo?' }];
+  const capas = [{ layout: 'manchete', fundo: 'escuro' }, { layout: 'manchete', fundo: 'escuro' }];
+  const pecas = [
+    { rid: 'repete-gancho', tipo: 'carrossel', gancho: 'O caixa não fechou de novo hoje?', visual: { layout: 'conversa', fundo: 'papel' } },
+    { rid: 'molde-antigo', tipo: 'carrossel', gancho: 'Paciente sumiu depois do orçamento?' },
+    { rid: 'nova', tipo: 'carrossel', gancho: 'Quem confere o troco do motoboy?', visual: { layout: 'bilhete', fundo: 'coral' } },
+  ];
+  assert.deepEqual(ordenarReserva(pecas, { item: it, capas, usados, hoje: '2026-11-14' }).map((p) => p.rid), ['nova', 'molde-antigo', 'repete-gancho']);
+  // Paráfrase que os trigramas do G8 não pegam (achado do ig-revisor): por isso o editor vê o histórico inteiro.
+  const { checarRepeticao } = await import('../checagens/repeticao.mjs');
+  assert.equal(checarRepeticao('Agenda num lugar, ficha em outro, termo sumiu?', [{ data: '2026-11-11', gancho: 'Agenda, ficha e termo em lugares diferentes?' }], { hoje: '2026-11-14' }).ok, true);
+});
+
+test('reel: cenas hub e encaixe e pílulas como variação da lista (referências de 12/11)', async () => {
+  const { CONTEUDO, regrasDaEdicao } = await import('../etapas/escrever.mjs');
+  const b = (cena) => ({ fala: 'uma fala curta aqui', tela: 'tela curta', cena });
+  const batidas = [
+    b({ tipo: 'gancho' }),
+    b({ tipo: 'hub', modulos: [{ icone: 'Wallet', rotulo: 'Caixa' }, { icone: 'Truck', rotulo: 'Delivery' }, { icone: 'Scale', rotulo: 'Balança' }] }),
+    b({ tipo: 'encaixe', pecas: [{ icone: 'Calendar', rotulo: 'Agenda' }, { icone: 'Send', rotulo: 'Orçamento' }] }),
+    b({ tipo: 'lista', estilo: 'pilulas', itens: [{ icone: 'Phone', rotulo: 'Telefone puxa' }, { icone: 'Printer', rotulo: 'Via da cozinha' }] }),
+    b({ tipo: 'ato' }), b({ tipo: 'cartao', cartao: { linhas: [{ rotulo: 'x' }] } }),
+  ];
+  assert.equal(CONTEUDO.reel.safeParse({ gancho: 'Caixa não fechou?', batidas, legenda: 'Caixa não fechou? Chama no WhatsApp (link na bio).' }).success, true);
+  assert.deepEqual(regrasDaEdicao(batidas), []);
+  const muitas = regrasDaEdicao([batidas[0], b({ tipo: 'lista', estilo: 'pilulas', itens: [1, 2, 3, 4].map((k) => ({ icone: 'Phone', rotulo: `item ${k}` })) }), ...batidas.slice(1)]);
+  assert.ok(muitas.some((m) => /pílulas com 4 itens/.test(m)));
+  const { CENAS, ATO_PADRAO } = await import('../video/motion/cenas.jsx').catch(() => ({ CENAS: null }));
+  if (CENAS) { assert.ok(CENAS.hub && CENAS.encaixe); assert.ok(ATO_PADRAO.hub && ATO_PADRAO.encaixe); }
+});
