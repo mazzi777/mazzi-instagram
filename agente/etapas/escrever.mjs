@@ -164,6 +164,7 @@ const CENAS_PROMPT = `CENAS DISPONÍVEIS (campo "cena", escolha uma por batida):
 - ato: corte para fundo coral com a frase da tela enorme. Use UMA vez, na virada ("mas tem jeito").
 - painel: painel de relatório inclinado com gráfico se desenhando ("titulo", "linhas"? até 2). Só para números do período: vendas, compras, lucro bruto, atendimentos do mês. Para um caso pontual (uma nota, um pedido, uma paciente), use cartão ou celular.
 Regras: comece com gancho; nunca a mesma cena duas vezes seguidas; pelo menos 4 cenas diferentes; pelo menos uma cena que mostre o produto.
+Roteiro-modelo de reel de produto (um dos caminhos, não o único): dor (gancho) → as coisas soltas do dia a dia (papel, lista, icone) → a Mazzi no centro (orbita) → a tela EXEMPLO (cartao, celular, painel ou contador) → uma frase de virada (ato) → chamada. 20 a 30 segundos; uma frase por tela.
 Ícones permitidos: ${ICONES.join(', ')}.`;
 
 const layoutsPrompt = (tipo) => `LAYOUTS (campo "layout" de cada slide, quadro ou imagem; o fundo quem escolhe é o sistema):

@@ -99,7 +99,10 @@ h1{font-weight:800;letter-spacing:-.035em;line-height:1.03;font-size:var(--fs,11
 .dest{${dest}}
 .texto{font-size:${story ? 44 : 40}px;line-height:1.38;color:var(--sub);font-weight:400;max-width:22em;text-wrap:pretty}
 .mao{font-family:Caveat,cursive;font-weight:600}
-.rodape{display:flex;justify-content:space-between;align-items:baseline;font-size:30px;color:var(--fraco);font-weight:500}
+.rodape{display:flex;justify-content:space-between;align-items:center;font-size:30px;color:var(--fraco);font-weight:500}
+.progresso{display:flex;align-items:center;gap:18px;font-variant-numeric:tabular-nums}
+.barra{width:150px;height:6px;border-radius:3px;background:var(--linha);overflow:hidden}
+.barra i{display:block;height:100%;background:var(--fg)}
 .cartao{background:var(--card);border:2px solid var(--linha);border-radius:26px;padding:34px 40px 16px;color:var(--fg)}
 .cartao.grande{transform:rotate(-2deg);box-shadow:0 30px 60px -20px rgba(0,0,0,.45);padding:44px 48px 22px}
 .cartao.grande .linha{font-size:42px;padding:26px 0}
@@ -176,8 +179,11 @@ document.body.dataset.pronto='1';
 function pagina({ formato, ramo, numero, total, corpo, seguir, layout, fundo }) {
   const [l, a] = MEDIDAS[formato];
   const story = formato === 'story';
-  const topo = `<div class="topo"><span class="ramo">${esc(ROTULO[ramo] ?? '')}</span>${total ? `<span class="pagina">${numero}/${total}</span>` : ''}</div>`;
-  const rodape = `<div class="rodape"><span>@mazzisystems</span>${seguir ? '<span>arrasta pro lado</span>' : ''}</div>`;
+  // Carrossel: "arrasta pro lado" no alto e, no rodapé, o contador de progresso (barra fina + "03/07"), fixo pelo código.
+  const dois = (n) => String(n).padStart(2, '0');
+  const progresso = total ? `<span class="progresso"><span class="barra"><i style="width:${Math.round((numero / total) * 100)}%"></i></span><span class="pagina">${dois(numero)}/${dois(total)}</span></span>` : '';
+  const topo = `<div class="topo"><span class="ramo">${esc(ROTULO[ramo] ?? '')}</span>${seguir ? '<span class="pagina">arrasta pro lado</span>' : ''}</div>`;
+  const rodape = `<div class="rodape"><span>@mazzisystems</span>${progresso}</div>`;
   return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><style>${CSS(l, a, story, fundo)}</style></head>
 <body class="${fundo}-bg"><div class="peca l-${layout}" data-layout="${layout}" data-fundo="${fundo}">${topo}<div class="corpo">${corpo}</div>${rodape}</div>${AJUSTE}</body></html>`;
 }

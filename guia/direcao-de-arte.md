@@ -12,6 +12,7 @@ O que contas boas de SaaS e de nicho fazem (pesquisa de 12/11/2026, fontes no fi
 
 - Cores: grafite `#111316`, papel `#F3F1EC`, coral `#FF7A50`. Nada além disso (os tons dos selos de cartão são da interface).
 - Fonte: Inter em tudo; **Caveat** só para o que é "escrito à mão" (anotação de caderno, lado "caderno" do comparativo, aspas da frase).
+- Carrossel: "arrasta pro lado" no alto e, no rodapé, contador de progresso (barra fina + "03/07"), posto pelo código (referências de mercado de 12/11, `docs/referencias/analise-referencias-mercado.md` na pasta do projeto).
 - `@mazzisystems` no rodapé de toda tela; "para clínicas" / "para restaurantes" em minúscula no topo (sem rótulo em caixa alta).
 - Interface só em cartão ou conversa marcados **EXEMPLO** (o selo é posto pelo código, não tem como faltar).
 - Margens: 120 px nas laterais do feed (o grid do perfil corta as bordas da capa 4:5); stories com texto entre y=250 e y=1600.
