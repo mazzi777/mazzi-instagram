@@ -10,13 +10,26 @@ import { checarBatidas } from '../checagens/batidas.mjs';
 import { ICONES } from '../video/motion/icones.mjs';
 import { Afirmacoes, ProblemasMarca } from '../lib/schemas.mjs';
 import { contextoMarca } from './contexto.mjs';
+import { LAYOUTS, NOMES_LAYOUT } from '../imagens/modelos.mjs';
 
 const Cartao = z.object({
   titulo: z.string().max(30).optional(),
   linhas: z.array(z.object({ rotulo: z.string().min(1).max(32), selo: z.string().max(22).optional(), tom: z.enum(['ok', 'aviso', 'ruim', 'neutro']).optional() })).min(1).max(3),
 });
+// Campos dos layouts (agente/imagens/modelos.mjs). Cada layout usa os seus; os outros ficam vazios.
+const Mensagem = z.object({ lado: z.enum(['negocio', 'cliente']), texto: z.string().min(2).max(70) });
+const Lado = z.object({ rotulo: z.string().min(2).max(18), itens: z.array(z.string().min(2).max(34)).min(1).max(3) });
+const Anotacao = z.object({ texto: z.string().min(2).max(24), riscado: z.boolean().optional() });
+const Visual = {
+  layout: z.enum(NOMES_LAYOUT),
+  conversa: z.array(Mensagem).min(2).max(4).optional(),
+  contato: z.string().max(18).optional(),
+  lados: z.object({ a: Lado, b: Lado }).optional(),
+  anotacoes: z.array(Anotacao).min(2).max(4).optional(),
+};
 const Slide = z.object({
   tipo: z.enum(['capa', 'estaca', 'ideia', 'resumo', 'chamada']),
+  ...Visual,
   titulo: z.string().min(2).max(70),
   destaque: z.string().max(25).optional(),
   texto: z.string().max(190).optional(),
@@ -24,7 +37,7 @@ const Slide = z.object({
   itens: z.array(z.string().max(60)).max(5).optional(),
   cartao: Cartao.optional(),
 });
-const Quadro = z.object({ titulo: z.string().min(2).max(80), destaque: z.string().max(25).optional(), texto: z.string().max(140).optional(), cartao: Cartao.optional() });
+const Quadro = z.object({ ...Visual, titulo: z.string().min(2).max(80), destaque: z.string().max(25).optional(), texto: z.string().max(140).optional(), itens: z.array(z.string().max(60)).max(5).optional(), cartao: Cartao.optional() });
 // Cenas da biblioteca de motion (agente/video/motion/cenas.jsx). O redator escolhe uma por batida.
 const Ic = z.enum(ICONES);
 const Cena = z.discriminatedUnion('tipo', [
@@ -61,19 +74,27 @@ export function regrasDaEdicao(batidas) {
 
 export const CONTEUDO = {
   carrossel: z.object({ gancho: z.string().min(3).max(70), slides: z.array(Slide).min(5).max(8), legenda: z.string().min(20).max(2200), alt_text: z.string().min(10).max(1000) }),
-  imagem: z.object({ gancho: z.string().min(3).max(70), titulo: z.string().min(2).max(70), destaque: z.string().max(25).optional(), texto: z.string().max(190).optional(), cartao: Cartao.optional(), legenda: z.string().min(20).max(2200), alt_text: z.string().min(10).max(1000) }),
+  imagem: z.object({ gancho: z.string().min(3).max(70), ...Visual, titulo: z.string().min(2).max(70), destaque: z.string().max(25).optional(), texto: z.string().max(190).optional(), cartao: Cartao.optional(), legenda: z.string().min(20).max(2200), alt_text: z.string().min(10).max(1000) }),
   stories: z.object({ gancho: z.string().min(3).max(80), quadros: z.array(Quadro).min(4).max(5) }),
   reel: z.object({ gancho: z.string().min(3).max(70), batidas: z.array(Batida).min(6).max(14), legenda: z.string().min(20).max(2200) }),
 };
 
 const cartaoTexto = (c) => (c ? `[CARTÃO EXEMPLO${c.titulo ? ` "${c.titulo}"` : ''}: ${c.linhas.map((l) => `${l.rotulo}${l.selo ? ` = ${l.selo}` : ''}`).join('; ')}]` : '');
 
+/** O que os elementos visuais de uma tela mostram (conversa e caderno marcados como EXEMPLO para o juiz de fatos). */
+const extrasTexto = (t) => [
+  t.conversa ? `[CONVERSA EXEMPLO: ${t.conversa.map((m) => `${m.lado}: ${m.texto}`).join(' | ')}]` : '',
+  t.lados ? `[COMPARATIVO: ${t.lados.a.rotulo}: ${t.lados.a.itens.join('; ')} || ${t.lados.b.rotulo}: ${t.lados.b.itens.join('; ')}]` : '',
+  t.anotacoes ? `[CADERNO, anotações de exemplo: ${t.anotacoes.map((a) => `${a.texto}${a.riscado ? ' (riscado)' : ''}`).join('; ')}]` : '',
+].filter(Boolean);
+
 /** Todo o texto da peça, na ordem em que aparece (com os cartões marcados como EXEMPLO para o juiz de fatos). */
 export function textoDaPeca(tipo, c) {
   const partes = [];
-  if (tipo === 'carrossel') for (const s of c.slides) partes.push([s.titulo, s.texto, ...(s.itens ?? []), cartaoTexto(s.cartao)].filter(Boolean).join('\n'));
-  if (tipo === 'imagem') partes.push([c.titulo, c.texto, cartaoTexto(c.cartao)].filter(Boolean).join('\n'));
-  if (tipo === 'stories') for (const q of c.quadros) partes.push([q.titulo, q.texto, cartaoTexto(q.cartao)].filter(Boolean).join('\n'));
+  const tela = (t) => [t.titulo, t.texto, ...(t.itens ?? []), cartaoTexto(t.cartao), ...extrasTexto(t)].filter(Boolean).join('\n');
+  if (tipo === 'carrossel') for (const s of c.slides) partes.push(tela(s));
+  if (tipo === 'imagem') partes.push(tela(c));
+  if (tipo === 'stories') for (const q of c.quadros) partes.push(tela(q));
   if (tipo === 'reel') for (const b of c.batidas) partes.push([`NA TELA: ${b.tela}`, `NARRAÇÃO: ${b.fala}`, textoDaCena(b.cena)].filter(Boolean).join('\n'));
   if (c.legenda) partes.push(`LEGENDA:\n${c.legenda}`);
   return partes.join('\n\n');
@@ -145,11 +166,21 @@ const CENAS_PROMPT = `CENAS DISPONÍVEIS (campo "cena", escolha uma por batida):
 Regras: comece com gancho; nunca a mesma cena duas vezes seguidas; pelo menos 4 cenas diferentes; pelo menos uma cena que mostre o produto.
 Ícones permitidos: ${ICONES.join(', ')}.`;
 
-export function promptPeca(item, motivosAnteriores = [], anterior = null) {
+const LAYOUTS_PROMPT = `LAYOUTS (campo "layout" de cada slide, quadro ou imagem; o fundo quem escolhe é o sistema):
+${Object.entries(LAYOUTS).map(([k, v]) => `- ${k}${v.precisa ? ` (preencha "${v.precisa}")` : ''}${v.capa ? '' : ' [não serve de capa]'}: ${v.uso}.`).join('\n')}
+Campos: "conversa": 2 a 4 mensagens {lado: negocio|cliente, texto}; "lados": {a: {rotulo, itens}, b: {rotulo, itens}} (a = o jeito de
+caderno ou de cabeça, b = o que a tela da Mazzi mostra; até 3 itens curtos de cada lado); "anotacoes": 2 a 4 anotações de caderno
+{texto, riscado?}; "itens": 3 a 5 itens; "cartao": {titulo, linhas}.
+Direção de arte (o código confere e reprova): escolha o layout pelo que a tela PRECISA mostrar, não por costume. Carrossel com pelo menos
+3 layouts diferentes (4 se tiver 7 ou mais slides), nunca o mesmo layout em dois slides seguidos (exceto "passo"), último slide em
+"chamada". Stories com pelo menos 2 layouts. "pergunta" e "chamada" com até 9 palavras no título. Texto de cada tela com até 32 palavras.
+"destaque" (palavra colorida) em no máximo 2 slides, e só se for a palavra que dói. Guia completo: guia/direcao-de-arte.md.`;
+
+export function promptPeca(item, motivosAnteriores = [], anterior = null, { capas = [] } = {}) {
   const formato = {
-    carrossel: '5 a 8 slides: capa (gancho), estaca, ideias (uma por slide, com "passo" numerado se for sequência), resumo (itens) e chamada. Cartão de exemplo quando ajudar a ver a função.',
-    imagem: 'um post de imagem única: título forte, texto curto e, se ajudar, um cartão de exemplo.',
-    stories: '4 ou 5 quadros, uma ideia por quadro, falando com "você"; o 4º é o pedido ("me responde aqui nesse story" ou "chama no WhatsApp, link na bio").',
+    carrossel: `5 a 8 slides: capa (gancho), estaca, ideias (uma por slide, com "passo" numerado se for sequência), resumo (itens) e chamada. Cartão, conversa, comparativo ou bilhete de exemplo quando ajudar a VER a cena.\n${LAYOUTS_PROMPT}`,
+    imagem: `um post de imagem única: título forte, texto curto e, se ajudar, um cartão, uma conversa, um comparativo ou um bilhete de exemplo.\n${LAYOUTS_PROMPT}`,
+    stories: `4 ou 5 quadros, uma ideia por quadro, falando com "você"; o 4º é o pedido ("me responde aqui nesse story" ou "chama no WhatsApp, link na bio").\n${LAYOUTS_PROMPT}`,
     reel: 'reel narrado de 20 a 40 segundos, em 7 a 12 batidas. Cada batida tem "fala" (o que a voz diz: frases curtas de gente, até 10 palavras para caber em 4 segundos; a 1ª fala é o gancho, até 7 palavras, e cabe em 3 segundos), "tela" (a frase grande na tela, até 6 palavras, que reforça a fala sem repetir tudo) e "cena" (o motion graphics daquela batida). A última batida é a chamada (o fechamento da marca entra sozinho nela). Escreva a fala para ser ouvida: sem siglas difíceis, sem parênteses, sem emoji.\n' + CENAS_PROMPT,
   }[item.tipo];
   const chamada = item.objetivo === 'conversa' ? 'A chamada é "chama no WhatsApp (link na bio)".' : 'A chamada pede para salvar ou compartilhar o post (uma só).';
@@ -159,7 +190,7 @@ Formato: ${item.tipo}: ${formato}
 Ramo: ${item.ramo} · Objetivo: ${item.objetivo} · Tipo de conteúdo: ${item.conteudo}
 Tema: ${item.tema}
 Ângulo: ${item.angulo}
-Fatos da base que pode usar (e só estes): ${item.fatos.join(', ')}
+Fatos da base que pode usar (e só estes): ${item.fatos.join(', ')}${capas.length && ['carrossel', 'imagem'].includes(item.tipo) ? `\nAs últimas capas do feed usaram os layouts: ${capas.slice(0, 3).map((c) => c.layout).join(', ')}. A capa desta peça usa OUTRO layout.` : ''}
 ${item.tipo === 'stories' ? '' : `${chamada}\nA legenda começa com o gancho (primeira linha, até 125 caracteres), corpo curto, uma chamada, até 3 hashtags no fim.${item.tipo === 'reel' ? '' : '\n"alt_text" descreve a capa para quem não enxerga, em uma ou duas frases.'}`}
 "gancho" é a frase da capa / do 1º quadro: até 12 palavras, concreta, com algo em jogo, falando com o dono.
 Nunca escreva sobre o plano, o ângulo ou o próprio post ("o foco aqui é...", "neste post"): escreva só o que o dono vai ler.
@@ -168,12 +199,12 @@ ${anterior ? `\nSUA VERSÃO ANTERIOR está abaixo. Mantenha tudo o que não foi 
 }
 
 /** Escreve a peça (uma tentativa). */
-export async function escreverPeca({ raiz, item, produto, cerebro, config, motivosAnteriores, anterior }) {
+export async function escreverPeca({ raiz, item, produto, cerebro, config, motivosAnteriores, anterior, capas = [] }) {
   const conteudo = await cerebro.pedir({
     etapa: `escrever:${item.tipo}`,
     modelo: config.modelos.redator,
     sistema: `Você é o redator do Instagram da Mazzi Systems. Escreve como gente, em português do Brasil.\n\n${contextoMarca(raiz, produto)}`,
-    prompt: promptPeca(item, motivosAnteriores, anterior),
+    prompt: promptPeca(item, motivosAnteriores, anterior, { capas }),
     schema: CONTEUDO[item.tipo],
     effort: 'medium',
   });

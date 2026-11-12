@@ -1,0 +1,57 @@
+name: Ensaio de qualidade das peças
+
+# Roda o laço de qualidade (direção de arte + editor) com o Claude de verdade numa branch de trabalho, para ver as peças
+# antes de juntar no main. NÃO publica, NÃO grava no repositório (sem commit, sem push) e não usa as variáveis do
+# kill switch: a saída vai só para um artifact da rodada (imagens, registro das tentativas e o resumo).
+# Dispara sozinho em push numa branch feat/qualidade-* que mexa no agente, ou na mão (Actions › este workflow).
+
+on:
+  push:
+    branches: ["feat/qualidade-*"]
+    paths: ["agente/**", "guia/**", ".github/workflows/ensaio-qualidade.yml"]
+  workflow_dispatch:
+    inputs:
+      semana:
+        description: "Semana já publicada cuja pauta será refeita (AAAA-MM-DD)"
+        required: false
+        default: "2026-11-09"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ensaio-qualidade-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ensaio:
+    # Respeita o kill switch: pausado, nada usa o Claude.
+    if: vars.AGENTE_PAUSADO != 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Dependências
+        run: bash .github/instalar-dependencias.sh
+
+      - name: Chromium (captura das imagens)
+        run: npx playwright install --with-deps chromium
+
+      - name: Ensaio (sem publicar)
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          AGENTE_MODO: ensaio
+        run: node agente/ferramentas/ensaio-qualidade.mjs "$RUNNER_TEMP/ensaio-qualidade" "${{ inputs.semana || '2026-11-09' }}" | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ensaio-qualidade
+          path: ${{ runner.temp }}/ensaio-qualidade
+          retention-days: 14

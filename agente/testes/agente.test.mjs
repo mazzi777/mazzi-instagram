@@ -12,6 +12,8 @@ import { produzirPeca, produzirPendentes, criarRegistro, gravarNaAgenda } from '
 import { segundaSeguinte, segundaDa, avisosDeToken } from '../agente.mjs';
 import { lerProduto } from '../checagens/fatos.mjs';
 import { htmlSlide, htmlStory } from '../imagens/modelos.mjs';
+import { checarDirecao, escolherFundos } from '../checagens/direcao.mjs';
+import { checarEditor } from '../checagens/editor.mjs';
 
 const RAIZ = path.resolve(path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, '$1')), '..', '..');
 const config = JSON.parse(readFileSync(path.join(RAIZ, 'agente', 'config.json'), 'utf8'));
@@ -111,11 +113,11 @@ test('plano: recusado volta com os motivos e passa na 2ª tentativa', async () =
 const carrosselBom = {
   gancho: 'Paciente faltou de novo?',
   slides: [
-    { tipo: 'capa', titulo: 'Paciente faltou de novo?', destaque: 'de novo?', texto: 'O horário vazio custa caro pra clínica.' },
-    { tipo: 'estaca', titulo: 'Horário vazio não volta', texto: 'Quem falta sem avisar deixa a agenda furada.' },
-    { tipo: 'ideia', passo: 1, titulo: 'Lembrete com um toque', texto: 'Sai pronto pro WhatsApp com nome, dia e horário.', cartao: { titulo: 'amanhã', linhas: [{ rotulo: 'Consulta 14h', selo: 'Confirmou', tom: 'ok' }] } },
-    { tipo: 'resumo', titulo: 'Resumo', itens: ['Mande o lembrete na véspera', 'Veja quem confirmou'] },
-    { tipo: 'chamada', titulo: 'Quer ver na sua agenda?', texto: 'Chama no WhatsApp, link na bio.' },
+    { tipo: 'capa', layout: 'pergunta', titulo: 'Paciente faltou de novo?', destaque: 'de novo?', texto: 'O horário vazio custa caro pra clínica.' },
+    { tipo: 'estaca', layout: 'manchete', titulo: 'Horário vazio não volta', texto: 'Quem falta sem avisar deixa a agenda furada.' },
+    { tipo: 'ideia', layout: 'passo', passo: 1, titulo: 'Lembrete com um toque', texto: 'Sai pronto pro WhatsApp com nome, dia e horário.', cartao: { titulo: 'amanhã', linhas: [{ rotulo: 'Consulta 14h', selo: 'Confirmou', tom: 'ok' }] } },
+    { tipo: 'resumo', layout: 'lista', titulo: 'Resumo', itens: ['Mande o lembrete na véspera', 'Veja quem confirmou', 'Remarque quem pediu'] },
+    { tipo: 'chamada', layout: 'chamada', titulo: 'Quer ver na sua agenda?', texto: 'Chama no WhatsApp, link na bio.' },
   ],
   legenda: 'Paciente faltou de novo?\n\nNa Mazzi o lembrete sai pronto pro WhatsApp com um toque, já com nome, dia e horário. Você vê quem confirmou.\n\nChama no WhatsApp (link na bio).\n\n#clinicadeestetica',
   alt_text: 'Capa escura com o texto: Paciente faltou de novo?',
@@ -137,14 +139,15 @@ test('checarTexto: peça boa passa com juízes limpos; fato inventado reprova', 
   assert.equal(ruim.ok, false);
 });
 
-function cerebroFalso({ conteudos, visual = () => ({ problemas: [] }), fatos = () => ({ afirmacoes: [] }) }) {
+const EDITOR_OK = () => ({ notas: { original: 8, humano: 8, marca: 9, novidade: 8, clareza: 9 }, cfm: [], problemas: [] });
+function cerebroFalso({ conteudos, visual = () => ({ problemas: [] }), fatos = () => ({ afirmacoes: [] }), editor = EDITOR_OK }) {
   let n = 0;
   const pedidos = [];
   return {
     pedidos,
     economico: () => false,
     pedir: async (q) => { pedidos.push(q); return conteudos[Math.min(n++, conteudos.length - 1)]; },
-    juiz: (_schema, etapa) => async () => (etapa === 'juiz:visual' ? visual() : etapa === 'juiz:fatos' ? fatos() : { problemas: [] }),
+    juiz: (_schema, etapa) => async () => (etapa === 'juiz:visual' ? visual() : etapa === 'juiz:fatos' ? fatos() : etapa === 'juiz:editor' ? editor() : { problemas: [] }),
   };
 }
 
@@ -250,8 +253,68 @@ test('modelos: o selo EXEMPLO sai sempre no cartão e o texto é escapado', () =
   assert.match(html, /@mazzisystems/);
   assert.match(htmlStory({ titulo: 'Oi' }, { ramo: 'restaurante' }), /@mazzisystems/);
   const resumo = htmlSlide({ tipo: 'resumo', titulo: 'Resumo', itens: ['1. Abra o caixa', '2) Feche'] }, { ramo: 'restaurante', numero: 5, total: 6 });
-  assert.match(resumo, /<b>1<\/b><span>Abra o caixa<\/span>/);
-  assert.match(resumo, /<b>2<\/b><span>Feche<\/span>/);
+  assert.match(resumo, /<span class="caixa"><\/span><span>Abra o caixa<\/span>/);
+  assert.match(resumo, /<span class="caixa"><\/span><span>Feche<\/span>/);
+  // Todo layout com interface (cartão, conversa) leva o selo; peça sem layout escolhido cai no desenho de antes.
+  assert.match(htmlSlide({ tipo: 'ideia', layout: 'conversa', titulo: 'Oi', conversa: [{ lado: 'negocio', texto: 'a' }, { lado: 'cliente', texto: 'b' }] }, { ramo: 'clinica', numero: 2, total: 5 }), /EXEMPLO/);
+  assert.match(htmlSlide({ tipo: 'capa', titulo: 'Oi' }, { ramo: 'clinica', numero: 1, total: 5 }), /data-layout="manchete" data-fundo="escuro"/);
+});
+
+test('direção de arte (G9a): reprova molde repetido, capa igual às últimas e layout sem o que mostrar', () => {
+  const telas = (layouts) => ({ slides: layouts.map((l, i) => ({ tipo: i ? 'ideia' : 'capa', layout: l, titulo: 'Título curto', itens: ['a', 'b', 'c'], passo: 1, cartao: { linhas: [{ rotulo: 'x' }] } })) });
+  assert.deepEqual(checarDirecao('carrossel', telas(['pergunta', 'manchete', 'passo', 'lista', 'chamada'])), []);
+  const mesmo = checarDirecao('carrossel', telas(['manchete', 'manchete', 'manchete', 'manchete', 'chamada']));
+  assert.ok(mesmo.some((m) => /só 2 layouts/.test(m)), mesmo.join('; '));
+  assert.ok(mesmo.some((m) => /repetido nos slides 1 e 2/.test(m)));
+  const capas = [{ layout: 'pergunta', fundo: 'papel' }, { layout: 'manchete', fundo: 'escuro' }];
+  assert.ok(checarDirecao('carrossel', telas(['pergunta', 'manchete', 'passo', 'lista', 'chamada']), { capas }).some((m) => /repete uma das 2 últimas capas/.test(m)));
+  assert.ok(checarDirecao('imagem', { layout: 'conversa', titulo: 'Sumiu?' }).some((m) => /sem 2 a 4 mensagens/.test(m)));
+  assert.ok(checarDirecao('carrossel', telas(['lista', 'manchete', 'passo', 'pergunta', 'chamada'])).some((m) => /não serve de capa/.test(m)));
+  assert.ok(checarDirecao('stories', { quadros: [1, 2, 3, 4].map(() => ({ layout: 'pergunta', titulo: 'Oi' })) }).some((m) => /um layout só/.test(m)));
+  // Fundos: a capa foge das últimas capas, nada 3x seguido, coral no máximo 2x, carrossel com pelo menos 2 fundos.
+  const fundos = escolherFundos(['pergunta', 'manchete', 'manchete', 'passo', 'lista', 'frase', 'chamada'].map((layout) => ({ layout })), { capas: [{ fundo: 'papel' }, { fundo: 'coral' }] });
+  assert.equal(fundos[0], 'escuro');
+  fundos.forEach((f, i) => { if (i >= 2) assert.ok(!(f === fundos[i - 1] && f === fundos[i - 2]), fundos.join(',')); });
+  assert.ok(fundos.filter((f) => f === 'coral').length <= 2, fundos.join(','));
+  assert.ok(new Set(fundos).size >= 2);
+});
+
+test('editor (G9b): nota baixa ou problema de CFM reprova; erro do juiz reprova; restaurante ignora "cfm"', async () => {
+  const notas = (n) => ({ original: n, humano: n, marca: n, novidade: n, clareza: n });
+  const it = { tipo: 'carrossel', ramo: 'clinica', objetivo: 'conversa', tema: 't' };
+  assert.equal((await checarEditor([], { juiz: async () => ({ notas: notas(8), cfm: [], problemas: [] }), texto: 'x', item: it })).ok, true);
+  const generico = await checarEditor([], { juiz: async () => ({ notas: { ...notas(8), original: 4 }, cfm: [], problemas: [{ criterio: 'original', imagem: 1, motivo: 'capa genérica, serve pra qualquer sistema' }] }), texto: 'x', item: it });
+  assert.equal(generico.ok, false);
+  assert.match(generico.motivos[0], /editor \(original 4\/10, imagem 1\): capa genérica/);
+  const cfm = await checarEditor([], { juiz: async () => ({ notas: notas(9), cfm: ['"resultado natural garantido"'], problemas: [] }), texto: 'x', item: it });
+  assert.match(cfm.motivos[0], /ética médica \(CFM\)/);
+  assert.equal((await checarEditor([], { juiz: async () => ({ notas: notas(9), cfm: ['x'], problemas: [] }), texto: 'x', item: { ...it, ramo: 'restaurante' } })).ok, true);
+  assert.match((await checarEditor([], { juiz: async () => { throw new Error('timeout'); }, texto: 'x', item: it })).motivos[0], /na dúvida, não posta/);
+});
+
+test('orquestrador: o editor reprova a peça genérica nas 3 tentativas e ela cai no banco reserva', async () => {
+  const saida = tmp();
+  const generico = () => ({ notas: { original: 3, humano: 5, marca: 8, novidade: 4, clareza: 8 }, cfm: [], problemas: [{ criterio: 'original', imagem: 1, motivo: 'poderia ser de qualquer sistema' }] });
+  const cerebro = cerebroFalso({ conteudos: [carrosselBom], editor: generico });
+  const reserva = { pegar: async () => ({ origemId: 'R9', entrada: { id: 'A', origem: 'reserva' } }) };
+  const r = await produzirPeca(item, { raiz: RAIZ, saida, semana: SEMANA, produto, config, cerebro, usados: [], hoje: '2026-11-14', registrar: criarRegistro(saida), capturar: capturaFalsa, reserva, capas: [] });
+  assert.equal(r.status, 'reserva');
+  assert.equal(cerebro.pedidos.length, 3, 'regera 2 vezes antes de desistir');
+  assert.match(cerebro.pedidos[1].prompt, /editor \(original 3\/10/);
+  const linhas = readdirSync(path.join(saida, 'registro')).flatMap((f) => readFileSync(path.join(saida, 'registro', f), 'utf8').trim().split('\n').map((l) => JSON.parse(l)));
+  assert.ok(linhas.some((l) => l.tipo === 'reserva' && /R9/.test(l.detalhe)));
+  assert.ok(linhas.some((l) => l.notas?.editor_original === 3), 'as notas do editor ficam no registro');
+});
+
+test('orquestrador: a capa repetida reprova antes de renderizar (sem gastar navegador nem juiz)', async () => {
+  const saida = tmp();
+  let capturas = 0;
+  const cerebro = cerebroFalso({ conteudos: [carrosselBom] });
+  const r = await produzirPeca(item, { raiz: RAIZ, saida, semana: SEMANA, produto, config, cerebro, usados: [], hoje: '2026-11-14', registrar: criarRegistro(saida), capturar: async (...a) => { capturas++; return capturaFalsa(...a); }, capas: [{ layout: 'pergunta', fundo: 'papel' }] });
+  assert.equal(r.status, 'pulada');
+  assert.equal(capturas, 0);
+  assert.match(cerebro.pedidos[1].prompt, /repete uma das 2 últimas capas/);
+  assert.match(cerebro.pedidos[0].prompt, /últimas capas do feed usaram os layouts: pergunta/);
 });
 
 test('diagramação: texto que não cabe é medido na própria página e vira problema (precisa de navegador)', async (t) => {

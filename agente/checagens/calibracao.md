@@ -1,24 +1,33 @@
 # Calibração das notas (G3 gancho e G5 sem cara de IA)
 
-Gerado por `npm run calibrar` em 2026-11-01. Limite em uso: nota >= 70 e nenhum critério < 55.
+Gerado por `npm run calibrar` em 2026-11-12. Limite em uso: nota >= 70 e nenhum critério < 55.
 
 ## G3: gancho
 
-- Ganchos do `guia/log.md` (já publicados, escritos para a marca): 15
+- Ganchos do `guia/log.md` (já publicados, escritos para a marca): 25
 - Ganchos ruins de propósito: 20
-- **AUC: 0.90** (0,5 = moeda; 1 = separa perfeitamente)
-- Com nota >= 70: 6 de 15 bons e 0 de 20 ruins
+- **AUC: 0.92** (0,5 = moeda; 1 = separa perfeitamente)
+- Com nota >= 70: 15 de 25 bons e 0 de 20 ruins
 
 O log mistura ganchos fortes com frases de abertura que não eram gancho (ex.: chamadas de convite); reprovar parte deles é esperado, e é o que o agente deve evitar daqui para frente.
 
 | Nota | Veredito | Gancho do log |
 |---|---|---|
+| 95 | FORTE | Não achou o cadastro da Mazzi? Chama no WhatsApp |
 | 94 | FORTE | Quantos orçamentos você mandou esse mês que ficaram sem resposta? |
 | 87 | FORTE | Você cobra quem não respondeu o orçamento? |
+| 85 | FORTE | Esqueceu de trocar o preço do quilo de novo? |
+| 85 | FORTE | Caixa que sempre bate: alguém conferiu de verdade? |
 | 85 | FORTE | O caixa não fechou de novo? |
 | 85 | FORTE | Visualizou o orçamento e sumiu? |
+| 84 | FORTE | Foto de paciente no seu WhatsApp pessoal? |
+| 82 | FORTE | Agenda, ficha e termo em lugares diferentes? |
+| 82 | FORTE | A recepção vê a comissão de todo mundo? |
 | 82 | FORTE | Paciente faltou de novo? |
 | 82 | FORTE | Caixa cheio no dia 30. Quanto disso é lucro? |
+| 81 | FORTE | Seu cliente vê o logo de quem no sistema? |
+| 79 | FORTE | Quem devia voltar este mês e ninguém chamou? |
+| 79 | FORTE |  e o horário ficou vazio? |
 | 63 | OK | Pedido no telefone sem papel e caneta |
 | 63 | OK | Pedido de delivery sem papel e caneta. |
 | 62 | OK | O que mais te dá dor de cabeça no delivery? |
@@ -28,6 +37,7 @@ O log mistura ganchos fortes com frases de abertura que não eram gancho (ex.: c
 | 33 | FRACO | Seu negócio. Organizado. |
 | 30 | FRACO | Postei o passo a passo no feed. |
 | 25 | FRACO | me responde aqui |
+| 23 | FRACO | Ela disse  |
 
 | Nota | Veredito | Gancho ruim de propósito |
 |---|---|---|

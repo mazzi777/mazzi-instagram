@@ -130,7 +130,7 @@ function cerebroFalso(conteudo, visual = () => ({ problemas: [] })) {
   return {
     economico: () => false,
     pedir: async () => conteudo,
-    juiz: (_s, etapa) => async (_t, _x, imagens) => (etapa === 'juiz:visual' ? (assert.equal(imagens.length, 6), visual()) : etapa === 'juiz:fatos' ? { afirmacoes: [] } : { problemas: [] }),
+    juiz: (_s, etapa) => async (_t, _x, imagens) => (etapa === 'juiz:visual' ? (assert.equal(imagens.length, 6), visual()) : etapa === 'juiz:fatos' ? { afirmacoes: [] } : etapa === 'juiz:editor' ? { notas: { original: 8, humano: 8, marca: 8, novidade: 8, clareza: 8 }, cfm: [], problemas: [] } : { problemas: [] }),
   };
 }
 const itemReel = { id: 'B', dia: '2026-11-25', horario: '18:40', tipo: 'reel', ramo: 'restaurante', objetivo: 'conversa', conteudo: 'dor', tema: 'caixa', angulo: 'a sangria que sumiu', fatos: ['rest.caixa'] };

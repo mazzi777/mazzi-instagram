@@ -251,6 +251,8 @@ O agente escolhe entre os 4 horários fixos. Os pesos vêm das métricas por hor
 | G6 | **Técnica** | ffprobe + leitura de JPEG (seção 8.3). | Tudo dentro da spec. |
 | G7 | **Visual** | O juiz recebe os slides ou 6 quadros do reel (0,5 s, gancho, meio, CTA, fim) e responde num checklist: texto cortado, sobreposição, erro de português, legibilidade, `@mazzisystems`, selo EXEMPLO nos cartões, nada parecido com print real. | Checklist sem falha. |
 | G8 | **Repetição** | Código: gancho e ângulo comparados com `guia/log.md` e o registro das últimas 6 semanas (similaridade normalizada). | Similaridade < 0,6 com qualquer anterior. |
+| G9a | **Direção de arte** (12/11/2026) | Código, antes de renderizar: layout com o conteúdo que precisa, variedade de layouts e fundos na peça, capa diferente das 2 últimas do feed (`guia/direcao-de-arte.md`). | Nenhuma regra quebrada. |
+| G9b | **Editor** (12/11/2026) | Juiz separado (Sonnet) com as imagens prontas, o texto e as últimas 10 peças: notas de 0 a 10 em original, humano, marca, novidade e clareza, e lista de ética médica (CFM) nas peças de clínica. | Todas as notas ≥ 7 e nenhum item de CFM. |
 
 - **Regra geral:** qualquer checagem com erro de execução (juiz fora do ar, timeout) conta como **reprovada**. Na dúvida, não posta.
 - **Calibração antes de valer:** as notas mínimas de G3 e G5 são calibradas na Fase 1a contra os ganchos já publicados (`guia/log.md`) e contra 20 ganchos ruins de propósito. Se o porte não separar bom de ruim, o limite muda e eu te mostro os números.

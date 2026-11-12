@@ -20,6 +20,9 @@ export const PROIBIDAS_AGENTE = [
     'texto de bastidor: a peça fala do plano ou do próprio post'],
   [/(?<![\p{L}])(?:odonto|dentista)[\p{L}]*(?:[^.!?\n]{0,40})(?:clareamento|implante|aparelho|sorriso perfeito)/iu,
     'promessa de procedimento odontológico'],
+  // Publicidade médica (Resolução CFM 2.336/2023; CRO para odonto): sem superlativo, garantia, comparação nem promessa de resultado.
+  [/(?<![\p{L}])(?:refer[eê]ncia em (?:est[eé]tica|harmoniza|sa[uú]de|odonto)|a melhor cl[ií]nica|o melhor (?:resultado|procedimento|tratamento|profissional)|livre d[ae] dor|resultados? naturais? garantid|sem cicatriz|pele perfeita|rosto perfeito|sorriso perfeito|harmoniza[cç][aã]o perfeita|sem riscos?|risco zero)(?![\p{L}])/iu,
+    'publicidade médica (CFM): superlativo, garantia ou promessa de resultado'],
 ];
 
 /** Só as palavras (camada 1). Devolve a lista de motivos. */

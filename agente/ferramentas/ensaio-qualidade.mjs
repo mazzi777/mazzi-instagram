@@ -1,0 +1,86 @@
+// Ensaio do laço de qualidade (direção de arte + editor) com o Claude de verdade, sem publicar e sem gravar no repositório.
+//   node agente/ferramentas/ensaio-qualidade.mjs <pasta-de-saida> [semana-de-referencia]
+// Refaz as peças de imagem de uma semana já publicada (mesma pauta do plano.json) para comparar antes e depois,
+// e roda um caso forçado a reprovar (editor com nota mínima impossível) para provar que ele cai no banco reserva.
+// Saída: <pasta>/semanas/... (peças novas), <pasta>/registro (cada tentativa, notas e motivos), <pasta>/resumo.md e
+// <pasta>/antes-depois-*.jpg. O banco reserva é só lido (usar não gasta a vez da peça). Quem roda: .github/workflows/ensaio-qualidade.yml.
+import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync } from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { criarCerebro } from '../cerebro.mjs';
+import { lerProduto } from '../checagens/fatos.mjs';
+import { lerGanchosUsados } from '../checagens/repeticao.mjs';
+import { produzirPeca, criarRegistro, gravarNaAgenda } from '../orquestrador.mjs';
+import { criarReserva } from '../reserva.mjs';
+import { ganchosDasAgendas } from '../agente.mjs';
+
+const RAIZ = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
+const saida = path.resolve(process.argv[2] ?? 'ensaio-qualidade');
+const semana = process.argv[3] ?? '2026-11-09';
+const config = JSON.parse(readFileSync(path.join(RAIZ, 'agente', 'config.json'), 'utf8'));
+const produto = lerProduto(RAIZ);
+const plano = JSON.parse(readFileSync(path.join(RAIZ, 'semanas', semana, 'plano.json'), 'utf8'));
+mkdirSync(saida, { recursive: true });
+
+const log = [];
+const registrar = criarRegistro(saida);
+const cerebro = { ...criarCerebro({ raiz: saida, config, log: (m) => log.push(m) }), config };
+const reserva = criarReserva({ raiz: RAIZ, saida, produto, marcar: false });
+const usados = [...lerGanchosUsados(RAIZ), ...ganchosDasAgendas(RAIZ)];
+const hoje = semana;
+const ctx = { raiz: RAIZ, saida, config, cerebro, usados, hoje, registrar, reserva, semana };
+
+const resultados = [];
+const pecas = plano.pecas.filter((p) => ['carrossel', 'imagem', 'stories'].includes(p.tipo)).slice(0, Number(process.env.ENSAIO_MAX ?? 4));
+for (const item of pecas) {
+  const r = await produzirPeca(item, ctx);
+  if (r.entrada) gravarNaAgenda(saida, semana, r.entrada);
+  resultados.push({ id: item.id, tipo: item.tipo, status: r.status, motivos: r.motivos ?? [], gancho: r.entrada?.gancho, visual: r.entrada?.visual });
+  console.log(`${item.id} ${item.tipo}: ${r.status}`);
+}
+
+// Caso forçado: editor que nada satisfaz e sem regeração (economiza o plano). Tem que cair no banco reserva.
+const forcado = pecas.find((p) => p.tipo === 'carrossel') ?? pecas[0];
+const configForcado = { ...config, checagens: { ...config.checagens, regeracoes: 0, editor: { notaMinima: 11 } } };
+const rf = await produzirPeca({ ...forcado, id: 'X' }, { ...ctx, config: configForcado, saida: path.join(saida, 'forcado'), registrar: criarRegistro(path.join(saida, 'forcado')) });
+resultados.push({ id: 'X (forçado)', tipo: forcado.tipo, status: rf.status, motivos: rf.motivos ?? [], gancho: rf.entrada?.gancho, origem: rf.entrada?.origem });
+console.log(`X (forçado a reprovar): ${rf.status}`);
+
+// Notas e motivos de cada tentativa, do registro.
+const linhas = (dir) => (existsSync(dir) ? readdirSync(dir).flatMap((f) => readFileSync(path.join(dir, f), 'utf8').trim().split('\n').map((l) => JSON.parse(l))) : []);
+const reg = [...linhas(path.join(saida, 'registro')), ...linhas(path.join(saida, 'forcado', 'registro'))];
+const resumo = [
+  `# Ensaio de qualidade (${new Date().toISOString().slice(0, 10)}), pauta da semana ${semana}`,
+  '',
+  '| Peça | Tipo | Resultado | Gancho | Capa |',
+  '|---|---|---|---|---|',
+  ...resultados.map((r) => `| ${r.id} | ${r.tipo} | ${r.status}${r.origem ? ` (${r.origem})` : ''} | ${r.gancho ?? '-'} | ${r.visual ? `${r.visual.layout}/${r.visual.fundo}` : '-'} |`),
+  '',
+  '## Tentativas (notas e motivos)',
+  '',
+  ...reg.filter((l) => l.peca).map((l) => `- ${l.peca} · ${l.tipo}${l.detalhe ? ` · ${l.detalhe}` : ''}${l.notas ? ` · notas ${JSON.stringify(l.notas)}` : ''}${l.motivos?.length ? `\n  - ${l.motivos.join('\n  - ')}` : ''}`),
+  '',
+  `Uso: ${log.join(' | ')}`,
+].join('\n');
+writeFileSync(path.join(saida, 'resumo.md'), `${resumo}\n`);
+
+// Antes (o que foi ao ar) e depois (o ensaio), lado a lado, uma folha por peça.
+try {
+  const { chromium } = await import('playwright');
+  const nav = await chromium.launch();
+  for (const r of resultados.filter((x) => x.status === 'aprovada')) {
+    const imgs = (dir, pref) => (existsSync(dir) ? readdirSync(dir).filter((f) => f.startsWith(`${semana}-${pref}-`) && f.endsWith('.jpg')).sort().map((f) => path.join(dir, f)) : []);
+    const antes = imgs(path.join(RAIZ, 'semanas', semana), r.id);
+    const depois = imgs(path.join(saida, 'semanas', semana), r.id);
+    const fila = (titulo, lista) => `<h2>${titulo}</h2><div class="fila">${lista.map((f) => `<img src="data:image/jpeg;base64,${readFileSync(f).toString('base64')}">`).join('')}</div>`;
+    const html = `<body style="margin:0;padding:24px;background:#6d6d6d;font:600 22px sans-serif;color:#fff;width:max-content"><style>.fila{display:flex;gap:10px;margin-bottom:24px}.fila img{width:${r.tipo === 'stories' ? 216 : 270}px}</style>${fila(`Antes (no ar) · ${r.id}`, antes)}${fila(`Depois (ensaio) · ${r.id}`, depois)}</body>`;
+    const p = await nav.newPage({ viewport: { width: 600, height: 400 } });
+    await p.setContent(html);
+    await p.screenshot({ path: path.join(saida, `antes-depois-${r.id}.jpg`), fullPage: true, type: 'jpeg', quality: 85 });
+    await p.close();
+  }
+  await nav.close();
+} catch (e) {
+  console.log(`folha antes/depois não saiu: ${e.message}`);
+}
+console.log(resumo);
