@@ -37,7 +37,7 @@ const hoje = semana;
 const ctx = { raiz: RAIZ, saida, config, cerebro, produto, usados, hoje, registrar, reserva, semana };
 
 const resultados = [];
-const pecas = plano.pecas.filter((p) => ['carrossel', 'imagem', 'stories'].includes(p.tipo)).slice(0, Number(process.env.ENSAIO_MAX ?? 8));
+const pecas = plano.pecas.filter((p) => ['carrossel', 'imagem', 'stories'].includes(p.tipo)).slice(0, Number(process.env.ENSAIO_MAX ?? 4));
 for (const item of pecas) {
   atual = item.id;
   const r = await produzirPeca(item, ctx);

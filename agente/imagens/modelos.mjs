@@ -33,7 +33,7 @@ export const LAYOUTS = {
   bilhete: { familia: 'cena', fundos: ['escuro', 'coral'], capa: true, precisa: 'anotacoes', uso: 'folha de caderno com anotações à mão (algumas riscadas); para a dor do papel, da cabeça, do caderno' },
   lista: { familia: 'cena', fundos: ['escuro', 'papel'], capa: false, precisa: 'itens', uso: 'checklist marcado; para o resumo que a pessoa printa' },
   frase: { familia: 'texto', fundos: ['coral', 'papel'], capa: true, uso: 'uma opinião da marca em frase grande com aspas; para opinião e virada' },
-  chamada: { familia: 'texto', fundos: ['coral', 'papel', 'escuro'], capa: false, uso: 'o pedido final (WhatsApp, salvar, compartilhar), grande e sozinho' },
+  chamada: { familia: 'texto', fundos: ['coral', 'papel', 'escuro'], capa: false, uso: 'o pedido final, grande e sozinho: título curto sem parênteses ("Chama no WhatsApp"); no feed o sistema põe embaixo a pílula "link na bio" (conversa) ou "salva pra depois" (alcance), então não repita isso no título' },
 };
 export const NOMES_LAYOUT = Object.keys(LAYOUTS);
 export const FUNDOS = ['escuro', 'papel', 'coral'];
@@ -193,7 +193,12 @@ const CORPO = {
   lista: (s) => `<h1 style="--fs:84px">${titulo(s.titulo, s.destaque)}</h1><div class="checklist escala">${(s.itens ?? []).map((t) => `<div><span class="caixa"></span><span>${esc(t.replace(/^\s*\d+\s*[.)\-:]\s*/, ''))}</span></div>`).join('')}</div>`,
   frase: (s) => `<div class="aspas">“</div><h1 style="--fs:100px">${titulo(s.titulo, s.destaque)}</h1>${paragrafo(s.texto)}`,
   // A pílula só no feed (o objetivo diz qual); no story o próprio texto faz o pedido ("me responde aqui" ou "link na bio").
-  chamada: (s) => `<h1 style="--fs:128px">${titulo(s.titulo, s.destaque)}</h1>${paragrafo(s.texto)}${s.objetivo ? `<div class="pilula">${s.objetivo === 'alcance' ? 'salva pra depois' : 'link na bio'}</div>` : ''}`,
+  // Se o título ou o texto já dizem o pedido ("link na bio", "salva"), a pílula não repete.
+  chamada: (s) => {
+    const pilula = s.objetivo === 'alcance' ? 'salva pra depois' : 'link na bio';
+    const jaDiz = new RegExp(s.objetivo === 'alcance' ? 'salv' : 'link na bio', 'i').test(`${s.titulo} ${s.texto ?? ''}`);
+    return `<h1 style="--fs:128px">${titulo(s.titulo, s.destaque)}</h1>${paragrafo(s.texto)}${s.objetivo && !jaDiz ? `<div class="pilula">${pilula}</div>` : ''}`;
+  },
 };
 
 function montar(s, { formato, ramo, numero, total, seguir, capa }) {

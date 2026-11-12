@@ -355,3 +355,9 @@ test('reserva: prefere a peça cuja capa não repete as 2 últimas do feed, e a 
   assert.equal(repeteCapa({ tipo: 'carrossel', visual: { layout: 'conversa', fundo: 'papel' } }, capas), 0);
   assert.equal(repeteCapa({ tipo: 'stories' }, capas), 0, 'stories não entram na regra de capa');
 });
+
+test('modelos: a pílula da chamada não repete o pedido que o título já faz', () => {
+  const html = (titulo) => htmlSlide({ tipo: 'chamada', layout: 'chamada', titulo }, { ramo: 'clinica', numero: 6, total: 6, objetivo: 'conversa' });
+  assert.match(html('Chama no WhatsApp'), /class="pilula">link na bio/);
+  assert.doesNotMatch(html('Chama no WhatsApp (link na bio)'), /class="pilula"/);
+});
