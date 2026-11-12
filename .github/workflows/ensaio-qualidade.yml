@@ -47,7 +47,7 @@ jobs:
         env:
           CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           AGENTE_MODO: ensaio
-        run: node agente/ferramentas/ensaio-qualidade.mjs "$RUNNER_TEMP/ensaio-qualidade" "${{ inputs.semana || '2026-11-09' }}" | tee -a "$GITHUB_STEP_SUMMARY"
+        run: set -o pipefail; node agente/ferramentas/ensaio-qualidade.mjs "$RUNNER_TEMP/ensaio-qualidade" "${{ inputs.semana || '2026-11-09' }}" | tee -a "$GITHUB_STEP_SUMMARY"
 
       - uses: actions/upload-artifact@v4
         if: always()

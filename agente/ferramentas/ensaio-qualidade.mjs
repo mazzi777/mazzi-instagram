@@ -18,7 +18,7 @@ const RAIZ = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '.
 const saida = path.resolve(process.argv[2] ?? 'ensaio-qualidade');
 const semana = process.argv[3] ?? '2026-11-09';
 const config = JSON.parse(readFileSync(path.join(RAIZ, 'agente', 'config.json'), 'utf8'));
-const produto = lerProduto(RAIZ);
+const produto = lerProduto();
 const plano = JSON.parse(readFileSync(path.join(RAIZ, 'semanas', semana, 'plano.json'), 'utf8'));
 mkdirSync(saida, { recursive: true });
 
