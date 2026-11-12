@@ -398,3 +398,26 @@ test('reel: cenas hub e encaixe e pílulas como variação da lista (referência
   const { CENAS, ATO_PADRAO } = await import('../video/motion/cenas.jsx').catch(() => ({ CENAS: null }));
   if (CENAS) { assert.ok(CENAS.hub && CENAS.encaixe); assert.ok(ATO_PADRAO.hub && ATO_PADRAO.encaixe); }
 });
+
+test('achados do ig-revisor no ensaio final: dinheiro fora do EXEMPLO, story sem "link na bio", selo duplicado, reserva repetindo tema', async () => {
+  // 1) valor solto no caderno reprova na direção de arte (cartão EXEMPLO pode)
+  const bilhete = { layout: 'bilhete', titulo: 'Caixa no caderno', anotacoes: [{ texto: 'sobrou R$ 50?', riscado: true }, { texto: 'fechou?' }] };
+  assert.ok(checarDirecao('stories', { quadros: [bilhete, { layout: 'cartao', titulo: 'x', cartao: { linhas: [{ rotulo: 'Diferença', selo: 'R$ 20' }] } }] }).some((m) => /valor em dinheiro fora de cartão EXEMPLO/.test(m)));
+  assert.ok(!checarDirecao('stories', { quadros: [{ ...bilhete, anotacoes: [{ texto: 'sobrou ou faltou?' }, { texto: 'fechou?' }] }, { layout: 'cartao', titulo: 'x', cartao: { linhas: [{ rotulo: 'Diferença', selo: 'R$ 20' }] } }] }).some((m) => /dinheiro/.test(m)));
+  // 2) story que manda pro WhatsApp ganha "link na bio"; "me responde aqui" não
+  assert.match(htmlStory({ layout: 'chamada', titulo: 'Chama no WhatsApp' }, { ramo: 'clinica' }), /class="pilula">link na bio/);
+  assert.doesNotMatch(htmlStory({ layout: 'chamada', titulo: 'Me responde aqui nesse story' }, { ramo: 'clinica' }), /class="pilula"/);
+  // 3) "EXEMPLO" no começo ou no fim do título do cartão não duplica o selo
+  for (const t of ['Anamnese · Exemplo', 'Exemplo: Anamnese', 'Anamnese (exemplo)']) {
+    const h = htmlSlide({ tipo: 'ideia', layout: 'cartao', titulo: 'x', cartao: { titulo: t, linhas: [{ rotulo: 'a' }] } }, { ramo: 'clinica', numero: 2, total: 5 });
+    assert.match(h, />EXEMPLO · Anamnese</, t);
+  }
+  // 4) reserva com o tema ou as funções da semana vai para o fim da fila
+  const { ordenarReserva } = await import('../reserva.mjs');
+  const pecas = [
+    { rid: 'mesmo-tema', tipo: 'carrossel', gancho: 'Quem confere a ficha?', tema: 'clinica · a clínica num lugar só', fatos: ['clin.agenda'] },
+    { rid: 'outro', tipo: 'carrossel', gancho: 'Quem confere o troco do motoboy?', tema: 'restaurante · delivery', fatos: ['rest.delivery.teclado'] },
+  ];
+  const recentes = [{ dia: '2026-11-11', tema: 'clinica · a clínica num lugar só', fatos: ['clin.agenda'] }];
+  assert.deepEqual(ordenarReserva(pecas, { item: { ramo: 'clinica' }, hoje: '2026-11-16', recentes }).map((p) => p.rid), ['outro', 'mesmo-tema']);
+});

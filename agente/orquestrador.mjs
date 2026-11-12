@@ -103,6 +103,9 @@ export async function produzirPeca(item, ctx) {
   for (let tentativa = 1; tentativa <= maxTentativas; tentativa++) {
     try {
       const conteudo = await escreverPeca({ raiz, item, produto, cerebro, config, motivosAnteriores: motivos, anterior, capas });
+      // O gancho que vai para a agenda e o log é o que aparece na capa (a nota do gancho, G3, também julga ele).
+      const capaTitulo = item.tipo === 'carrossel' ? conteudo.slides?.[0]?.titulo : item.tipo === 'stories' ? conteudo.quadros?.[0]?.titulo : item.tipo === 'imagem' ? conteudo.titulo : null;
+      if (capaTitulo) conteudo.gancho = capaTitulo;
       anterior = conteudo;
       // G9a: direção de arte por código, antes dos juízes pagos e do navegador.
       const direcao = checarDirecao(item.tipo, conteudo, { capas });
@@ -157,7 +160,9 @@ async function usarReserva(item, ctx, motivos) {
   const onde = `${ctx.semana}/${item.id}`;
   // A reserva também foge da capa das últimas peças do feed (prefere a que não repete; na falta, usa a que tem).
   const capas = ctx.capas ?? capasRecentes([...new Set([ctx.raiz, ctx.saida ?? ctx.raiz])], { antesDe: item.dia, limite: 2 });
-  const r = ctx.reserva ? await ctx.reserva.pegar({ tipo: item.tipo, item, semana: ctx.semana, hoje: ctx.hoje, capas, usados: ctx.usados ?? [] }) : null;
+  // Tema e funções das últimas 3 semanas e da própria semana (o ig-revisor pegou a reserva repetindo os dois).
+  const recentes = capasRecentes([...new Set([ctx.raiz, ctx.saida ?? ctx.raiz])], { limite: 40, comStories: true }).filter((x) => x.dia >= dataMais(item.dia, -21));
+  const r = ctx.reserva ? await ctx.reserva.pegar({ tipo: item.tipo, item, semana: ctx.semana, hoje: ctx.hoje, capas, usados: ctx.usados ?? [], recentes }) : null;
   if (r) {
     ctx.registrar({ tipo: 'reserva', peca: onde, motivos, detalhe: `usou a reserva ${r.origemId}` });
     return { status: 'reserva', entrada: r.entrada };
@@ -295,7 +300,8 @@ export async function cobrirComReserva({ desde, ate, ...ctx }) {
  */
 export async function encherReserva({ banco, maximo = 1, ...ctx }) {
   const { produto, hoje, semana, cerebro } = ctx;
-  const falta = situacao(banco, { produto, hoje }).faltam;
+  // Renova o banco até ter o mínimo de peças no visual novo (as do molde antigo seguem como última opção).
+  const falta = situacao(banco, { produto, hoje }).faltamNovas;
   if (!falta.length || cerebro.economico()) return [];
   const pautas = pautasEvergreen(produto);
   const jaTem = lerReserva(banco).length;

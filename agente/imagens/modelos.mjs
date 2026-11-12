@@ -73,7 +73,7 @@ function cartao(c, fundo, grande = false) {
     return `<div class="linha"><span>${esc(l.rotulo)}</span>${selo}</div>`;
   }).join('');
   // O redator às vezes já escreve "Exemplo" no título: o selo é um só.
-  const nome = (c.titulo ?? '').replace(/^\s*exemplo\s*[:·\-–]?\s*/i, '');
+  const nome = (c.titulo ?? '').replace(/(?:^|\s*[:·\-–]\s*|\s+)\(?exemplo\)?(?:\s*[:·\-–]\s*|\s+|$)/gi, ' ').trim();
   return `<div class="cartao escala${grande ? ' grande' : ''}"><div class="exemplo">EXEMPLO${nome ? ` · ${esc(nome)}` : ''}</div>${linhas}</div>`;
 }
 
@@ -201,12 +201,14 @@ const CORPO = {
   lista: (s) => `<h1 style="--fs:84px">${titulo(s.titulo, s.destaque)}</h1><div class="checklist escala">${(s.itens ?? []).map((t) => `<div><span class="caixa"></span><span>${esc(t.replace(/^\s*\d+\s*[.)\-:]\s*/, ''))}</span></div>`).join('')}</div>`,
   // Sem aspas: aspas sem autor parecem depoimento (proibido). A linha à mão diz que a opinião é da Mazzi.
   frase: (s) => `<div class="quem">a gente acha:</div><h1 style="--fs:100px">${titulo(s.titulo, s.destaque)}</h1>${paragrafo(s.texto)}`,
-  // A pílula só no feed (o objetivo diz qual); no story o próprio texto faz o pedido ("me responde aqui" ou "link na bio").
-  // Se o título ou o texto já dizem o pedido ("link na bio", "salva"), a pílula não repete.
+  // A pílula diz onde agir: no feed, pelo objetivo ("link na bio" ou "salva pra depois"); no story, só quando o texto
+  // manda para o WhatsApp (story não tem link: a marca exige "link na bio"). Se o texto já diz, a pílula não repete.
   chamada: (s) => {
+    const tudo = `${s.titulo} ${s.texto ?? ''}`;
     const pilula = s.objetivo === 'alcance' ? 'salva pra depois' : 'link na bio';
-    const jaDiz = new RegExp(s.objetivo === 'alcance' ? 'salv' : 'link na bio', 'i').test(`${s.titulo} ${s.texto ?? ''}`);
-    return `<h1 style="--fs:128px">${titulo(s.titulo, s.destaque)}</h1>${paragrafo(s.texto)}${s.objetivo && !jaDiz ? `<div class="pilula">${pilula}</div>` : ''}`;
+    const jaDiz = new RegExp(s.objetivo === 'alcance' ? 'salv' : 'link na bio', 'i').test(tudo);
+    const pede = s.objetivo ? true : /whats/i.test(tudo);
+    return `<h1 style="--fs:128px">${titulo(s.titulo, s.destaque)}</h1>${paragrafo(s.texto)}${pede && !jaDiz ? `<div class="pilula">${pilula}</div>` : ''}`;
   },
 };
 

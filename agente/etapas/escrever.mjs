@@ -192,7 +192,7 @@ export function promptPeca(item, motivosAnteriores = [], anterior = null, { capa
   const formato = {
     carrossel: `5 a 8 slides: capa (gancho), estaca, ideias (uma por slide, com "passo" numerado se for sequência), resumo (itens) e chamada. Cartão, conversa, comparativo ou bilhete de exemplo quando ajudar a VER a cena.\n${layoutsPrompt(item.tipo)}`,
     imagem: `um post de imagem única: título forte, texto curto e, se ajudar, um cartão, uma conversa, um comparativo ou um bilhete de exemplo.\n${layoutsPrompt(item.tipo)}`,
-    stories: `4 ou 5 quadros, uma ideia por quadro, falando com "você"; o 4º é o pedido ("me responde aqui nesse story" ou "chama no WhatsApp, link na bio").\n${layoutsPrompt(item.tipo)}`,
+    stories: `4 ou 5 quadros, uma ideia por quadro, falando com "você"; o 4º é o pedido, UM só: "me responde aqui nesse story" OU "chama no WhatsApp, link na bio" (nunca os dois); o 5º, se houver, fecha sem pedir de novo. "gancho" é o título do 1º quadro, igual.\n${layoutsPrompt(item.tipo)}`,
     reel: 'reel narrado de 20 a 40 segundos, em 7 a 12 batidas. Cada batida tem "fala" (o que a voz diz: frases curtas de gente, até 10 palavras para caber em 4 segundos; a 1ª fala é o gancho, até 7 palavras, e cabe em 3 segundos), "tela" (a frase grande na tela, até 6 palavras, que reforça a fala sem repetir tudo) e "cena" (o motion graphics daquela batida). A última batida é a chamada (o fechamento da marca entra sozinho nela). Escreva a fala para ser ouvida: sem siglas difíceis, sem parênteses, sem emoji.\n' + CENAS_PROMPT,
   }[item.tipo];
   const chamada = item.objetivo === 'conversa' ? 'A chamada é "chama no WhatsApp (link na bio)".' : 'A chamada pede para salvar ou compartilhar o post (uma só).';
@@ -204,7 +204,7 @@ Tema: ${item.tema}
 Ângulo: ${item.angulo}
 Fatos da base que pode usar (e só estes): ${item.fatos.join(', ')}${capas.length && ['carrossel', 'imagem'].includes(item.tipo) ? `\nAs últimas capas do feed usaram os layouts: ${capas.slice(0, 3).map((c) => c.layout).join(', ')}. A capa desta peça usa OUTRO layout${capas.slice(0, 2).length === 2 && capas.slice(0, 2).every((c) => LAYOUTS[c.layout]?.familia !== 'cena') ? ', e precisa MOSTRAR uma cena (conversa, comparativo, cartao ou bilhete): as últimas foram só texto grande' : ''}.` : ''}
 ${item.tipo === 'stories' ? '' : `${chamada}\nA legenda começa com o gancho (primeira linha, até 125 caracteres), corpo curto, uma chamada, até 3 hashtags no fim.${item.tipo === 'reel' ? '' : '\n"alt_text" descreve a capa para quem não enxerga, em uma ou duas frases.'}`}
-"gancho" é a frase da capa / do 1º quadro: até 12 palavras, concreta, com algo em jogo, falando com o dono.
+"gancho" é a frase da capa / do 1º quadro, IGUAL ao título dela: até 12 palavras, concreta, com algo em jogo, falando com o dono.
 Nunca escreva sobre o plano, o ângulo ou o próprio post ("o foco aqui é...", "neste post"): escreva só o que o dono vai ler.
 ${motivosAnteriores.length ? `\nA TENTATIVA ANTERIOR FOI REPROVADA. Corrija tudo isto:\n${motivosAnteriores.map((m) => `- ${m}`).join('\n')}` : ''}
 ${anterior ? `\nSUA VERSÃO ANTERIOR está abaixo. Mantenha tudo o que não foi apontado e mude SÓ o necessário para resolver os pontos acima (reescrever tudo cria problemas novos):\n${JSON.stringify(anterior, null, 1)}` : ''}`;

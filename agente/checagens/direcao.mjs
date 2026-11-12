@@ -30,7 +30,7 @@ export function capasRecentes(pastas, { antesDe = '9999-99-99', limite = 6, comS
       for (const p of agenda.pecas ?? []) {
         if ((p.tipo === 'stories' && !comStories) || p.dia >= antesDe) continue;
         const v = p.visual ?? (p.tipo === 'reel' ? { layout: 'reel', fundo: 'video' } : { layout: 'manchete', fundo: 'escuro' });
-        capas.push({ dia: p.dia, id: p.id, tipo: p.tipo, tema: p.tema, gancho: p.gancho, layout: v.layout, fundo: v.fundo });
+        capas.push({ dia: p.dia, id: p.id, tipo: p.tipo, tema: p.tema, gancho: p.gancho, fatos: p.fatos ?? [], layout: v.layout, fundo: v.fundo });
       }
     }
   }
@@ -68,6 +68,7 @@ export function escolherFundos(telas, { capas = [], formato = 'carrossel' } = {}
   return fundos;
 }
 
+const DINHEIRO = /R\$\s?\d|\d\s?(?:reais|conto)(?![\p{L}])/iu;
 const palavras = (t = '') => t.trim().split(/\s+/).filter(Boolean).length;
 
 /** Regras de direção de arte de uma peça escrita. Devolve a lista de motivos (vazia = ok). */
@@ -88,6 +89,10 @@ export function checarDirecao(tipo, conteudo, { capas = [] } = {}) {
     if (def.precisa === 'itens' && !(t.itens?.length >= 3)) m.push(`direção: ${nome(i)} usa "lista" sem 3 a 5 itens`);
     if (['pergunta', 'chamada'].includes(t.layout) && palavras(t.titulo) > 9) m.push(`direção: ${nome(i)} (${t.layout}) com título de ${palavras(t.titulo)} palavras: até 9, senão vira parede de texto`);
     if (palavras(t.texto) > 32) m.push(`direção: ${nome(i)} com ${palavras(t.texto)} palavras de texto (até 32; slide não é parágrafo)`);
+    // Valor em dinheiro só dentro de cartão ou conversa marcados EXEMPLO (marca.md › NUNCA). Caderno, comparativo,
+    // título e texto não têm o selo: o ig-revisor pegou "sobrou R$ 50?" num bilhete.
+    const soltos = [t.titulo, t.texto, ...(t.itens ?? []), ...(t.anotacoes ?? []).map((a) => a.texto), ...['a', 'b'].flatMap((k) => t.lados?.[k]?.itens ?? [])];
+    if (soltos.some((x) => DINHEIRO.test(x ?? ''))) m.push(`direção: ${nome(i)} tem valor em dinheiro fora de cartão EXEMPLO (no caderno, no comparativo ou no texto); tire o valor ou ponha num cartão`);
   });
 
   const layouts = telas.map((t) => t.layout);

@@ -42,7 +42,11 @@ export function situacao(raiz, { produto, hoje }) {
   const uteis = lerReserva(raiz).filter((r) => motivosParaNaoUsar(r, { produto, hoje }).length === 0);
   const por = Object.fromEntries(Object.keys(MINIMO).map((t) => [t, uteis.filter((r) => SUBSTITUTOS[t].includes(r.tipo)).length]));
   const faltam = Object.entries(MINIMO).flatMap(([t, min]) => Array(Math.max(0, min - por[t])).fill(t));
-  return { total: uteis.length, por, faltam };
+  // Peças no visual novo (guia/direcao-de-arte.md, 12/11/2026): o banco se renova até ter o mínimo delas; as antigas
+  // continuam valendo como última opção.
+  const novas = uteis.filter((r) => r.visual);
+  const faltamNovas = Object.entries(MINIMO).flatMap(([t, min]) => Array(Math.max(0, min - novas.filter((r) => SUBSTITUTOS[t].includes(r.tipo)).length)).fill(t));
+  return { total: uteis.length, por, faltam, faltamNovas };
 }
 
 /** Guarda no banco uma peça aprovada (copiando as mídias de `origem`). */
@@ -61,9 +65,9 @@ export function guardar(raiz, entrada, origem, { rid, hoje }) {
  */
 export function criarReserva({ raiz, saida = raiz, produto, marcar = true, sondar }) {
   return {
-    async pegar({ tipo, item, semana, hoje, capas = [], usados = [] }) {
+    async pegar({ tipo, item, semana, hoje, capas = [], usados = [], recentes = [] }) {
       const pastaSemana = path.join(saida, 'semanas', semana);
-      const candidatas = ordenarReserva(lerReserva(raiz).filter((r) => SUBSTITUTOS[tipo]?.includes(r.tipo) && motivosParaNaoUsar(r, { produto, hoje }).length === 0), { item, capas, usados, hoje });
+      const candidatas = ordenarReserva(lerReserva(raiz).filter((r) => SUBSTITUTOS[tipo]?.includes(r.tipo) && motivosParaNaoUsar(r, { produto, hoje }).length === 0), { item, capas, usados, hoje, recentes });
       for (const r of candidatas) {
         mkdirSync(pastaSemana, { recursive: true });
         const arquivos = r.arquivos.map((a, i) => {
@@ -94,12 +98,15 @@ export const repeteCapa = (r, capas) => (r.tipo !== 'stories' && capas.slice(0, 
 const novoVisual = (r) => (r.visual ? 1 : 0);
 
 /**
- * Ordem de preferência das peças do banco: primeiro a que não repete gancho das últimas 6 semanas (G8), depois a que não
- * repete a capa das 2 últimas do feed, a de visual novo, a usada há mais tempo e a do mesmo ramo. Repetida não é
+ * Ordem de preferência das peças do banco: primeiro a que não repete gancho das últimas 6 semanas (G8) nem o tema ou as
+ * funções das peças das últimas 3 semanas e da própria semana (`recentes`), depois a que não repete a capa das 2 últimas do feed, a de visual novo, a usada há mais tempo e a do mesmo ramo. Repetida não é
  * descartada: só entra se não houver outra (uma reserva parecida ainda é melhor que um horário vazio).
  */
-export function ordenarReserva(candidatas, { item, capas = [], usados = [], hoje }) {
-  const repete = (r) => (checarRepeticao(r.gancho, usados, { hoje }).ok ? 0 : 1);
+export function ordenarReserva(candidatas, { item, capas = [], usados = [], hoje, recentes = [] }) {
+  const temas = new Set(recentes.map((x) => x.tema));
+  const fatos = new Set(recentes.flatMap((x) => x.fatos ?? []));
+  const repeteTema = (r) => temas.has(r.tema) || (r.fatos ?? []).some((f) => fatos.has(f));
+  const repete = (r) => (checarRepeticao(r.gancho, usados, { hoje }).ok && !repeteTema(r) ? 0 : 1);
   return [...candidatas].sort((a, b) => repete(a) - repete(b) || repeteCapa(a, capas) - repeteCapa(b, capas) || novoVisual(b) - novoVisual(a)
     || ((a.usada_em ?? []).at(-1) ?? '').localeCompare((b.usada_em ?? []).at(-1) ?? '') || (a.ramo === item.ramo ? -1 : 1));
 }
