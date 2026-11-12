@@ -1,7 +1,9 @@
 // Ensaio do laço de qualidade (direção de arte + editor) com o Claude de verdade, sem publicar e sem gravar no repositório.
 //   node agente/ferramentas/ensaio-qualidade.mjs <pasta-de-saida> [semana-de-referencia]
-// Refaz as peças de imagem de uma semana já publicada (mesma pauta do plano.json) para comparar antes e depois,
-// e roda um caso forçado a reprovar (editor com nota mínima impossível) para provar que ele cai no banco reserva.
+// Planeja a PRÓXIMA semana com o planejador real (pauta nova: refazer a pauta de uma semana já publicada só faz o editor
+// reprovar tudo por repetição, com razão), produz as primeiras peças de imagem e compara cada uma com a peça do mesmo
+// formato que foi ao ar na semana de referência ("antes"). Depois roda um caso forçado a reprovar (editor com nota
+// impossível sobre um texto já aprovado) para provar que é o editor que reprova e que a peça cai no banco reserva.
 // Saída: <pasta>/semanas/... (peças novas), <pasta>/registro (cada tentativa, notas e motivos), <pasta>/resumo.md e
 // <pasta>/antes-depois-*.jpg. O banco reserva é só lido (usar não gasta a vez da peça). Quem roda: .github/workflows/ensaio-qualidade.yml.
 import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync } from 'node:fs';
@@ -12,15 +14,18 @@ import { lerProduto } from '../checagens/fatos.mjs';
 import { lerGanchosUsados } from '../checagens/repeticao.mjs';
 import { produzirPeca, criarRegistro, gravarNaAgenda } from '../orquestrador.mjs';
 import { criarReserva } from '../reserva.mjs';
-import { ganchosDasAgendas } from '../agente.mjs';
-import { capasRecentes } from '../checagens/direcao.mjs';
+import { ganchosDasAgendas, segundaSeguinte } from '../agente.mjs';
+import { hojeEmSaoPaulo } from '../../publicar/publicar.mjs';
+import { dataMais } from '../../publicar/validar.mjs';
+import { planejarSemana } from '../etapas/planejar.mjs';
 
 const RAIZ = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const saida = path.resolve(process.argv[2] ?? 'ensaio-qualidade');
-const semana = process.argv[3] ?? '2026-11-09';
+const referencia = process.argv[3] ?? '2026-11-09';
+const hoje = process.env.ENSAIO_HOJE ?? hojeEmSaoPaulo();
+const semana = segundaSeguinte(hoje);
 const config = JSON.parse(readFileSync(path.join(RAIZ, 'agente', 'config.json'), 'utf8'));
 const produto = lerProduto();
-const plano = JSON.parse(readFileSync(path.join(RAIZ, 'semanas', semana, 'plano.json'), 'utf8'));
 mkdirSync(saida, { recursive: true });
 
 const log = [];
@@ -34,11 +39,12 @@ let atual = null;
 const cerebro = { ...base, config, pedir: async (q) => { const r = await base.pedir(q); if (q.etapa.startsWith('escrever:')) escrito.set(atual, r); return r; } };
 const reserva = criarReserva({ raiz: RAIZ, saida, produto, marcar: false });
 const usados = [...lerGanchosUsados(RAIZ), ...ganchosDasAgendas(RAIZ)];
-const hoje = semana;
-// A pauta refeita é de uma semana que já foi ao ar: o editor e o G8 enxergam o que saiu nela (senão ele aprovaria
-// a mesma peça de novo). No agente real, essas peças ainda não existem quando ele produz.
-const recentes = capasRecentes([RAIZ], { limite: 14, comStories: true });
-const ctx = { raiz: RAIZ, saida, config, cerebro, produto, usados, hoje, registrar, reserva, semana, recentes };
+const ctx = { raiz: RAIZ, saida, config, cerebro, produto, usados, hoje, registrar, reserva, semana };
+
+// Pauta nova, do planejador real (o mesmo do sábado), com os ganchos das últimas 6 semanas para não repetir.
+const { plano } = await planejarSemana({ raiz: RAIZ, semana, config, produto, cerebro, formatos: ['carrossel', 'imagem', 'reel', 'stories'], ganchosRecentes: usados.filter((u) => u.data >= dataMais(hoje, -42)) });
+writeFileSync(path.join(saida, 'plano.json'), `${JSON.stringify(plano, null, 2)}
+`);
 
 const resultados = [];
 const pecas = plano.pecas.filter((p) => ['carrossel', 'imagem', 'stories'].includes(p.tipo)).slice(0, Number(process.env.ENSAIO_MAX ?? 4));
@@ -70,7 +76,7 @@ console.log(`Caso forçado: ${provaReserva}`);
 const linhas = (dir) => (existsSync(dir) ? readdirSync(dir).flatMap((f) => readFileSync(path.join(dir, f), 'utf8').trim().split('\n').map((l) => JSON.parse(l))) : []);
 const reg = [...linhas(path.join(saida, 'registro')), ...linhas(path.join(saida, 'forcado', 'registro'))];
 const resumo = [
-  `# Ensaio de qualidade (${new Date().toISOString().slice(0, 10)}), pauta da semana ${semana}`,
+  `# Ensaio de qualidade (${hoje}): pauta nova da semana ${semana}, antes = peças no ar da semana ${referencia}`,
   '',
   '| Peça | Tipo | Resultado | Gancho | Capa |',
   '|---|---|---|---|---|',
@@ -90,12 +96,15 @@ writeFileSync(path.join(saida, 'resumo.md'), `${resumo}\n`);
 try {
   const { chromium } = await import('playwright');
   const nav = await chromium.launch();
+  const noAr = JSON.parse(readFileSync(path.join(RAIZ, 'semanas', referencia, 'agenda.json'), 'utf8')).pecas;
   for (const r of resultados.filter((x) => x.status === 'aprovada')) {
-    const imgs = (dir, pref) => (existsSync(dir) ? readdirSync(dir).filter((f) => f.startsWith(`${semana}-${pref}-`) && f.endsWith('.jpg')).sort().map((f) => path.join(dir, f)) : []);
-    const antes = imgs(path.join(RAIZ, 'semanas', semana), r.id);
-    const depois = imgs(path.join(saida, 'semanas', semana), r.id);
+    const imgs = (dir, sem, pref) => (existsSync(dir) ? readdirSync(dir).filter((f) => f.startsWith(`${sem}-${pref}-`) && f.endsWith('.jpg')).sort().map((f) => path.join(dir, f)) : []);
+    // "Antes": a peça do mesmo formato que foi ao ar na semana de referência (o molde antigo).
+    const par = noAr.find((p) => p.tipo === r.tipo) ?? noAr.find((p) => p.tipo !== 'reel');
+    const antes = par ? imgs(path.join(RAIZ, 'semanas', referencia), referencia, par.id) : [];
+    const depois = imgs(path.join(saida, 'semanas', semana), semana, r.id);
     const fila = (titulo, lista) => `<h2>${titulo}</h2><div class="fila">${lista.map((f) => `<img src="data:image/jpeg;base64,${readFileSync(f).toString('base64')}">`).join('')}</div>`;
-    const html = `<body style="margin:0;padding:24px;background:#6d6d6d;font:600 22px sans-serif;color:#fff;width:max-content"><style>.fila{display:flex;gap:10px;margin-bottom:24px}.fila img{width:${r.tipo === 'stories' ? 216 : 270}px}</style>${fila(`Antes (no ar) · ${r.id}`, antes)}${fila(`Depois (ensaio) · ${r.id}`, depois)}</body>`;
+    const html = `<body style="margin:0;padding:24px;background:#6d6d6d;font:600 22px sans-serif;color:#fff;width:max-content"><style>.fila{display:flex;gap:10px;margin-bottom:24px}.fila img{width:${r.tipo === 'stories' ? 216 : 270}px}</style>${fila(`Antes (no ar, ${referencia}) · ${par?.tema ?? ''}`, antes)}${fila(`Depois (ensaio, ${semana}) · ${r.gancho ?? ''}`, depois)}</body>`;
     const p = await nav.newPage({ viewport: { width: 600, height: 400 } });
     await p.setContent(html);
     await p.screenshot({ path: path.join(saida, `antes-depois-${r.id}.jpg`), fullPage: true, type: 'jpeg', quality: 85 });
