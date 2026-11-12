@@ -68,7 +68,7 @@ export function escolherFundos(telas, { capas = [], formato = 'carrossel' } = {}
   return fundos;
 }
 
-const DINHEIRO = /R\$\s?\d|\d\s?(?:reais|conto)(?![\p{L}])/iu;
+export const DINHEIRO = /R\$\s?\d|\d\s?(?:reais|conto)(?![\p{L}])/iu;
 const palavras = (t = '') => t.trim().split(/\s+/).filter(Boolean).length;
 
 /** Regras de direção de arte de uma peça escrita. Devolve a lista de motivos (vazia = ok). */

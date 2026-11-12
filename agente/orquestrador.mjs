@@ -159,7 +159,7 @@ export async function produzirPeca(item, ctx) {
 async function usarReserva(item, ctx, motivos) {
   const onde = `${ctx.semana}/${item.id}`;
   // A reserva também foge da capa das últimas peças do feed (prefere a que não repete; na falta, usa a que tem).
-  const capas = ctx.capas ?? capasRecentes([...new Set([ctx.raiz, ctx.saida ?? ctx.raiz])], { antesDe: item.dia, limite: 2 });
+  const capas = ctx.capas ?? capasRecentes([...new Set([ctx.raiz, ctx.saida ?? ctx.raiz])], { antesDe: item.dia, limite: 6 }).filter((c) => c.layout !== 'reel').slice(0, 2);
   // Tema e funções das últimas 3 semanas e da própria semana (o ig-revisor pegou a reserva repetindo os dois).
   const recentes = capasRecentes([...new Set([ctx.raiz, ctx.saida ?? ctx.raiz])], { limite: 40, comStories: true }).filter((x) => x.dia >= dataMais(item.dia, -21));
   const r = ctx.reserva ? await ctx.reserva.pegar({ tipo: item.tipo, item, semana: ctx.semana, hoje: ctx.hoje, capas, usados: ctx.usados ?? [], recentes }) : null;
@@ -315,7 +315,7 @@ export async function encherReserva({ banco, maximo = 1, ...ctx }) {
     const tmp = mkdtempSync(path.join(tmpdir(), 'mazzi-reserva-'));
     try {
       // Peça de reserva vai ao ar daqui a semanas: não é comparada com as capas e peças de hoje (capas: []).
-      const r = await produzirPeca(item, { ...ctx, saida: tmp, reserva: null, soReserva: false, capas: [] });
+      const r = await produzirPeca(item, { ...ctx, saida: tmp, reserva: null, soReserva: false, capas: [], recentes: [] });
       if (r.status === 'aprovada') {
         const rid = `${hoje}-${tipo}-${k + 1}`;
         guardar(banco, r.entrada, path.join(tmp, 'semanas', semana), { rid, hoje });

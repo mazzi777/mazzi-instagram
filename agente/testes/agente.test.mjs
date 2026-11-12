@@ -421,3 +421,32 @@ test('achados do ig-revisor no ensaio final: dinheiro fora do EXEMPLO, story sem
   const recentes = [{ dia: '2026-11-11', tema: 'clinica · a clínica num lugar só', fatos: ['clin.agenda'] }];
   assert.deepEqual(ordenarReserva(pecas, { item: { ramo: 'clinica' }, hoje: '2026-11-16', recentes }).map((p) => p.rid), ['outro', 'mesmo-tema']);
 });
+
+test('revisão adversarial 2: geometria do reel longe da legenda, CFM aproximado, pisos, reserva com teto', async () => {
+  const { AREA, geometriaHub, geometriaEncaixe } = await import('../video/motion/geometria.mjs');
+  for (let n = 3; n <= 6; n++) {
+    const { caixa } = geometriaHub(n);
+    assert.ok(caixa.base <= AREA.base && caixa.esq >= AREA.esq - 1 && caixa.dir <= AREA.dir + 1, `hub com ${n}: ${JSON.stringify(caixa)}`);
+  }
+  for (let n = 2; n <= 4; n++) assert.ok(geometriaEncaixe(n).contadorBase <= AREA.base && geometriaEncaixe(n).alt >= 90, `encaixe com ${n}`);
+  assert.ok(AREA.base < 1236, 'a legenda da voz começa em y=1236');
+  const { trechoNaPeca, motivosDoEditor } = await import('../checagens/editor.mjs');
+  const texto = 'A ficha avisa a alergia. Resultado natural garantido em poucas sessões.';
+  assert.equal(trechoNaPeca('resultado natural garantido (slide 3)', texto), true);
+  assert.equal(trechoNaPeca('Nenhum problema encontrado', texto), false);
+  assert.equal(trechoNaPeca('pele sem rugas', texto), false);
+  const notas = { original: 7, humano: 5, marca: 8, novidade: 8, clareza: 8 };
+  assert.ok(motivosDoEditor({ notas, sugestoes: [] }, config.checagens.editor).length, 'humano 5 não passa (piso 6)');
+  assert.deepEqual(motivosDoEditor({ notas: { ...notas, humano: 6 }, sugestoes: [] }, config.checagens.editor), []);
+  const { palavrasProibidas } = await import('../checagens/nunca.mjs');
+  assert.ok(palavrasProibidas('procedimento com risco zero').length);
+  assert.deepEqual(palavrasProibidas('agenda sem risco de horário duplo'), []);
+  const { regrasDaEdicao } = await import('../etapas/escrever.mjs');
+  assert.ok(regrasDaEdicao([{ fala: 'sobrou 50 reais no caixa', tela: 'x', cena: { tipo: 'gancho' } }]).some((m) => /dinheiro/.test(m)));
+  // Banco: com o teto, não produz mais; sem peça nova, alterna formatos (carrossel, reel, stories...).
+  const { situacao, TETO_BANCO } = await import('../reserva.mjs');
+  const raiz = tmp();
+  assert.deepEqual(situacao(raiz, { produto, hoje: '2026-11-16' }).faltamNovas, ['carrossel', 'reel', 'stories', 'carrossel', 'reel', 'stories']);
+  for (let k = 0; k < TETO_BANCO; k++) { const p = path.join(raiz, 'reserva', `r${k}`); mkdirSync(p, { recursive: true }); writeFileSync(path.join(p, 'peca.json'), JSON.stringify({ rid: `r${k}`, tipo: 'stories', arquivos: [], gancho: 'x', tema: 't' })); }
+  assert.deepEqual(situacao(raiz, { produto, hoje: '2026-11-16' }).faltamNovas, []);
+});

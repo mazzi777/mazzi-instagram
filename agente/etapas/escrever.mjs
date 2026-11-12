@@ -11,6 +11,7 @@ import { ICONES } from '../video/motion/icones.mjs';
 import { Afirmacoes, ProblemasMarca } from '../lib/schemas.mjs';
 import { contextoMarca } from './contexto.mjs';
 import { LAYOUTS, NOMES_LAYOUT } from '../imagens/modelos.mjs';
+import { DINHEIRO } from '../checagens/direcao.mjs';
 
 const Cartao = z.object({
   titulo: z.string().max(30).optional(),
@@ -44,8 +45,8 @@ const Cena = z.discriminatedUnion('tipo', [
   z.object({ tipo: z.literal('gancho'), simbolo: z.enum(['?', '!', 'x']).optional() }),
   z.object({ tipo: z.literal('digitando'), texto: z.string().min(3).max(34), chip: z.object({ icone: Ic, rotulo: z.string().min(2).max(18) }).optional() }),
   z.object({ tipo: z.literal('lista'), estilo: z.enum(['botoes', 'pilulas']).optional(), itens: z.array(z.object({ icone: Ic, rotulo: z.string().min(2).max(22) })).min(2).max(5) }),
-  z.object({ tipo: z.literal('hub'), modulos: z.array(z.object({ icone: Ic, rotulo: z.string().min(2).max(14) })).min(3).max(6) }),
-  z.object({ tipo: z.literal('encaixe'), pecas: z.array(z.object({ icone: Ic, rotulo: z.string().min(2).max(20) })).min(2).max(4) }),
+  z.object({ tipo: z.literal('hub'), modulos: z.array(z.object({ icone: Ic, rotulo: z.string().min(2).max(12) })).min(3).max(6) }),
+  z.object({ tipo: z.literal('encaixe'), pecas: z.array(z.object({ icone: Ic, rotulo: z.string().min(2).max(16) })).min(2).max(4) }),
   z.object({ tipo: z.literal('cartao'), cartao: Cartao }),
   z.object({ tipo: z.literal('papel'), rabiscos: z.array(z.string().min(2).max(22)).min(3).max(5), cartao: Cartao }),
   z.object({ tipo: z.literal('checklist'), itens: z.array(z.string().min(2).max(26)).min(3).max(5) }),
@@ -73,6 +74,10 @@ export function regrasDaEdicao(batidas) {
   batidas.forEach((b, i) => {
     const c = b.cena;
     if (c.tipo === 'lista' && c.estilo === 'pilulas' && c.itens.length > 3) motivos.push(`edição: pílulas com ${c.itens.length} itens na batida ${i + 1} (no máximo 3)`);
+    if (c.tipo === 'lista' && c.estilo === 'pilulas' && c.itens.some((x) => x.rotulo.length > 18)) motivos.push(`edição: pílula com mais de 18 letras na batida ${i + 1} (não cabe numa linha)`);
+    // Valor em dinheiro só em cena de interface EXEMPLO (cartão, celular, contador, painel); nunca na fala, na tela ou em lista.
+    const soltos = [b.fala, b.tela, ...(c.itens ?? []).map((x) => (typeof x === 'string' ? x : x.rotulo)), ...(c.modulos ?? []).map((x) => x.rotulo), ...(c.pecas ?? []).map((x) => x.rotulo), ...(c.rabiscos ?? []), c.texto];
+    if (soltos.some((x) => DINHEIRO.test(x ?? ''))) motivos.push(`edição: valor em dinheiro fora de cena EXEMPLO na batida ${i + 1}`);
     if (c.tipo === 'lista' && c.estilo !== 'pilulas' && c.itens.length < 3) motivos.push(`edição: lista com ${c.itens.length} itens na batida ${i + 1} (de 3 a 5; para 2 ou 3 benefícios use estilo "pilulas")`);
   });
   if (!tipos.some((t) => ['cartao', 'celular', 'painel', 'lista', 'icone', 'papel', 'contador', 'hub', 'encaixe'].includes(t))) motivos.push('edição: falta uma cena que mostre o produto (cartão, celular, painel, lista, ícone, papel, contador, hub ou encaixe)');
@@ -141,6 +146,7 @@ export async function checarTexto({ item, conteudo, produto, juizFatos, juizMarc
   motivos.push(...gancho.motivos);
   if (item.tipo !== 'stories') {
     const legenda = checarLegenda(conteudo.legenda);
+    if (DINHEIRO.test(conteudo.legenda)) motivos.push('legenda: valor em dinheiro (só dentro de cartão EXEMPLO na imagem)');
     motivos.push(...legenda.motivos);
     // A primeira linha da legenda é o gancho do feed: não precisa ser idêntica à capa, mas tem que ser forte.
     const primeira = conteudo.legenda.trim().split('\n')[0];
@@ -202,7 +208,7 @@ Formato: ${item.tipo}: ${formato}
 Ramo: ${item.ramo} · Objetivo: ${item.objetivo} · Tipo de conteúdo: ${item.conteudo}
 Tema: ${item.tema}
 Ângulo: ${item.angulo}
-Fatos da base que pode usar (e só estes): ${item.fatos.join(', ')}${capas.length && ['carrossel', 'imagem'].includes(item.tipo) ? `\nAs últimas capas do feed usaram os layouts: ${capas.slice(0, 3).map((c) => c.layout).join(', ')}. A capa desta peça usa OUTRO layout${capas.slice(0, 2).length === 2 && capas.slice(0, 2).every((c) => LAYOUTS[c.layout]?.familia !== 'cena') ? ', e precisa MOSTRAR uma cena (conversa, comparativo, cartao ou bilhete): as últimas foram só texto grande' : ''}.` : ''}
+Fatos da base que pode usar (e só estes): ${item.fatos.join(', ')}${capas.length && ['carrossel', 'imagem'].includes(item.tipo) ? `\nAs últimas capas do feed usaram os layouts: ${capas.filter((c) => c.layout !== 'reel').slice(0, 3).map((c) => c.layout).join(', ')}. A capa desta peça usa OUTRO layout${capas.filter((c) => c.layout !== 'reel').slice(0, 2).length === 2 && capas.filter((c) => c.layout !== 'reel').slice(0, 2).every((c) => LAYOUTS[c.layout]?.familia !== 'cena') ? ', e precisa MOSTRAR uma cena (conversa, comparativo, cartao ou bilhete): as últimas foram só texto grande' : ''}.` : ''}
 ${item.tipo === 'stories' ? '' : `${chamada}\nA legenda começa com o gancho (primeira linha, até 125 caracteres), corpo curto, uma chamada, até 3 hashtags no fim.${item.tipo === 'reel' ? '' : '\n"alt_text" descreve a capa para quem não enxerga, em uma ou duas frases.'}`}
 "gancho" é a frase da capa / do 1º quadro, IGUAL ao título dela: até 12 palavras, concreta, com algo em jogo, falando com o dono.
 Nunca escreva sobre o plano, o ângulo ou o próprio post ("o foco aqui é...", "neste post"): escreva só o que o dono vai ler.

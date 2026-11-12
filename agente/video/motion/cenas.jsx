@@ -4,6 +4,7 @@
 import React from 'react';
 import { AbsoluteFill, interpolate, useCurrentFrame, useVideoConfig, staticFile } from 'remotion';
 import { loadFont } from '@remotion/fonts';
+import { AREA, geometriaHub, geometriaEncaixe } from './geometria.mjs';
 import { COR, ATOS, tw, mola, SAI, ENTRA_SAI, useCena, naBatida, Fundo, Camera, Rabisco, Icone, TituloCinetico, Rotulo, MarcaMazzi, linhasEstimadas, tamanhoQueCabe } from './base.jsx';
 
 loadFont({ family: 'Caveat', url: staticFile('caveat-600.woff2'), weight: '600' });
@@ -442,7 +443,7 @@ function Pilulas({ tela, destaque, itens, ramo }) {
   const f = useCurrentFrame();
   const { fps } = useVideoConfig();
   const { ato } = useCena();
-  const desvio = [0, 70, 20];
+  const desvio = [0, 40, 12];
   return (
     <Camera>
       <Fundo />
@@ -452,7 +453,7 @@ function Pilulas({ tela, destaque, itens, ramo }) {
           const m = mola(f, fps, naBatida(i) + 4);
           return (
             <div key={i} style={{ alignSelf: 'flex-start', marginLeft: desvio[i], display: 'flex', alignItems: 'center', gap: 22, padding: '26px 44px 26px 30px', borderRadius: 999,
-              background: i === itens.length - 1 ? ato.destaque : ato.texto, color: i === itens.length - 1 ? ato.texto : ato.fundo, fontSize: 52, fontWeight: 800,
+              background: i === itens.length - 1 ? ato.destaque : ato.texto, color: i === itens.length - 1 ? ato.texto : ato.fundo, fontSize: 48, fontWeight: 800, whiteSpace: 'nowrap',
               opacity: m, transform: `translateY(${(1 - m) * 90}px) scale(${0.9 + 0.1 * m})`, boxShadow: '0 18px 40px rgba(0,0,0,0.22)' }}>
               {it.icone ? <Icone nome={it.icone} tamanho={56} cor={i === itens.length - 1 ? ato.texto : ato.destaque} /> : null}
               <span>{it.rotulo}</span>
@@ -470,13 +471,7 @@ export function Hub({ tela, destaque, modulos, ramo }) {
   const f = useCurrentFrame();
   const { fps } = useVideoConfig();
   const { ato } = useCena();
-  const cx = 540;
-  const cy = 900;
-  const n = modulos.length;
-  const pos = modulos.map((_, i) => {
-    const ang = -Math.PI / 2 + (i / n) * Math.PI * 2;
-    return { x: cx + Math.cos(ang) * 330, y: cy + Math.sin(ang) * 250 };
-  });
+  const { cx, cy, pos } = geometriaHub(modulos.length);
   const m0 = mola(f, fps, 2);
   return (
     <Camera>
@@ -499,7 +494,7 @@ export function Hub({ tela, destaque, modulos, ramo }) {
             <div style={{ width: 110, height: 110, borderRadius: 32, background: ato.fundo === COR.papel ? '#FFFFFF' : 'rgba(255,255,255,0.1)', border: `2px solid ${ato.fundo === COR.papel ? 'rgba(17,19,22,0.1)' : 'rgba(255,255,255,0.18)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Icone nome={md.icone} tamanho={60} cor={ato.destaque} />
             </div>
-            <span style={{ fontSize: 36, fontWeight: 800, color: ato.texto, textAlign: 'center', lineHeight: 1.1 }}>{md.rotulo}</span>
+            <span style={{ fontSize: 32, fontWeight: 800, color: ato.texto, textAlign: 'center', lineHeight: 1.1, whiteSpace: 'nowrap' }}>{md.rotulo}</span>
           </div>
         );
       })}
@@ -515,29 +510,28 @@ export function Encaixe({ tela, destaque, pecas, ramo }) {
   const { ato } = useCena();
   const n = pecas.length;
   const ocupados = pecas.filter((_, i) => f >= naBatida(i) + 8).length;
-  const larg = 760;
-  const alt = n <= 3 ? 190 : 150;
+  const { topo, alt, contadorTopo, letra } = geometriaEncaixe(n);
   return (
     <Camera>
       <Fundo />
       <Topo tela={tela} destaque={destaque} ramo={ramo} tamanho={76} />
-      <div style={{ position: 'absolute', left: (1080 - larg) / 2, top: 600, width: larg, padding: 26, borderRadius: 40, background: ato.fundo === COR.papel ? COR.papel2 : 'rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column', gap: 20 }}>
+      <div style={{ position: 'absolute', left: AREA.esq, top: topo, width: AREA.dir - AREA.esq, padding: 26, borderRadius: 40, background: ato.fundo === COR.papel ? COR.papel2 : 'rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column', gap: 20 }}>
         {pecas.map((p, i) => {
           const m = mola(f, fps, naBatida(i) + 4, { damping: 13, stiffness: 190, mass: 0.7 });
           return (
             <div key={i} style={{ position: 'relative', height: alt, borderRadius: 28, border: `3px dashed ${ato.fundo === COR.papel ? 'rgba(17,19,22,0.2)' : 'rgba(255,255,255,0.2)'}` }}>
               <div style={{ position: 'absolute', inset: -3, borderRadius: 28, background: ato.fundo === COR.papel ? '#FFFFFF' : COR.cartao, border: `2px solid ${ato.destaque}`,
                 display: 'flex', alignItems: 'center', gap: 26, padding: '0 34px', opacity: m, transform: `translateX(${(1 - m) * 700}px) rotate(${(1 - m) * 6}deg)` }}>
-                <Icone nome={p.icone} tamanho={62} cor={ato.destaque} />
-                <span style={{ fontSize: 46, fontWeight: 800, color: ato.fundo === COR.papel ? COR.grafite : COR.papel }}>{p.rotulo}</span>
+                <Icone nome={p.icone} tamanho={letra[1]} cor={ato.destaque} />
+                <span style={{ fontSize: letra[0], fontWeight: 800, color: ato.fundo === COR.papel ? COR.grafite : COR.papel, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'clip' }}>{p.rotulo}</span>
               </div>
             </div>
           );
         })}
       </div>
-      <div style={{ position: 'absolute', left: 0, width: 1080, top: 600 + n * (alt + 20) + 70, textAlign: 'center', color: ato.texto, fontVariantNumeric: 'tabular-nums' }}>
-        <span style={{ fontSize: 96, fontWeight: 900, letterSpacing: '-0.04em' }}>{ocupados}</span>
-        <span style={{ fontSize: 60, fontWeight: 800, opacity: 0.45 }}>/{n}</span>
+      <div style={{ position: 'absolute', left: AREA.esq, width: AREA.dir - AREA.esq, top: contadorTopo, height: 96, lineHeight: '96px', textAlign: 'center', color: ato.texto, fontVariantNumeric: 'tabular-nums' }}>
+        <span style={{ fontSize: 80, fontWeight: 900, letterSpacing: '-0.04em' }}>{ocupados}</span>
+        <span style={{ fontSize: 52, fontWeight: 800, opacity: 0.45 }}>/{n}</span>
       </div>
     </Camera>
   );

@@ -40,7 +40,8 @@ Em "sugestoes", para cada nota abaixo de 7, diga em uma frase concreta o que o r
 
 "cfm": só em peça de CLÍNICA (publicidade médica, Resolução CFM 2.336/2023). Liste SÓ trechos que existem de verdade no texto da
 peça e que: prometem ou insinuam resultado de procedimento; mostram ou descrevem paciente identificável, caso real, antes e depois
-de paciente; usam medo, urgência ou sensacionalismo sobre saúde; usam superlativo ("o melhor", "referência") ou garantia.
+de paciente; usam medo, urgência ou sensacionalismo sobre saúde; usam superlativo ("o melhor", "referência") ou garantia;
+falam de preço, desconto ou condição de pagamento.
 Em "trecho", copie as palavras exatas da peça. Falar da GESTÃO da clínica (agenda, ficha, anamnese, termo, alerta de alergia,
 orçamento, estoque, lembrete) é permitido. Sem problema, ou peça de restaurante: "cfm" é uma lista VAZIA (nunca escreva
 "nenhum problema" dentro dela).`;
@@ -52,14 +53,29 @@ export function resumoRecentes(recentes = []) {
 }
 
 const normal = (t) => dobrar(t).replace(/[^a-z0-9]+/g, ' ').trim();
+const fichas = (t) => normal(t).split(' ').filter((p) => p.length >= 3);
 
 /**
- * Motivos de editor a partir das notas: reprova se algum critério ficar abaixo de `minimoCriterio` ou se mais de
- * `maxAbaixoDe7` critérios ficarem abaixo de 7 (calibrado no ensaio de 12/11/2026, ver checagens/calibracao.md).
+ * O trecho de CFM está na peça? Igual, ou com pelo menos 80% das palavras (3+ letras) presentes no texto: o juiz às
+ * vezes cola dois pedaços ou acrescenta "(slide 3)". "Nenhum problema" e afins não contam.
  */
-export function motivosDoEditor(r, { minimoCriterio, maxAbaixoDe7 }) {
+export function trechoNaPeca(trecho, texto) {
+  const t = normal(trecho);
+  if (t.length < 3 || /^(?:nenhum|nada|sem (?:problema|item))/.test(t)) return false;
+  if (normal(texto).includes(t)) return true;
+  const doTexto = new Set(fichas(texto));
+  const doTrecho = fichas(trecho).filter((p) => !/^(?:slide|imagem|quadro|tela)$/.test(p));
+  return doTrecho.length >= 2 && doTrecho.filter((p) => doTexto.has(p)).length / doTrecho.length >= 0.8;
+}
+
+/**
+ * Motivos de editor a partir das notas: reprova se algum critério ficar abaixo do piso (`minimoCriterio`, ou o piso
+ * próprio do critério em `pisos`) ou se mais de `maxAbaixoDe7` critérios ficarem abaixo de 7 (calibrado no ensaio de
+ * 12/11/2026, ver checagens/calibracao.md; clareza e humano têm piso 6: peça confusa ou com voz de robô não vai ao ar).
+ */
+export function motivosDoEditor(r, { minimoCriterio, maxAbaixoDe7, pisos = {} }) {
   const media = CRITERIOS_EDITOR.reduce((s, c) => s + r.notas[c], 0) / CRITERIOS_EDITOR.length;
-  const baixos = CRITERIOS_EDITOR.filter((c) => r.notas[c] < minimoCriterio);
+  const baixos = CRITERIOS_EDITOR.filter((c) => r.notas[c] < Math.max(minimoCriterio, pisos[c] ?? 0));
   const mornos = CRITERIOS_EDITOR.filter((c) => r.notas[c] < 7);
   if (!baixos.length && mornos.length <= maxAbaixoDe7) return [];
   // Volta para o redator o que dá para consertar: as sugestões dos critérios mais fracos.
@@ -88,10 +104,12 @@ ${resumoRecentes(recentes)}`;
     const r = await juiz(tarefa, pedido, imagens);
     const visuais = r.problemas.map((p) => `visual (imagem ${p.imagem}): ${p.problema}`);
     const editor = motivosDoEditor(r, limites);
-    // CFM: só conta trecho que está mesmo na peça (o juiz às vezes escreve "nenhum problema" ou parafraseia).
-    const alvo = normal(texto);
-    const cfm = item.ramo === 'clinica' ? r.cfm.filter((c) => normal(c.trecho).length >= 3 && alvo.includes(normal(c.trecho))).map((c) => `ética médica (CFM) em "${c.trecho}": ${c.motivo}`) : [];
-    const notas = Object.fromEntries(CRITERIOS_EDITOR.map((c) => [`editor_${c}`, r.notas[c]]));
+    // CFM: conta o trecho que está na peça (igual ou quase); "nenhum problema" e invenção do juiz não reprovam,
+    // mas o número de descartados fica no registro (notas.cfm_descartados) para conferir depois.
+    const lidos = item.ramo === 'clinica' ? r.cfm : [];
+    const validos = lidos.filter((c) => trechoNaPeca(c.trecho, texto));
+    const cfm = validos.map((c) => `ética médica (CFM) em "${c.trecho}": ${c.motivo}`);
+    const notas = { ...Object.fromEntries(CRITERIOS_EDITOR.map((c) => [`editor_${c}`, r.notas[c]])), ...(lidos.length > validos.length ? { cfm_descartados: lidos.length - validos.length } : {}) };
     const motivos = [...visuais, ...editor, ...cfm];
     return { ok: motivos.length === 0, motivos, visuais, editor: [...editor, ...cfm], notas };
   } catch (e) {

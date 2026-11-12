@@ -11,6 +11,7 @@ import { ffprobe } from './ferramentas/binarios.mjs';
 // SPEC 8.5: 2 de cada formato de feed + 2 conjuntos de stories. Abaixo de ALERTA peças válidas vira issue.
 export const MINIMO = { carrossel: 2, reel: 2, stories: 2 };
 export const ALERTA = 3;
+export const TETO_BANCO = 16;
 const INTERVALO_DIAS = 90;
 // O que pode ocupar o lugar de quê (imagem única e carrossel têm a mesma medida).
 const SUBSTITUTOS = { carrossel: ['carrossel', 'imagem'], imagem: ['imagem', 'carrossel'], reel: ['reel'], stories: ['stories'] };
@@ -45,7 +46,11 @@ export function situacao(raiz, { produto, hoje }) {
   // Peças no visual novo (guia/direcao-de-arte.md, 12/11/2026): o banco se renova até ter o mínimo delas; as antigas
   // continuam valendo como última opção.
   const novas = uteis.filter((r) => r.visual);
-  const faltamNovas = Object.entries(MINIMO).flatMap(([t, min]) => Array(Math.max(0, min - novas.filter((r) => SUBSTITUTOS[t].includes(r.tipo)).length)).fill(t));
+  // Conta as peças novas que existem (mesmo as em descanso de 90 dias): senão o banco reencheria toda semana.
+  // Teto: com TETO_BANCO peças no total, não produz mais (o repositório não cresce sem fim). Alterna os formatos.
+  const todasNovas = lerReserva(raiz).filter((r) => r.visual);
+  const deCada = Object.entries(MINIMO).map(([t, min]) => [t, Math.max(0, min - todasNovas.filter((r) => SUBSTITUTOS[t].includes(r.tipo)).length)]);
+  const faltamNovas = lerReserva(raiz).length >= TETO_BANCO ? [] : Array.from({ length: Math.max(...deCada.map(([, n]) => n), 0) }, (_, k) => deCada.filter(([, n]) => n > k).map(([t]) => t)).flat();
   return { total: uteis.length, por, faltam, faltamNovas };
 }
 
@@ -105,9 +110,12 @@ const novoVisual = (r) => (r.visual ? 1 : 0);
 export function ordenarReserva(candidatas, { item, capas = [], usados = [], hoje, recentes = [] }) {
   const temas = new Set(recentes.map((x) => x.tema));
   const fatos = new Set(recentes.flatMap((x) => x.fatos ?? []));
-  const repeteTema = (r) => temas.has(r.tema) || (r.fatos ?? []).some((f) => fatos.has(f));
-  const repete = (r) => (checarRepeticao(r.gancho, usados, { hoje }).ok && !repeteTema(r) ? 0 : 1);
-  return [...candidatas].sort((a, b) => repete(a) - repete(b) || repeteCapa(a, capas) - repeteCapa(b, capas) || novoVisual(b) - novoVisual(a)
+  // Chaves separadas, nesta ordem: gancho repetido (G8) pesa mais que tema repetido, que pesa mais que dividir funções
+  // (funções como clin.agenda aparecem em quase toda peça: contam pela quantidade, não como sim/não).
+  const gancho = (r) => (checarRepeticao(r.gancho, usados, { hoje }).ok ? 0 : 1);
+  const tema = (r) => (temas.has(r.tema) ? 1 : 0);
+  const funcoes = (r) => (r.fatos ?? []).filter((f) => fatos.has(f)).length;
+  return [...candidatas].sort((a, b) => gancho(a) - gancho(b) || tema(a) - tema(b) || repeteCapa(a, capas) - repeteCapa(b, capas) || funcoes(a) - funcoes(b) || novoVisual(b) - novoVisual(a)
     || ((a.usada_em ?? []).at(-1) ?? '').localeCompare((b.usada_em ?? []).at(-1) ?? '') || (a.ramo === item.ramo ? -1 : 1));
 }
 
