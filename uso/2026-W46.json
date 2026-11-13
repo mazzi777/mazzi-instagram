@@ -1,0 +1,14 @@
+{
+ "semana": "2026-W46",
+ "teto_usd": 8,
+ "chamadas": [
+  {
+   "em": "2026-11-13T14:35:34.193Z",
+   "etapa": "planejar",
+   "modelo": "claude-sonnet-5-5",
+   "custo_usd": 0,
+   "entrada": 0,
+   "saida": 0
+  }
+ ]
+}
