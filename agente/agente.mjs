@@ -16,6 +16,7 @@ import { lerProduto } from './checagens/fatos.mjs';
 import { lerGanchosUsados } from './checagens/repeticao.mjs';
 import { atualizarBase } from './base/atualizar.mjs';
 import { planejarSemana } from './etapas/planejar.mjs';
+import { capasRecentes } from './checagens/direcao.mjs';
 import { criarRegistro, produzirPendentes, cobrirComReserva, encherReserva, agendaAlheia, assumirSemana, revalidarAgenda, FORMATOS_PRODUZIDOS } from './orquestrador.mjs';
 import { criarMeta, coletar } from './metricas.mjs';
 import { atualizarEstrategia } from './estrategia.mjs';
@@ -185,7 +186,9 @@ export async function rodar(comando, { env = process.env, agora = () => new Date
     log.push(`Estratégia: ${estrategia.comNota.length} post(s) medidos, ${estrategia.mudancas.length} peso(s) mudaram.`);
     const fAgenda = path.join(saida, 'semanas', semana, 'agenda.json');
     const ocupados = new Set(existsSync(fAgenda) ? JSON.parse(readFileSync(fAgenda, 'utf8')).pecas.map((p) => p.id) : []);
-    const { plano, tentativas } = await planejarSemana({ raiz: RAIZ, semana, config, produto, cerebro, formatos, estadoResumo: estrategia.resumo, ganchosRecentes: usados.filter((u) => u.data >= dataMais(hoje, -42)), novidades, desde, ocupados });
+    const { plano, tentativas } = await planejarSemana({ raiz: RAIZ, semana, config, produto, cerebro, formatos, estadoResumo: estrategia.resumo, ganchosRecentes: usados.filter((u) => u.data >= dataMais(hoje, -42)), novidades, desde, ocupados,
+      // O ensaio de 12/11 mostrou o plano repetindo o tema da semana anterior com outro gancho: o planejador vê os temas.
+      temasRecentes: capasRecentes([...new Set([RAIZ, saida])], { limite: 30, comStories: true }).filter((t) => t.dia >= dataMais(hoje, -14) && t.tema) });
     mkdirSync(path.dirname(fPlano), { recursive: true });
     writeFileSync(fPlano, `${JSON.stringify({ semana, criado_em: hoje, tentativas, ...plano }, null, 2)}\n`);
     registrar({ tipo: 'plano', peca: semana, detalhe: plano.porque });

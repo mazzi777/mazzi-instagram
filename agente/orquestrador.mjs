@@ -1,5 +1,7 @@
 // Máquina de estado de cada peça (SPEC 6.3):
-// escrever → G1–G5/G8 → imagens ou reel (voz, legenda, vídeo) → G6 técnica + G7 visual → aprovada.
+// escrever → G1–G5/G8 → G9a direção de arte (código) → imagens ou reel (voz, legenda, vídeo) → G6 técnica + G7 visual
+// + G9b editor (na mesma chamada do G7: notas de qualidade com as últimas peças do perfil e ética médica) → aprovada.
+// A direção de arte (G9a) roda antes dos juízes pagos: reprovar ali não gasta Claude além do redator.
 // Reprovou: regera com os motivos (até config.checagens.regeracoes vezes). Esgotou: reserva. Sem reserva: pulada.
 // Tudo vai para registro/AAAA-MM-DD.jsonl. Retomável: o plano fica em semanas/SEMANA/plano.json e
 // a rodada diária produz o que ainda falta.
@@ -9,8 +11,9 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { validarPeca, dataMais } from '../publicar/validar.mjs';
 import { ErroLimite, ErroTeto, ErroToken } from './cerebro.mjs';
-import { escreverPeca, checarTexto, juizesDeTexto } from './etapas/escrever.mjs';
-import { checarVisual, ProblemasVisuais } from './checagens/visual.mjs';
+import { escreverPeca, checarTexto, juizesDeTexto, textoDaPeca } from './etapas/escrever.mjs';
+import { checarDirecao, aplicarFundos, capasRecentes } from './checagens/direcao.mjs';
+import { checarRevisao, RevisaoFinal } from './checagens/editor.mjs';
 import { capturar, paginasDaPeca } from './imagens/capturar.mjs';
 import { montarReel } from './ferramentas/montar_video.mjs';
 import { ffprobe } from './ferramentas/binarios.mjs';
@@ -35,11 +38,11 @@ const lerJson = (f, padrao) => (existsSync(f) ? JSON.parse(readFileSync(f, 'utf8
 const gravarJson = (f, d) => { mkdirSync(path.dirname(f), { recursive: true }); writeFileSync(f, `${JSON.stringify(d, null, 2)}\n`); };
 
 /** Entrada da agenda (formato do publicador) a partir do item do plano e do conteúdo escrito. */
-function entradaAgenda(item, conteudo, arquivos, fatos, tentativa) {
+function entradaAgenda(item, conteudo, arquivos, fatos, tentativa, visual = null) {
   const e = {
     id: item.id, dia: item.dia, horario: item.horario, tipo: item.tipo, arquivos,
     tema: `${item.ramo} · ${item.tema}`, gancho: conteudo.gancho, ramo: item.ramo, objetivo: item.objetivo,
-    ia: false, origem: 'agente', fatos, tentativas: tentativa,
+    ia: false, origem: 'agente', fatos, tentativas: tentativa, ...(visual ? { visual } : {}),
   };
   if (item.tipo !== 'stories') Object.assign(e, { legenda: conteudo.legenda, ...(conteudo.alt_text ? { alt_text: conteudo.alt_text } : {}) });
   return e;
@@ -63,7 +66,7 @@ async function produzirReel(item, conteudo, texto, tentativa, { semana, pasta, c
   if (!m.arquivo) return { arquivos: [], tecnica: m.motivos, quadros: [], limpar };
   const legenda = conteudo.legenda;
   // Voz sintética realista: etiqueta de IA obrigatória pela política da Meta (SPEC 8.4).
-  const entrada = { ...entradaAgenda(item, { ...conteudo, legenda }, [path.basename(destino)], texto.fatos, tentativa), ia: true, capa_ms: CAPA_REEL_MS };
+  const entrada = { ...entradaAgenda(item, { ...conteudo, legenda }, [path.basename(destino)], texto.fatos, tentativa, { layout: 'reel', fundo: 'video' }), ia: true, capa_ms: CAPA_REEL_MS };
   if (!ctx.sondar) process.env.FFPROBE ??= ffprobe(); // o validador do publicador mede o vídeo com ele
   const tecnica = [...validarPeca(pasta, semana, entrada, { agente: true, ...(ctx.sondar ? { sondar: ctx.sondar } : {}) }), ...m.motivos];
   return { arquivos: [destino], entrada, tecnica, quadros: m.quadros, limpar, voz: m.motor };
@@ -79,7 +82,14 @@ export async function produzirPeca(item, ctx) {
   const onde = `${semana}/${item.id}`;
   if (ctx.soReserva) return usarReserva(item, ctx, ['modo só reserva (sem Claude)']);
   const juizes = juizesDeTexto(cerebro);
-  const juizVisual = cerebro.juiz(ProblemasVisuais, 'juiz:visual', config.modelos.juizVisual);
+  const juizFinal = cerebro.juiz(RevisaoFinal, 'juiz:visual', config.modelos.juizVisual);
+  // As últimas capas do feed (antes do dia desta peça): a capa nova não repete, e o editor julga a novidade com elas.
+  // O real vem antes do ensaio: no modo ensaio, uma capa de ensaio não esconde a do feed de verdade.
+  const capas = ctx.capas ?? capasRecentes([...new Set([raiz, saida])], { antesDe: item.dia, limite: 10 });
+  // Para a "novidade" o editor vê TUDO o que já está na agenda (feed e stories, inclusive os outros dias desta semana),
+  // não só as capas de antes: o ig-revisor pegou um story repetindo o tema de outro story da mesma semana.
+  const recentes = ctx.recentes ?? capasRecentes([...new Set([raiz, saida])], { limite: 12, comStories: true }).filter((r) => !(r.dia === item.dia && r.id === item.id));
+  const revisar = (imagens, conteudo, contexto) => checarRevisao(imagens, { juiz: juizFinal, contexto, texto: textoDaPeca(item.tipo, conteudo), item, recentes, limites: config.checagens.editor });
   const maxTentativas = 1 + (cerebro.economico() ? 0 : config.checagens.regeracoes);
   let motivos = [];
   let arquivos = [];
@@ -92,8 +102,18 @@ export async function produzirPeca(item, ctx) {
 
   for (let tentativa = 1; tentativa <= maxTentativas; tentativa++) {
     try {
-      const conteudo = await escreverPeca({ raiz, item, produto, cerebro, config, motivosAnteriores: motivos, anterior });
+      const conteudo = await escreverPeca({ raiz, item, produto, cerebro, config, motivosAnteriores: motivos, anterior, capas });
+      // O gancho que vai para a agenda e o log é o que aparece na capa (a nota do gancho, G3, também julga ele).
+      const capaTitulo = item.tipo === 'carrossel' ? conteudo.slides?.[0]?.titulo : item.tipo === 'stories' ? conteudo.quadros?.[0]?.titulo : item.tipo === 'imagem' ? conteudo.titulo : null;
+      if (capaTitulo) conteudo.gancho = capaTitulo;
       anterior = conteudo;
+      // G9a: direção de arte por código, antes dos juízes pagos e do navegador.
+      const direcao = checarDirecao(item.tipo, conteudo, { capas });
+      if (direcao.length) {
+        motivos = direcao;
+        registrar({ tipo: 'tentativa', peca: onde, motivos, detalhe: `tentativa ${tentativa}: direção de arte` });
+        continue;
+      }
       const texto = await checarTexto({ item, conteudo, produto, ...juizes, usados, hoje, config });
       registrar({ tipo: 'tentativa', peca: onde, notas: texto.notas, motivos: texto.motivos, detalhe: `tentativa ${tentativa}: texto` });
       if (!texto.ok) { motivos = texto.motivos; continue; }
@@ -102,8 +122,9 @@ export async function produzirPeca(item, ctx) {
         const r = await produzirReel(item, conteudo, texto, tentativa, { semana, pasta, ctx });
         arquivos = r.arquivos;
         try {
-          const visual = r.tecnica.length ? { ok: false, motivos: [] } : await checarVisual(r.quadros, { juiz: juizVisual, contexto: `reel · ${conteudo.gancho} (quadros do vídeo)` });
-          motivos = [...r.tecnica, ...visual.motivos];
+          const rev = r.tecnica.length ? { motivos: [], notas: {} } : await revisar(r.quadros, conteudo, `reel · ${conteudo.gancho} (quadros do vídeo)`);
+          Object.assign(texto.notas, rev.notas);
+          motivos = [...r.tecnica, ...rev.motivos];
         } finally {
           r.limpar();
         }
@@ -112,13 +133,15 @@ export async function produzirPeca(item, ctx) {
         continue;
       }
 
-      const paginas = paginasDaPeca({ semana, id: item.id, tipo: item.tipo, ramo: item.ramo, conteudo, pasta });
+      const { conteudo: pintado, visual: desenho } = aplicarFundos(item.tipo, conteudo, { capas });
+      const paginas = paginasDaPeca({ semana, id: item.id, tipo: item.tipo, ramo: item.ramo, objetivo: item.objetivo, conteudo: pintado, pasta });
       limparPeca(pasta, semana, item.id);
       arquivos = await (ctx.capturar ?? capturar)(paginas, { navegador: ctx.navegador });
-      const entrada = entradaAgenda(item, conteudo, arquivos.map((a) => path.basename(a)), texto.fatos, tentativa);
+      const entrada = entradaAgenda(item, conteudo, arquivos.map((a) => path.basename(a)), texto.fatos, tentativa, desenho);
       const tecnica = [...validarPeca(pasta, semana, entrada, { agente: true }), ...(arquivos.problemas ?? []).map((p) => `diagramação: ${p}`)];
-      const visual = tecnica.length ? { ok: false, motivos: [] } : await checarVisual(arquivos, { juiz: juizVisual, contexto: `${item.tipo} · ${conteudo.gancho}` });
-      motivos = [...tecnica, ...visual.motivos];
+      const rev = tecnica.length ? { motivos: [], notas: {} } : await revisar(arquivos, conteudo, `${item.tipo} · ${conteudo.gancho}`);
+      Object.assign(texto.notas, rev.notas);
+      motivos = [...tecnica, ...rev.motivos];
       registrar({ tipo: motivos.length ? 'tentativa' : 'aprovada', peca: onde, notas: texto.notas, motivos, detalhe: `tentativa ${tentativa}: imagens` });
       if (!motivos.length) return { status: 'aprovada', entrada };
     } catch (e) {
@@ -135,7 +158,11 @@ export async function produzirPeca(item, ctx) {
 
 async function usarReserva(item, ctx, motivos) {
   const onde = `${ctx.semana}/${item.id}`;
-  const r = ctx.reserva ? await ctx.reserva.pegar({ tipo: item.tipo, item, semana: ctx.semana, hoje: ctx.hoje }) : null;
+  // A reserva também foge da capa das últimas peças do feed (prefere a que não repete; na falta, usa a que tem).
+  const capas = ctx.capas ?? capasRecentes([...new Set([ctx.raiz, ctx.saida ?? ctx.raiz])], { antesDe: item.dia, limite: 6 }).filter((c) => c.layout !== 'reel').slice(0, 2);
+  // Tema e funções das últimas 3 semanas e da própria semana (o ig-revisor pegou a reserva repetindo os dois).
+  const recentes = capasRecentes([...new Set([ctx.raiz, ctx.saida ?? ctx.raiz])], { limite: 40, comStories: true }).filter((x) => x.dia >= dataMais(item.dia, -21));
+  const r = ctx.reserva ? await ctx.reserva.pegar({ tipo: item.tipo, item, semana: ctx.semana, hoje: ctx.hoje, capas, usados: ctx.usados ?? [], recentes }) : null;
   if (r) {
     ctx.registrar({ tipo: 'reserva', peca: onde, motivos, detalhe: `usou a reserva ${r.origemId}` });
     return { status: 'reserva', entrada: r.entrada };
@@ -273,7 +300,8 @@ export async function cobrirComReserva({ desde, ate, ...ctx }) {
  */
 export async function encherReserva({ banco, maximo = 1, ...ctx }) {
   const { produto, hoje, semana, cerebro } = ctx;
-  const falta = situacao(banco, { produto, hoje }).faltam;
+  // Renova o banco até ter o mínimo de peças no visual novo (as do molde antigo seguem como última opção).
+  const falta = situacao(banco, { produto, hoje }).faltamNovas;
   if (!falta.length || cerebro.economico()) return [];
   const pautas = pautasEvergreen(produto);
   const jaTem = lerReserva(banco).length;
@@ -286,7 +314,8 @@ export async function encherReserva({ banco, maximo = 1, ...ctx }) {
     };
     const tmp = mkdtempSync(path.join(tmpdir(), 'mazzi-reserva-'));
     try {
-      const r = await produzirPeca(item, { ...ctx, saida: tmp, reserva: null, soReserva: false });
+      // Peça de reserva vai ao ar daqui a semanas: não é comparada com as capas e peças de hoje (capas: []).
+      const r = await produzirPeca(item, { ...ctx, saida: tmp, reserva: null, soReserva: false, capas: [], recentes: [] });
       if (r.status === 'aprovada') {
         const rid = `${hoje}-${tipo}-${k + 1}`;
         guardar(banco, r.entrada, path.join(tmp, 'semanas', semana), { rid, hoje });

@@ -47,6 +47,31 @@ Ruins: "Gestão eficiente para sua clínica", "Seu negócio. Organizado.", "Hoje
 - Proibido: travessão (—), "não é só X, é Y", "não apenas... mas também", lista de três no fim da frase, "imagine...", "no mundo de hoje", "solução completa", "transforme seu negócio", "tudo em um só lugar", "na palma da mão", "descubra", "potencialize", "jornada".
 - Varie o tamanho das frases. Use palavras do dono: caixa, sangria, troco, paciente, orçamento, sinal, lote, validade, balança, quilo, motoboy.
 - Fale como gente: "pra", "tá", "a gente" são bem-vindos com moderação.
+- Também proibido (clichê de post de rede social e de "gestão" genérica): "chega de", "diga adeus", "simples assim", "sem dor de cabeça", "sem complicação", "praticidade", "controle total", "gestão inteligente/eficiente/descomplicada", "vem com a gente", "não perca", "a verdade é que", "pensa comigo", "spoiler:", "e o melhor?", "e muito mais".
+- **Cena, não adjetivo.** Troque a qualidade pela cena que a prova:
+  - ruim: "Agenda organizada e sem faltas." → bom: "Sexta, 18h: a paciente das 9h já confirmou pelo link."
+  - ruim: "Controle total do seu caixa." → bom: "Fechou o caixa e não bateu? A diferença aparece no fechamento, não no caderno."
+  - ruim: "Delivery muito mais prático." → bom: "O telefone toca, o nome do cliente já aparece."
+- Uma frase por ideia. Se a frase precisa de "e" duas vezes, são duas frases.
+- Leia em voz alta: se você não falaria assim no balcão ou na recepção, reescreva.
+- A legenda conta a MESMA história das telas (mesmo personagem, mesma dor, mesmo desfecho). Nunca invente na legenda um detalhe que contradiz a imagem.
+- Restaurante: "nota" sozinha soa como nota fiscal (proibido falar). Diga "ticket da balança" ou "nota da balança".
+
+## Direção de arte (resumo de guia/direcao-de-arte.md)
+
+- Cada slide, quadro ou imagem tem um `layout`. Escolha pelo que a tela precisa MOSTRAR: a conversa parada → `conversa`; o caderno → `bilhete`; hoje × com a Mazzi → `comparativo`; a função → `cartao`; opinião → `frase`; a dor em uma linha → `pergunta`.
+- O grid do perfil não pode virar um bloco só: a capa muda de composição a cada post (o código reprova capa igual às 2 últimas).
+- Menos texto na tela, mais cena. O texto longo vai para a legenda.
+
+## Clínica: regras de publicidade médica (CFM 2.336/2023)
+
+A Mazzi fala da **gestão** da clínica, nunca do procedimento. Numa peça de clínica, nunca:
+- prometa ou insinue resultado ("resultado natural", "rejuvenesce", "sem dor", "seguro", "sem risco");
+- use superlativo ou comparação ("a melhor clínica", "referência em", "o melhor profissional", "diferente das outras clínicas");
+- mostre ou descreva paciente identificável, antes e depois de paciente ou caso real (falar que a função "antes e depois lado a lado" existe pode; mostrar foto ou caso, não);
+- use medo, urgência ou sensacionalismo sobre saúde;
+- fale de preço, desconto ou condição de pagamento (de procedimento ou da Mazzi).
+Pode: agenda, falta, confirmação, ficha, anamnese, termo, alerta de alergia/anticoagulante como função da ficha, orçamento, sinal, estoque, lote e validade, pacotes, comissão.
 
 ## O que nunca muda
 

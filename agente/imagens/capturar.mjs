@@ -40,12 +40,12 @@ export async function capturar(paginas, { navegador } = {}) {
 }
 
 /** Monta as páginas de uma peça escrita (saída do redator) com os nomes de arquivo do guia. */
-export function paginasDaPeca({ semana, id, tipo, ramo, conteudo, pasta }) {
+export function paginasDaPeca({ semana, id, tipo, ramo, objetivo, conteudo, pasta }) {
   const nome = (i) => path.join(pasta, `${semana}-${id}-${String(i + 1).padStart(2, '0')}.jpg`);
   if (tipo === 'carrossel') {
-    return conteudo.slides.map((s, i) => ({ formato: 'carrossel', arquivo: nome(i), html: htmlSlide(s, { ramo, numero: i + 1, total: conteudo.slides.length }) }));
+    return conteudo.slides.map((s, i) => ({ formato: 'carrossel', arquivo: nome(i), html: htmlSlide(s, { ramo, objetivo, numero: i + 1, total: conteudo.slides.length }) }));
   }
-  if (tipo === 'imagem') return [{ formato: 'imagem', arquivo: nome(0), html: htmlImagem(conteudo, { ramo }) }];
+  if (tipo === 'imagem') return [{ formato: 'imagem', arquivo: nome(0), html: htmlImagem(conteudo, { ramo, objetivo }) }];
   if (tipo === 'stories') return conteudo.quadros.map((q, i) => ({ formato: 'story', arquivo: nome(i), html: htmlStory(q, { ramo }) }));
   throw new Error(`tipo sem modelo de imagem: ${tipo}`);
 }

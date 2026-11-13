@@ -1,0 +1,63 @@
+name: Ensaio de qualidade das peças
+
+# Roda o laço de qualidade (direção de arte + revisão final) com o Claude de verdade numa branch de trabalho, para ver as
+# peças antes de juntar no main. NÃO publica, NÃO grava no repositório (sem commit, sem push): a saída vai só para um
+# artifact da rodada (imagens, registro das tentativas e o resumo). Gasta o plano Pro (~US$ 1 a 2 equivalentes por rodada),
+# por isso só roda quando pedido: push numa branch feat/qualidade-* com "[ensaio]" na mensagem do commit, ou na mão.
+
+on:
+  push:
+    branches: ["feat/qualidade-*"]
+    paths: ["agente/**", "guia/**", ".github/workflows/ensaio-qualidade.yml"]
+  workflow_dispatch:
+    inputs:
+      semana:
+        description: "Semana já publicada cuja pauta será refeita (AAAA-MM-DD)"
+        required: false
+        default: "2026-11-09"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ensaio-qualidade-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  ensaio:
+    # Kill switch e modo só reserva: nada usa o Claude.
+    if: >-
+      vars.AGENTE_PAUSADO != 'true' && vars.AGENTE_MODO != 'so_reserva' &&
+      (github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[ensaio]'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Dependências
+        run: bash .github/instalar-dependencias.sh
+
+      - name: Chromium (captura das imagens)
+        run: npx playwright install --with-deps chromium
+
+      - name: Ensaio (sem publicar)
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          AGENTE_MODO: ensaio
+          SEMANA: ${{ inputs.semana || '2026-11-09' }}
+        run: |
+          set -o pipefail
+          [[ "$SEMANA" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]] || { echo "semana inválida: $SEMANA"; exit 1; }
+          node agente/ferramentas/ensaio-qualidade.mjs "$RUNNER_TEMP/ensaio-qualidade" "$SEMANA" | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ensaio-qualidade
+          path: ${{ runner.temp }}/ensaio-qualidade
+          retention-days: 14

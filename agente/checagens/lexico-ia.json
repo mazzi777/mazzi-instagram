@@ -20,7 +20,13 @@
     "fazer toda a diferença", "chegou a hora de", "está na hora de", "dê adeus", "diga adeus", "diga olá",
     "você está pronto", "você está pronta", "pronto para transformar", "pronta para transformar", "seja bem-vindo", "a chave para", "o segredo para", "não é segredo",
     "experiência única", "do jeito que você merece", "como nunca antes", "um verdadeiro", "uma verdadeira",
-    "otimizar seu tempo", "ganhe tempo", "foque no que importa", "foque no que realmente importa"
+    "otimizar seu tempo", "ganhe tempo", "foque no que importa", "foque no que realmente importa",
+    "simples assim", "sem complicação", "sem complicações", "sem dor de cabeça", "vem com a gente", "não perca",
+    "fique por dentro", "plot twist", "segue o fio", "me agradeça depois", "a verdade é que", "vamos falar sobre",
+    "pensa comigo", "o melhor de tudo", "pode acreditar", "de uma vez por todas", "controle total", "e muito mais",
+    "mais praticidade", "otimizar sua rotina", "rotina mais leve", "mais tempo para o que importa", "mais tempo pro que importa",
+    "eleve o nível", "um novo jeito de", "o futuro da gestão", "gestão inteligente", "gestão eficiente",
+    "gestão descomplicada", "descomplique", "descomplicar"
   ],
   "estruturas": [
     { "id": "nao-e-so", "regex": "(?i)\\bn[ãa]o [ée] (?:s[óo]|apenas) [^.!?\\n]{2,60}[,.] [ée]\\b", "nome": "\"Não é só X, é Y\"" },
@@ -31,6 +37,8 @@
     { "id": "seja-ou", "regex": "(?i)\\bseja (?:para|pra|você|voc[êe]) [^.!?\\n]{2,40}, (?:seja|ou) ", "nome": "\"Seja X, seja Y\"" },
     { "id": "trinca", "regex": "(?i)\\b[\\p{L}]+, [\\p{L}]+ e [\\p{L}]+\\.", "nome": "Lista de três no fim da frase" },
     { "id": "dois-pontos-revelacao", "regex": "(?m)^[^:\\n]{3,40}: [\\p{Lu}][^\\n]{3,60}\\.$", "nome": "Frase \"Título: revelação.\"" },
+    { "id": "spoiler", "regex": "(?i)(?:^|[.!?\\n]\\s*)(?:spoiler|alerta de spoiler)\\s*:", "nome": "\"Spoiler:\" para criar suspense" },
+    { "id": "e-o-melhor", "regex": "(?i)\\be (?:o|a) melhor(?: parte)?\\?", "nome": "\"E o melhor?\" para criar suspense" },
     { "id": "emoji-lista", "regex": "(?m)^\\s*(?:✅|✔️|👉|🔹|🔸|📌|🚀|💡)\\s", "nome": "Lista com emoji no começo de cada linha" }
   ]
 }

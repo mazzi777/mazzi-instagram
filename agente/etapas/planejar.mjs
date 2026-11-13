@@ -62,7 +62,7 @@ export function idsDoPlano(plano, ocupados = new Set()) {
   return ordenado.map((p) => ({ ...p, id: p.tipo === 'stories' ? proximo(() => `S${++st}`) : proximo(() => String.fromCharCode(65 + feed++)) }));
 }
 
-export function promptPlano({ semana, config, formatos, estadoResumo, ganchosRecentes, novidades, desde = semana }) {
+export function promptPlano({ semana, config, formatos, estadoResumo, ganchosRecentes, novidades, desde = semana, temasRecentes = [] }) {
   const f = config.frequencia;
   return `Monte o plano do Instagram @mazzisystems para a semana de ${semana} (segunda) a ${dataMais(semana, 6)} (domingo).
 ${desde > semana ? `A semana já começou: todas as peças entre ${desde} e ${dataMais(semana, 6)} (nada antes de ${desde}).
@@ -79,15 +79,15 @@ ${estadoResumo || 'Ainda sem dados suficientes: siga os padrões do guia.'}
 
 GANCHOS DAS ÚLTIMAS 6 SEMANAS (não repita gancho nem ângulo):
 ${ganchosRecentes.map((g) => `- ${g.data}: ${g.gancho}`).join('\n') || '- nenhum'}
-${novidades?.length ? `\nFUNÇÕES NOVAS NA BASE (boa hora para mostrar):\n${novidades.map((n) => `- ${n.id}: ${n.fato}`).join('\n')}` : ''}
+${temasRecentes.length ? `\nTEMAS DAS ÚLTIMAS 2 SEMANAS (feed e stories; não repita o tema nem o TIPO de ângulo: se várias delas já são "o papel ou o registro que se perde", escolha outro tipo, como a decisão do dia, a conta que o dono faz de cabeça, a rotina de abrir e fechar, um número da semana em cartão EXEMPLO ou uma opinião):\n${temasRecentes.map((t) => `- ${t.dia} · ${t.tipo}: ${t.tema}`).join('\n')}\n` : ''}${novidades?.length ? `\nFUNÇÕES NOVAS NA BASE (boa hora para mostrar):\n${novidades.map((n) => `- ${n.id}: ${n.fato}`).join('\n')}` : ''}
 
 Em "porque", explique em poucas linhas as escolhas da semana.`;
 }
 
 /** Pede o plano e cobra as regras (até 3 tentativas, passando os motivos de volta). */
-export async function planejarSemana({ raiz, semana, config, produto, cerebro, formatos, estadoResumo = '', ganchosRecentes = [], novidades = [], desde = semana, ocupados = new Set() }) {
+export async function planejarSemana({ raiz, semana, config, produto, cerebro, formatos, estadoResumo = '', ganchosRecentes = [], novidades = [], desde = semana, ocupados = new Set(), temasRecentes = [] }) {
   const sistema = `Você é o estrategista de conteúdo do Instagram da Mazzi Systems.\n\n${contextoMarca(raiz, produto)}`;
-  let prompt = promptPlano({ semana, config, formatos, estadoResumo, ganchosRecentes, novidades, desde });
+  let prompt = promptPlano({ semana, config, formatos, estadoResumo, ganchosRecentes, novidades, desde, temasRecentes });
   let motivos = [];
   for (let tentativa = 1; tentativa <= 3; tentativa++) {
     const plano = await cerebro.pedir({ etapa: 'planejar', modelo: config.modelos.planejador, sistema, prompt, schema: Plano, effort: 'medium' });

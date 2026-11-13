@@ -5,11 +5,13 @@ import { readFileSync, writeFileSync, existsSync, readdirSync, mkdirSync, copyFi
 import path from 'node:path';
 import { validarPeca, dataMais } from '../publicar/validar.mjs';
 import { palavrasProibidas } from './checagens/nunca.mjs';
+import { checarRepeticao } from './checagens/repeticao.mjs';
 import { ffprobe } from './ferramentas/binarios.mjs';
 
 // SPEC 8.5: 2 de cada formato de feed + 2 conjuntos de stories. Abaixo de ALERTA peças válidas vira issue.
 export const MINIMO = { carrossel: 2, reel: 2, stories: 2 };
 export const ALERTA = 3;
+export const TETO_BANCO = 16;
 const INTERVALO_DIAS = 90;
 // O que pode ocupar o lugar de quê (imagem única e carrossel têm a mesma medida).
 const SUBSTITUTOS = { carrossel: ['carrossel', 'imagem'], imagem: ['imagem', 'carrossel'], reel: ['reel'], stories: ['stories'] };
@@ -41,7 +43,15 @@ export function situacao(raiz, { produto, hoje }) {
   const uteis = lerReserva(raiz).filter((r) => motivosParaNaoUsar(r, { produto, hoje }).length === 0);
   const por = Object.fromEntries(Object.keys(MINIMO).map((t) => [t, uteis.filter((r) => SUBSTITUTOS[t].includes(r.tipo)).length]));
   const faltam = Object.entries(MINIMO).flatMap(([t, min]) => Array(Math.max(0, min - por[t])).fill(t));
-  return { total: uteis.length, por, faltam };
+  // Peças no visual novo (guia/direcao-de-arte.md, 12/11/2026): o banco se renova até ter o mínimo delas; as antigas
+  // continuam valendo como última opção.
+  const novas = uteis.filter((r) => r.visual);
+  // Conta as peças novas que existem (mesmo as em descanso de 90 dias): senão o banco reencheria toda semana.
+  // Teto: com TETO_BANCO peças no total, não produz mais (o repositório não cresce sem fim). Alterna os formatos.
+  const todasNovas = lerReserva(raiz).filter((r) => r.visual);
+  const deCada = Object.entries(MINIMO).map(([t, min]) => [t, Math.max(0, min - todasNovas.filter((r) => SUBSTITUTOS[t].includes(r.tipo)).length)]);
+  const faltamNovas = lerReserva(raiz).length >= TETO_BANCO ? [] : Array.from({ length: Math.max(...deCada.map(([, n]) => n), 0) }, (_, k) => deCada.filter(([, n]) => n > k).map(([t]) => t)).flat();
+  return { total: uteis.length, por, faltam, faltamNovas };
 }
 
 /** Guarda no banco uma peça aprovada (copiando as mídias de `origem`). */
@@ -60,11 +70,9 @@ export function guardar(raiz, entrada, origem, { rid, hoje }) {
  */
 export function criarReserva({ raiz, saida = raiz, produto, marcar = true, sondar }) {
   return {
-    async pegar({ tipo, item, semana, hoje }) {
+    async pegar({ tipo, item, semana, hoje, capas = [], usados = [], recentes = [] }) {
       const pastaSemana = path.join(saida, 'semanas', semana);
-      const candidatas = lerReserva(raiz)
-        .filter((r) => SUBSTITUTOS[tipo]?.includes(r.tipo) && motivosParaNaoUsar(r, { produto, hoje }).length === 0)
-        .sort((a, b) => ((a.usada_em ?? []).at(-1) ?? '').localeCompare((b.usada_em ?? []).at(-1) ?? '') || (a.ramo === item.ramo ? -1 : 1));
+      const candidatas = ordenarReserva(lerReserva(raiz).filter((r) => SUBSTITUTOS[tipo]?.includes(r.tipo) && motivosParaNaoUsar(r, { produto, hoje }).length === 0), { item, capas, usados, hoje, recentes });
       for (const r of candidatas) {
         mkdirSync(pastaSemana, { recursive: true });
         const arquivos = r.arquivos.map((a, i) => {
@@ -86,6 +94,29 @@ export function criarReserva({ raiz, saida = raiz, produto, marcar = true, sonda
       return null;
     },
   };
+}
+
+// Direção de arte (guia/direcao-de-arte.md): peça antiga sem `visual` é do molde único (manchete no fundo escuro).
+const capaDe = (r) => r.visual ?? (r.tipo === 'reel' ? { layout: 'reel', fundo: 'video' } : { layout: 'manchete', fundo: 'escuro' });
+/** 1 se a capa da peça repete o layout ou o fundo de uma das 2 últimas capas do feed (vai para o fim da fila). */
+export const repeteCapa = (r, capas) => (r.tipo !== 'stories' && capas.slice(0, 2).some((c) => c.layout === capaDe(r).layout || (c.fundo === capaDe(r).fundo && c.fundo !== 'video')) ? 1 : 0);
+const novoVisual = (r) => (r.visual ? 1 : 0);
+
+/**
+ * Ordem de preferência das peças do banco: primeiro a que não repete gancho das últimas 6 semanas (G8) nem o tema ou as
+ * funções das peças das últimas 3 semanas e da própria semana (`recentes`), depois a que não repete a capa das 2 últimas do feed, a de visual novo, a usada há mais tempo e a do mesmo ramo. Repetida não é
+ * descartada: só entra se não houver outra (uma reserva parecida ainda é melhor que um horário vazio).
+ */
+export function ordenarReserva(candidatas, { item, capas = [], usados = [], hoje, recentes = [] }) {
+  const temas = new Set(recentes.map((x) => x.tema));
+  const fatos = new Set(recentes.flatMap((x) => x.fatos ?? []));
+  // Chaves separadas, nesta ordem: gancho repetido (G8) pesa mais que tema repetido, que pesa mais que dividir funções
+  // (funções como clin.agenda aparecem em quase toda peça: contam pela quantidade, não como sim/não).
+  const gancho = (r) => (checarRepeticao(r.gancho, usados, { hoje }).ok ? 0 : 1);
+  const tema = (r) => (temas.has(r.tema) ? 1 : 0);
+  const funcoes = (r) => (r.fatos ?? []).filter((f) => fatos.has(f)).length;
+  return [...candidatas].sort((a, b) => gancho(a) - gancho(b) || tema(a) - tema(b) || repeteCapa(a, capas) - repeteCapa(b, capas) || funcoes(a) - funcoes(b) || novoVisual(b) - novoVisual(a)
+    || ((a.usada_em ?? []).at(-1) ?? '').localeCompare((b.usada_em ?? []).at(-1) ?? '') || (a.ramo === item.ramo ? -1 : 1));
 }
 
 /** Pautas que não envelhecem, para encher o banco (o agente escreve a peça a partir delas). */

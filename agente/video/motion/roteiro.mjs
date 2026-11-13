@@ -93,6 +93,8 @@ export function efeitos(cenas) {
     if (c.tipo === 'cartao') add(c.de + 14, 'vidro', 0.35);
     if (c.tipo === 'digitando') add(ini + 6 + Math.ceil((d.texto?.length ?? 10) * 1.6) + 16, 'clique-2', 0.55);
     if (c.tipo === 'contador') add(c.de + 10, 'rolagem', 0.4);
+    if (c.tipo === 'hub') (d.modulos ?? []).forEach((_, k) => add(batida(k) + 10, pops[k % 3], 0.4));
+    if (c.tipo === 'encaixe') (d.pecas ?? []).forEach((_, k) => add(batida(k) + 8, k === (d.pecas.length - 1) ? 'confirma' : 'clique-3', 0.45));
     if (c.tipo === 'celular') (d.mensagens ?? []).forEach((_, k) => add(batida(k * 2) + 8, 'pop-2', 0.45));
     if (c.tipo === 'icone') add(ini + Math.round((c.ate - c.de + 2 * SOBREPOR) * 0.55), 'glitch', 0.5);
     if (c.tipo === 'orbita') add(c.de + 6, 'subida', 0.35);

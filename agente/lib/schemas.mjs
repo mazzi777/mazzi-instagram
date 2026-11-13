@@ -63,6 +63,8 @@ export const Peca = z.object({
   alt_text: z.string().max(1000).optional(),
   capa_ms: z.number().int().min(0).optional(),
   tentativas: z.number().int().min(1).max(3).optional(),
+  // Direção de arte da peça (layout e fundo da capa), para a próxima capa não repetir (checagens/direcao.mjs).
+  visual: z.object({ layout: z.string(), fundo: z.string(), layouts: z.array(z.string()).optional() }).optional(),
 });
 
 export const Agenda = z.object({ semana: dataIso, pecas: z.array(Peca) });

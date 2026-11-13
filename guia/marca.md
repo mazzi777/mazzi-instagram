@@ -60,7 +60,8 @@ Português do Brasil, informal e direto, frases curtas. Dor concreta + a funçã
 
 ## Visual
 
-- Fundo grafite `#111316`, texto `#F3F1EC`, destaque coral `#FF7A50`, fonte Inter.
+- Cores: grafite `#111316`, papel `#F3F1EC` e coral `#FF7A50`, usados também como **fundo** (desde 12/11/2026: o grid não é mais todo escuro). Fonte Inter; Caveat só no que é "escrito à mão".
+- 10 layouts (pergunta, manchete, conversa, comparativo, cartão, bilhete, frase, passo, lista, chamada) e regras de variedade: **`guia/direcao-de-arte.md`**. A capa nunca repete o layout das 2 últimas capas do feed.
 - `@mazzisystems` em toda peça.
 - Montar em HTML e capturar com Playwright.
 
