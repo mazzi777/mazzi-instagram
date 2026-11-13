@@ -201,7 +201,7 @@ export function promptPeca(item, motivosAnteriores = [], anterior = null, { capa
     stories: `4 ou 5 quadros, uma ideia por quadro, falando com "você"; o 4º é o pedido, UM só: "me responde aqui nesse story" OU "chama no WhatsApp, link na bio" (nunca os dois); o 5º, se houver, fecha sem pedir de novo. "gancho" é o título do 1º quadro, igual.\n${layoutsPrompt(item.tipo)}`,
     reel: 'reel narrado de 20 a 40 segundos, em 7 a 12 batidas. Cada batida tem "fala" (o que a voz diz: frases curtas de gente, até 10 palavras para caber em 4 segundos; a 1ª fala é o gancho, até 7 palavras, e cabe em 3 segundos), "tela" (a frase grande na tela, até 6 palavras, que reforça a fala sem repetir tudo) e "cena" (o motion graphics daquela batida). A última batida é a chamada (o fechamento da marca entra sozinho nela). Escreva a fala para ser ouvida: sem siglas difíceis, sem parênteses, sem emoji.\n' + CENAS_PROMPT,
   }[item.tipo];
-  const chamada = item.objetivo === 'conversa' ? 'A chamada é "chama no WhatsApp (link na bio)".' : 'A chamada pede para salvar ou compartilhar o post (uma só).';
+  const chamada = item.objetivo === 'conversa' ? 'A chamada é "chama no WhatsApp (link na bio)".' : 'A chamada pede para salvar OU para compartilhar o post: escolha um verbo só (nunca "salva e compartilha").';
   return `Escreva a peça abaixo para o Instagram @mazzisystems.
 
 Formato: ${item.tipo}: ${formato}

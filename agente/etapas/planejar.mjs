@@ -79,7 +79,7 @@ ${estadoResumo || 'Ainda sem dados suficientes: siga os padrões do guia.'}
 
 GANCHOS DAS ÚLTIMAS 6 SEMANAS (não repita gancho nem ângulo):
 ${ganchosRecentes.map((g) => `- ${g.data}: ${g.gancho}`).join('\n') || '- nenhum'}
-${temasRecentes.length ? `\nTEMAS DAS ÚLTIMAS 2 SEMANAS (feed e stories; não repita o tema, mude de função ou de cena):\n${temasRecentes.map((t) => `- ${t.dia} · ${t.tipo}: ${t.tema}`).join('\n')}\n` : ''}${novidades?.length ? `\nFUNÇÕES NOVAS NA BASE (boa hora para mostrar):\n${novidades.map((n) => `- ${n.id}: ${n.fato}`).join('\n')}` : ''}
+${temasRecentes.length ? `\nTEMAS DAS ÚLTIMAS 2 SEMANAS (feed e stories; não repita o tema nem o TIPO de ângulo: se várias delas já são "o papel ou o registro que se perde", escolha outro tipo, como a decisão do dia, a conta que o dono faz de cabeça, a rotina de abrir e fechar, um número da semana em cartão EXEMPLO ou uma opinião):\n${temasRecentes.map((t) => `- ${t.dia} · ${t.tipo}: ${t.tema}`).join('\n')}\n` : ''}${novidades?.length ? `\nFUNÇÕES NOVAS NA BASE (boa hora para mostrar):\n${novidades.map((n) => `- ${n.id}: ${n.fato}`).join('\n')}` : ''}
 
 Em "porque", explique em poucas linhas as escolhas da semana.`;
 }
