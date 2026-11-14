@@ -2,6 +2,7 @@
 
 Uma linha por peça, a mais nova no topo. A partir de 09/11/2026 o GitHub Actions acrescenta as linhas sozinho ao publicar (data · PUBLICADO · formato · tema · gancho · ids). A produção da semana lê este arquivo para não repetir tema nem gancho.
 
+- 14/11/2026 · PUBLICADO · carrossel (D, 7 arquivo(s)) · restaurante · Bebida acabou e ninguém viu · "A bebida acabou e ninguém viu no sábado?" · ids 18039003674896527 · via API da Meta
 - 13/11/2026 · PUBLICADO · imagem (C, 1 arquivo(s)) · clinica · Produto vencido na gaveta da clínica · "Frasco vencendo na sua gaveta e ninguém viu?" · ids 17946858354376347 · via API da Meta
 - 13/11/2026 · PUBLICADO · stories (S2, 5 arquivo(s)) · clinica · Pacote de sessões: quantas faltam pra paciente? · "Quantas sessões faltam pra sua paciente do pacote?" · ids 17886070797523011, 18657137140037352, 17912692068585396, 18073891145759079, 18132147038495154 · via API da Meta
 - 11/11/2026 · PUBLICADO · reel (B, 1 arquivo(s)) · clinica · a clínica num lugar só · "Agenda, ficha e termo em lugares diferentes?" · ids 18141232036639000 · via API da Meta
