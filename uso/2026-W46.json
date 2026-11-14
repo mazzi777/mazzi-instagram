@@ -9,6 +9,14 @@
    "custo_usd": 0,
    "entrada": 0,
    "saida": 0
+  },
+  {
+   "em": "2026-11-14T00:21:02.899Z",
+   "etapa": "planejar",
+   "modelo": "claude-sonnet-5-5",
+   "custo_usd": 0,
+   "entrada": 0,
+   "saida": 0
   }
  ]
 }
