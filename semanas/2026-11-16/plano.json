@@ -1,0 +1,128 @@
+{
+  "semana": "2026-11-16",
+  "criado_em": "2026-11-14",
+  "tentativas": 1,
+  "pecas": [
+    {
+      "dia": "2026-11-16",
+      "horario": "18:40",
+      "tipo": "carrossel",
+      "ramo": "clinica",
+      "objetivo": "conversa",
+      "conteudo": "dor",
+      "tema": "Semana no celular com dia livre à vista",
+      "angulo": "Segunda à noite a dona abre a Semana no celular, em lista por dia, e vê que quinta está livre antes de a semana andar. Toque no 'Dia livre' e já agenda.",
+      "fatos": [
+        "clin.agenda-semana-lista-celular",
+        "clin.agenda-dia-celular",
+        "clin.agenda"
+      ],
+      "exploracao": false,
+      "id": "A",
+      "situacao": "reserva"
+    },
+    {
+      "dia": "2026-11-17",
+      "horario": "07:40",
+      "tipo": "stories",
+      "ramo": "clinica",
+      "objetivo": "conversa",
+      "conteudo": "ensina",
+      "tema": "Chips de profissional na agenda do celular",
+      "angulo": "Duas profissionais, um celular: toca no chip e a agenda do dia muda. Botão Agendar em linha, sem nada tapando a grade. Fecha pedindo 'me responde aqui nesse story' qual a maior bagunça da agenda.",
+      "fatos": [
+        "clin.agenda-dia-celular",
+        "clin.agenda"
+      ],
+      "exploracao": false,
+      "id": "S1",
+      "situacao": "reserva"
+    },
+    {
+      "dia": "2026-11-18",
+      "horario": "11:40",
+      "tipo": "reel",
+      "ramo": "restaurante",
+      "objetivo": "conversa",
+      "conteudo": "ensina",
+      "tema": "Abrir o caixa do dia e fechar com a diferença",
+      "angulo": "Rotina de abrir e fechar: abre com o troco contado, registra sangria no meio do dia e, no fechamento, a diferença aparece na tela em vez de ficar na conta de cabeça. Cartão EXEMPLO.",
+      "fatos": [
+        "rest.caixa"
+      ],
+      "exploracao": false,
+      "id": "B",
+      "situacao": "reserva"
+    },
+    {
+      "dia": "2026-11-19",
+      "horario": "20:40",
+      "tipo": "stories",
+      "ramo": "comum",
+      "objetivo": "conversa",
+      "conteudo": "dor",
+      "tema": "Dono esqueceu a senha do sistema",
+      "angulo": "Esqueceu a senha? Chama o suporte no WhatsApp, vem um link de nova senha válido por 24 h e de uso único. A clínica ou restaurante vê o registro na Auditoria. Cena: dono parado na porta com a loja pra abrir.",
+      "fatos": [
+        "comum.recuperar-senha-suporte",
+        "comum.equipe-cargos"
+      ],
+      "exploracao": false,
+      "id": "S2",
+      "situacao": "reserva"
+    },
+    {
+      "dia": "2026-11-20",
+      "horario": "18:40",
+      "tipo": "imagem",
+      "ramo": "clinica",
+      "objetivo": "alcance",
+      "conteudo": "opiniao",
+      "tema": "Clínica pequena não precisa de sistema de hospital",
+      "angulo": "Opinião: clínica pequena precisa de agenda que não marca duas no mesmo horário e de uma lista curta de primeiros passos, não de sistema de hospital. Cartão EXEMPLO dos primeiros passos. Fecha pedindo para salvar e mandar a uma colega.",
+      "fatos": [
+        "clin.primeiros-passos",
+        "clin.agenda"
+      ],
+      "exploracao": true,
+      "id": "C",
+      "situacao": "reserva"
+    },
+    {
+      "dia": "2026-11-21",
+      "horario": "11:40",
+      "tipo": "carrossel",
+      "ramo": "restaurante",
+      "objetivo": "conversa",
+      "conteudo": "convite",
+      "tema": "Do cadastro à primeira venda: lista de primeiros passos",
+      "angulo": "Dono de restaurante pequeno que não sabe por onde começar: a lista curta de primeiros passos abre cada tela e marca pronto sozinha, até a primeira venda. Convite pelo WhatsApp, sem cadastro aberto.",
+      "fatos": [
+        "rest.primeiros-passos",
+        "rest.caixa",
+        "comum.marca-propria"
+      ],
+      "exploracao": false,
+      "id": "D",
+      "situacao": "pulada"
+    },
+    {
+      "dia": "2026-11-22",
+      "horario": "20:40",
+      "tipo": "stories",
+      "ramo": "restaurante",
+      "objetivo": "conversa",
+      "conteudo": "dor",
+      "tema": "Fornecedor que subiu o preço e ninguém percebeu",
+      "angulo": "Conta que o dono faz de cabeça no domingo: o que pagou nas compras da semana. Estoque com fornecedores e custo médio mostra o valor, e o relatório mostra vendas menos compras. Cartão EXEMPLO. Pede 'me responde aqui nesse story'.",
+      "fatos": [
+        "rest.estoque",
+        "rest.relatorios"
+      ],
+      "exploracao": true,
+      "id": "S3",
+      "situacao": "pulada"
+    }
+  ],
+  "porque": "Quatro posts de feed: 3 conversa e 1 alcance (75/25). Carrossel de clínica abre a semana porque foi o que mais funcionou. Reel de restaurante sobre rotina de abrir e fechar o caixa, na linha do reel que deu 4.04, e com ângulo novo. O alcance é uma opinião em imagem de clínica, formato que flopou, então conta como exploração. Os dois ramos aparecem no feed. Os stories ficam em 3 dias (ter, qui, dom) e puxam as funções novas: agenda no celular, recuperar senha e primeiros passos. Evitei o ângulo de \"papel que se perde\" das últimas semanas. Usei decisão do dia, rotina de abrir e fechar, conta de cabeça e opinião. Sem preço, NFC-e ou lembrete automático."
+}

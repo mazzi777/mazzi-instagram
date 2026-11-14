@@ -1,7 +1,9 @@
 {
   "rid": "2026-11-15-carrossel-2",
   "criado_em": "2026-11-15",
-  "usada_em": [],
+  "usada_em": [
+    "2026-11-14"
+  ],
   "tipo": "carrossel",
   "arquivos": [
     "2026-11-16-R2-01.jpg",

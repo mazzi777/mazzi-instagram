@@ -1,0 +1,139 @@
+{
+  "semana": "2026-11-16",
+  "produtor": "agente",
+  "pecas": [
+    {
+      "tipo": "carrossel",
+      "arquivos": [
+        "2026-11-16-A-01.jpg",
+        "2026-11-16-A-02.jpg",
+        "2026-11-16-A-03.jpg",
+        "2026-11-16-A-04.jpg",
+        "2026-11-16-A-05.jpg",
+        "2026-11-16-A-06.jpg",
+        "2026-11-16-A-07.jpg",
+        "2026-11-16-A-08.jpg"
+      ],
+      "tema": "clinica · a clínica num lugar só",
+      "gancho": "Paciente chegou e a ficha sumiu?",
+      "ramo": "clinica",
+      "objetivo": "conversa",
+      "ia": false,
+      "fatos": [
+        "clin.agenda",
+        "clin.fichas",
+        "clin.anamnese-termo",
+        "clin.orcamento",
+        "clin.lembrete-1-clique"
+      ],
+      "legenda": "Paciente chegou e a ficha sumiu?\n\nQuando agenda, ficha e termo ficam cada um num canto, você perde tempo procurando e a paciente espera.\n\nA Mazzi tem agenda por profissional que não marca duas pessoas no mesmo horário, ficha com histórico, fotos e lote do produto, anamnese e termo assinados com o dedo na tela, orçamento enviado pelo WhatsApp e lembrete de consulta pronto pra enviar com um toque.\n\nChama no WhatsApp (link na bio).\n\n#gestaodeclinica #esteticaprofissional #harmonizacaofacial",
+      "alt_text": "Capa em fundo grafite com o texto grande \"Paciente chegou e a ficha sumiu?\", com \"ficha sumiu\" em coral, e a linha \"Da agenda ao lembrete, passo a passo\". Logo @mazzisystems.",
+      "id": "A",
+      "dia": "2026-11-16",
+      "horario": "18:40",
+      "origem": "reserva"
+    },
+    {
+      "tipo": "stories",
+      "arquivos": [
+        "2026-11-16-S1-01.jpg",
+        "2026-11-16-S1-02.jpg",
+        "2026-11-16-S1-03.jpg",
+        "2026-11-16-S1-04.jpg",
+        "2026-11-16-S1-05.jpg"
+      ],
+      "tema": "clinica · a clínica num lugar só",
+      "gancho": "Agenda num lugar, ficha em outro, termo sumiu?",
+      "ramo": "clinica",
+      "objetivo": "conversa",
+      "ia": false,
+      "fatos": [
+        "clin.agenda",
+        "clin.fichas",
+        "clin.anamnese-termo",
+        "clin.orcamento",
+        "clin.lembrete-1-clique"
+      ],
+      "id": "S1",
+      "dia": "2026-11-17",
+      "horario": "07:40",
+      "origem": "reserva"
+    },
+    {
+      "tipo": "reel",
+      "arquivos": [
+        "2026-11-16-B.mp4"
+      ],
+      "tema": "restaurante · o restaurante num lugar só",
+      "gancho": "Seu caixa ainda fecha no caderno?",
+      "ramo": "restaurante",
+      "objetivo": "conversa",
+      "ia": true,
+      "fatos": [
+        "rest.caixa",
+        "rest.delivery.teclado",
+        "rest.balanca",
+        "rest.estoque"
+      ],
+      "legenda": "Seu caixa ainda fecha no caderno?\n\nCaderno pro caixa, papel pro delivery, bloco pro estoque. Aí o pedido some e a conta não bate.\n\nNa Mazzi tem caixa com sangria e fechamento que mostra a diferença, delivery pelo teclado, balança do self-service e estoque que baixa a bebida sozinha.\n\nChama no WhatsApp (link na bio) que a gente te mostra.\n\n#restaurante #selfservice #gestaoderestaurante",
+      "capa_ms": 1000,
+      "id": "B",
+      "dia": "2026-11-18",
+      "horario": "11:40",
+      "origem": "reserva"
+    },
+    {
+      "tipo": "stories",
+      "arquivos": [
+        "2026-11-16-S2-01.jpg",
+        "2026-11-16-S2-02.jpg",
+        "2026-11-16-S2-03.jpg",
+        "2026-11-16-S2-04.jpg",
+        "2026-11-16-S2-05.jpg"
+      ],
+      "tema": "clinica · a clínica num lugar só",
+      "gancho": "Agenda, ficha e termo em papel solto?",
+      "ramo": "clinica",
+      "objetivo": "conversa",
+      "ia": false,
+      "fatos": [
+        "clin.agenda",
+        "clin.fichas",
+        "clin.anamnese-termo",
+        "clin.orcamento",
+        "clin.lembrete-1-clique",
+        "comum.marca-propria"
+      ],
+      "id": "S2",
+      "dia": "2026-11-19",
+      "horario": "20:40",
+      "origem": "reserva"
+    },
+    {
+      "tipo": "carrossel",
+      "arquivos": [
+        "2026-11-16-C-01.jpg",
+        "2026-11-16-C-02.jpg",
+        "2026-11-16-C-03.jpg",
+        "2026-11-16-C-04.jpg",
+        "2026-11-16-C-05.jpg",
+        "2026-11-16-C-06.jpg",
+        "2026-11-16-C-07.jpg"
+      ],
+      "tema": "comum · como entrar",
+      "gancho": "Procurou o cadastro da Mazzi e não achou?",
+      "ramo": "comum",
+      "objetivo": "conversa",
+      "ia": false,
+      "fatos": [
+        "comum.celular"
+      ],
+      "legenda": "Procurou o cadastro da Mazzi e não achou?\n\nNão tem cadastro aberto. A entrada é por convite: você chama no WhatsApp, a gente entende como o seu negócio funciona e manda o convite.\n\nDepois é só abrir no navegador do computador ou do celular. Dá pra instalar na tela inicial também. Precisa de internet.\n\nChama no WhatsApp (link na bio).\n\n#gestão #clínica #restaurante",
+      "alt_text": "Capa do carrossel em fundo grafite com a pergunta \"Procurou o cadastro da Mazzi e não achou?\" em letras claras, com \"não achou\" destacado em coral, e o @mazzisystems.",
+      "id": "C",
+      "dia": "2026-11-20",
+      "horario": "18:40",
+      "origem": "reserva"
+    }
+  ]
+}

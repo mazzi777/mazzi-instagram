@@ -1,5 +1,5 @@
 {
-  "atualizado_em": "2026-11-07",
+  "atualizado_em": "2026-11-14",
   "ramos": [
     "clinica",
     "restaurante"
@@ -165,6 +165,46 @@
       "ramo": "restaurante",
       "status": "proibido",
       "motivo": "Não existe custo por prato; o relatório é lucro bruto aproximado."
+    },
+    {
+      "id": "comum.recuperar-senha-suporte",
+      "ramo": "comum",
+      "status": "no_ar",
+      "fato": "Se o dono esquecer a senha, o suporte da Mazzi gera um link de nova senha, válido por 24 h e de uso único, e envia pelo WhatsApp do contato do cliente. A clínica vê o registro na Auditoria.",
+      "fonte": "docs/NOVIDADES.md: Novembro de 2026: celular e primeiros passos",
+      "desde": "2026-11-14"
+    },
+    {
+      "id": "clin.agenda-dia-celular",
+      "ramo": "clinica",
+      "status": "no_ar",
+      "fato": "No celular, a Agenda por dia passa a ter chips de profissional e o botão \"Agendar\" em linha, sem botão flutuante sobre a grade.",
+      "fonte": "docs/NOVIDADES.md: Novembro de 2026: celular e primeiros passos",
+      "desde": "2026-11-14"
+    },
+    {
+      "id": "clin.agenda-semana-lista-celular",
+      "ramo": "clinica",
+      "status": "no_ar",
+      "fato": "No celular, a Semana aparece em lista por dia. Dias sem agendamentos mostram \"Dia livre · toque para agendar\".",
+      "fonte": "docs/NOVIDADES.md: Novembro de 2026: celular e primeiros passos",
+      "desde": "2026-11-14"
+    },
+    {
+      "id": "clin.primeiros-passos",
+      "ramo": "clinica",
+      "status": "no_ar",
+      "fato": "Ao criar a conta, o dono (ou quem administra o negócio) vê uma lista curta de primeiros passos até o primeiro agendamento. Cada passo abre a tela correspondente e fica pronto sozinho quando o dado existe; a lista pode ser escondida e retomada pelo menu da conta. Negócios já existentes não mudam.",
+      "fonte": "docs/NOVIDADES.md: Novembro de 2026: celular e primeiros passos",
+      "desde": "2026-11-14"
+    },
+    {
+      "id": "rest.primeiros-passos",
+      "ramo": "restaurante",
+      "status": "no_ar",
+      "fato": "Ao criar a conta, o dono (ou quem administra o negócio) vê uma lista curta de primeiros passos até a primeira venda. Cada passo abre a tela correspondente e fica pronto sozinho quando o dado existe; a lista pode ser escondida e retomada pelo menu da conta. Negócios já existentes não mudam.",
+      "fonte": "docs/NOVIDADES.md: Novembro de 2026: celular e primeiros passos",
+      "desde": "2026-11-14"
     }
   ],
   "faq": [
@@ -236,6 +276,7 @@
     "Outubro de 2026: restaurantes, cores de cada negócio e a marca Mazzi Systems",
     "Setembro de 2026 (3): anamnese, termos, orçamentos, comissões e visual novo",
     "Setembro de 2026 (2): correções e segurança",
-    "Setembro de 2026: faturamento, cargos e logo"
+    "Setembro de 2026: faturamento, cargos e logo",
+    "Novembro de 2026: celular e primeiros passos"
   ]
 }

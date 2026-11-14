@@ -1,7 +1,9 @@
 {
   "rid": "2026-11-02-stories-2",
   "criado_em": "2026-11-02",
-  "usada_em": [],
+  "usada_em": [
+    "2026-11-14"
+  ],
   "tipo": "stories",
   "arquivos": [
     "2026-11-02-R2-01.jpg",
