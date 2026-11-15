@@ -3,6 +3,7 @@
 // 2) juiz (Claude, outro prompt): o sentido, que palavra nenhuma pega (promessa velada, ataque a concorrente).
 // Qualquer erro do juiz reprova. Na dúvida, não posta.
 import { PROIBIDAS } from '../../publicar/validar.mjs';
+import { motivoBloqueio, segmentosBloqueadosNoTexto } from '../base/segmentos.mjs';
 
 export const PROIBIDAS_AGENTE = [
   ...PROIBIDAS,
@@ -25,9 +26,14 @@ export const PROIBIDAS_AGENTE = [
     'publicidade médica (CFM): superlativo, garantia ou promessa de resultado'],
 ];
 
-/** Só as palavras (camada 1). Devolve a lista de motivos. */
+/**
+ * Só as palavras (camada 1). Devolve a lista de motivos. Também barra ramo que a política de
+ * segmentos não libera (ex.: spa), seja qual for o caminho da peça (plano, reserva, legenda, cartão).
+ */
 export function palavrasProibidas(texto) {
-  return PROIBIDAS_AGENTE.filter(([re]) => new RegExp(re.source, re.flags.replace('g', '')).test(texto)).map(([, motivo]) => motivo);
+  const motivos = PROIBIDAS_AGENTE.filter(([re]) => new RegExp(re.source, re.flags.replace('g', '')).test(texto)).map(([, motivo]) => motivo);
+  for (const id of segmentosBloqueadosNoTexto(texto)) motivos.push(motivoBloqueio(id));
+  return motivos;
 }
 
 export const TAREFA_JUIZ_NUNCA = `Você é o revisor de marca da Mazzi Systems (sistema de gestão para clínicas e restaurantes pequenos).

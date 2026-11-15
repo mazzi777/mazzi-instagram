@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { checarGancho } from '../checagens/gancho.mjs';
 import { checarLegenda } from '../checagens/legenda.mjs';
 import { checarHumano } from '../checagens/humano.mjs';
-import { checarNunca } from '../checagens/nunca.mjs';
+import { checarNunca, palavrasProibidas } from '../checagens/nunca.mjs';
 import { checarFatos, resumoParaJuiz } from '../checagens/fatos.mjs';
 import { checarRepeticao } from '../checagens/repeticao.mjs';
 import { checarBatidas } from '../checagens/batidas.mjs';
@@ -160,6 +160,8 @@ export async function checarTexto({ item, conteudo, produto, juizFatos, juizMarc
   const tudo = textoDaPeca(item.tipo, conteudo);
   const [nunca, fatos] = await Promise.all([checarNunca(tudo, { juiz: juizMarca, base: resumoParaJuiz(produto) }), checarFatos(tudo, { juiz: juizFatos, produto })]);
   motivos.push(...nunca.motivos, ...fatos.motivos);
+  // O texto alternativo é publicado junto (e o gancho pode ir para a capa): passam pela lista NUNCA também.
+  motivos.push(...palavrasProibidas(`${conteudo.gancho ?? ''}\n${conteudo.alt_text ?? ''}`).map((m) => `alt_text/gancho: ${m}`));
   motivos.push(...checarRepeticao(conteudo.gancho, usados, { hoje, limite: c.repeticao.limite }).motivos);
   if (item.tipo === 'reel') motivos.push(...checarBatidas(conteudo.batidas.map((b) => b.fala), c.batidas).motivos, ...regrasDaEdicao(conteudo.batidas));
   return { ok: motivos.length === 0, motivos, notas, fatos: fatos.fatos };

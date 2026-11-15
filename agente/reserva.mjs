@@ -30,7 +30,7 @@ export function motivosParaNaoUsar(r, { produto, hoje }) {
   if (ultimo && dataMais(ultimo, INTERVALO_DIAS) > hoje) m.push(`usada em ${ultimo} (volta só depois de ${INTERVALO_DIAS} dias)`);
   const noAr = new Set(produto.funcoes.filter((f) => f.status === 'no_ar').map((f) => f.id));
   for (const f of r.fatos ?? []) if (!noAr.has(f)) m.push(`a função ${f} não está mais no ar na base`);
-  const texto = `${r.gancho}\n${r.legenda ?? ''}\n${r.tema ?? ''}`;
+  const texto = `${r.gancho}\n${r.legenda ?? ''}\n${r.tema ?? ''}\n${r.alt_text ?? ''}`;
   m.push(...palavrasProibidas(texto));
   // Aqui não tem o juiz do Claude: valor em reais fora do cartão de exemplo é conversa de preço.
   if (/R\$\s?\d|\d\s?reais(?![\p{L}])/iu.test(texto)) m.push('valor em reais no texto (a marca não fala de preço)');

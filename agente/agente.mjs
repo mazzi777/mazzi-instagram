@@ -14,7 +14,7 @@ import { dataMais } from '../publicar/validar.mjs';
 import { criarCerebro, semanaIso, ErroToken, ErroLimite, ErroTeto } from './cerebro.mjs';
 import { lerProduto } from './checagens/fatos.mjs';
 import { lerGanchosUsados } from './checagens/repeticao.mjs';
-import { atualizarBase } from './base/atualizar.mjs';
+import { atualizarBase, FONTES_VERTICALS } from './base/atualizar.mjs';
 import { planejarSemana } from './etapas/planejar.mjs';
 import { capasRecentes } from './checagens/direcao.mjs';
 import { criarRegistro, produzirPendentes, cobrirComReserva, encherReserva, agendaAlheia, assumirSemana, revalidarAgenda, FORMATOS_PRODUZIDOS } from './orquestrador.mjs';
@@ -65,21 +65,45 @@ export function avisosDeToken(config, hoje) {
   return faltam <= avisarAntesDias ? [{ peca: 'token do Claude', mensagem: `o token da assinatura vence em ${faltam} dia(s) (${vence}). Rode "claude setup-token" e grave em CLAUDE_CODE_OAUTH_TOKEN; depois atualize tokens.claudeCriadoEm em agente/config.json.` }] : [];
 }
 
-async function atualizarBaseSePuder({ produto, cerebro, hoje, registrar }) {
+async function atualizarBaseSePuder({ produto, cerebro, hoje, registrar, arquivoBase = path.join(RAIZ, 'agente', 'base', 'produto.json') }) {
   const dir = process.env.AJ_CLINIC_DIR;
   if (!dir || !existsSync(path.join(dir, 'docs', 'NOVIDADES.md'))) return { produto, avisos: ['aj-clinic não foi clonado: base do produto não foi atualizada nesta rodada'] };
+  // Os arquivos de ramos mudam de lugar entre versões do aj-clinic: lê o que existir (ver guia/segmentos.md).
+  const arquivos = Object.fromEntries(FONTES_VERTICALS.map((c) => [c, existsSync(path.join(dir, c)) ? readFileSync(path.join(dir, c), 'utf8') : null]));
   const r = await atualizarBase({
     produto, hoje,
     novidadesMd: readFileSync(path.join(dir, 'docs', 'NOVIDADES.md'), 'utf8'),
-    permissionsTs: readFileSync(path.join(dir, 'packages', 'shared', 'src', 'permissions.ts'), 'utf8'),
+    arquivos,
     extrair: (tarefa, texto) => cerebro.pedir({
       etapa: 'base', modelo: cerebro.config.modelos.juiz, sistema: tarefa, prompt: texto,
       schema: z.object({ funcoes: z.array(z.object({ id: z.string(), ramo: z.string(), fato: z.string(), fonte: z.string() })) }), effort: 'low',
     }),
   });
-  writeFileSync(path.join(RAIZ, 'agente', 'base', 'produto.json'), `${JSON.stringify(validar(Produto, r.produto), null, 2)}\n`);
-  registrar({ tipo: 'base', detalhe: `adicionadas: ${r.adicionadas.map((a) => a.id).join(', ') || 'nenhuma'}; recusadas: ${r.recusadas.length}; ramos sem base: ${r.ramosSemBase.join(', ') || 'nenhum'}` });
-  return { produto: r.produto, avisos: [], novidades: r.adicionadas };
+  writeFileSync(arquivoBase, `${JSON.stringify(validar(Produto, r.produto), null, 2)}\n`);
+  // O registro vai para um repositório PÚBLICO: só contagens do que ficou de fora, nunca título
+  // de seção nem nome de ramo bloqueado (o changelog do aj-clinic é privado).
+  registrar({ tipo: 'base', detalhe: `adicionadas: ${r.adicionadas.map((a) => a.id).join(', ') || 'nenhuma'}; recusadas: ${r.recusadas.length}; ramos sem liberação: ${r.ramosSemBase.length}; seções fora: ${r.secoesBloqueadas.length}; blocos aparados: ${r.blocosAparados}; ramos lidos: ${r.fonteVerticals ? 'sim' : 'não (base anterior)'}` });
+  return { produto: r.produto, avisos: r.avisos, alertas: r.alertas, novidades: r.adicionadas };
+}
+
+/**
+ * Passo da base no semanal. Se falhar (aj-clinic mudou de forma, Claude fora), o erro vira issue
+ * (erros.md), mas a semana segue com a base anterior: clínica e restaurante continuam.
+ */
+export async function passoBaseSemanal({ produto, cerebro, hoje, registrar, erros, log, arquivoBase }) {
+  try {
+    const r = await atualizarBaseSePuder({ produto, cerebro, hoje, registrar, ...(arquivoBase ? { arquivoBase } : {}) });
+    for (const a of r.alertas ?? []) erros.push({ peca: 'base do produto', mensagem: a });
+    return r;
+  } catch (e) {
+    // Token, teto e limite param a rodada como antes (o resto do semanal também precisaria do Claude).
+    if (e?.parar) throw e;
+    // Issue e log do Actions são públicos: só o tipo do erro (a mensagem pode trazer trecho do changelog privado).
+    const tipo = e?.constructor?.name || 'Error';
+    erros.push({ peca: 'base do produto', mensagem: `não atualizada nesta rodada (${tipo}); a semana segue com a base anterior. Rode o semanal à mão para ver o detalhe no PC.` });
+    log.push(`Base do produto não atualizada nesta rodada (${tipo}); a semana segue com a base anterior.`);
+    return { produto, avisos: [], novidades: [] };
+  }
 }
 
 /** Coleta as métricas (só leitura na Meta). Erro de token vira aviso; o resto fica no log (tenta de novo amanhã). */
@@ -198,7 +222,7 @@ export async function rodar(comando, { env = process.env, agora = () => new Date
 
   try {
     if (comando === 'semanal') {
-      const base = await atualizarBaseSePuder({ produto, cerebro, hoje, registrar });
+      const base = await passoBaseSemanal({ produto, cerebro, hoje, registrar, erros, log });
       produto = base.produto;
       log.push(...base.avisos);
       const { semana, desde } = semanaAlvo(hoje, env.AGENTE_SEMANA);
