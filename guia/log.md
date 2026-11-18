@@ -2,6 +2,7 @@
 
 Uma linha por peça, a mais nova no topo. A partir de 09/11/2026 o GitHub Actions acrescenta as linhas sozinho ao publicar (data · PUBLICADO · formato · tema · gancho · ids). A produção da semana lê este arquivo para não repetir tema nem gancho.
 
+- 18/11/2026 · PUBLICADO · reel (B, 1 arquivo(s)) · restaurante · o restaurante num lugar só · "Seu caixa ainda fecha no caderno?" · ids 18122756207517255 · via API da Meta
 - 17/11/2026 · PUBLICADO · stories (S1, 5 arquivo(s)) · clinica · a clínica num lugar só · "Agenda num lugar, ficha em outro, termo sumiu?" · ids 18216601066367293, 18121621420787218, 18080821373435395, 17966957943236740, 17888406534563837 · via API da Meta
 - 17/11/2026 · PUBLICADO · carrossel (A, 8 arquivo(s)) · clinica · a clínica num lugar só · "Paciente chegou e a ficha sumiu?" · ids 18439347490145022 · via API da Meta
 - 15/11/2026 · PUBLICADO · stories (S3, 5 arquivo(s)) · restaurante · Domingo à noite: como você confere o pedido de delivery? · "Domingo à noite: faltou algum pedido do delivery?" · ids 18123292078942471, 17914257138375944, 18105138431456671, 18138471424640983, 18116772197589443 · via API da Meta
