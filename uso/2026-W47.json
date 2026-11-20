@@ -1,0 +1,102 @@
+{
+ "semana": "2026-W47",
+ "teto_usd": 8,
+ "chamadas": [
+  {
+   "em": "2026-11-20T15:53:35.261Z",
+   "etapa": "planejar",
+   "modelo": "claude-sonnet-5-5",
+   "custo_usd": 0.09932,
+   "entrada": 14003,
+   "saida": 4286
+  },
+  {
+   "em": "2026-11-20T15:53:51.423Z",
+   "etapa": "escrever:carrossel",
+   "modelo": "claude-sonnet-5-5",
+   "custo_usd": 0.07494,
+   "entrada": 13357,
+   "saida": 2121
+  },
+  {
+   "em": "2026-11-20T15:53:55.823Z",
+   "etapa": "juiz:marca",
+   "modelo": "claude-haiku-5-5",
+   "custo_usd": 0.00151,
+   "entrada": 4080,
+   "saida": 675
+  },
+  {
+   "em": "2026-11-20T15:53:59.897Z",
+   "etapa": "juiz:fatos",
+   "modelo": "claude-haiku-5-5",
+   "custo_usd": 0.0024,
+   "entrada": 4154,
+   "saida": 2201
+  },
+  {
+   "em": "2026-11-20T15:54:09.014Z",
+   "etapa": "juiz:visual",
+   "modelo": "claude-sonnet-5-5",
+   "custo_usd": 0.08769,
+   "entrada": 20110,
+   "saida": 671
+  },
+  {
+   "em": "2026-11-20T15:54:28.440Z",
+   "etapa": "escrever:carrossel",
+   "modelo": "claude-sonnet-5-5",
+   "custo_usd": 0.05954,
+   "entrada": 32330,
+   "saida": 3192
+  },
+  {
+   "em": "2026-11-20T15:54:32.196Z",
+   "etapa": "juiz:marca",
+   "modelo": "claude-haiku-5-5",
+   "custo_usd": 0.00053,
+   "entrada": 4138,
+   "saida": 553
+  },
+  {
+   "em": "2026-11-20T15:54:33.087Z",
+   "etapa": "juiz:fatos",
+   "modelo": "claude-haiku-5-5",
+   "custo_usd": 0.0012,
+   "entrada": 4211,
+   "saida": 1161
+  },
+  {
+   "em": "2026-11-20T15:54:46.182Z",
+   "etapa": "escrever:carrossel",
+   "modelo": "claude-sonnet-5-5",
+   "custo_usd": 0.03472,
+   "entrada": 14939,
+   "saida": 1800
+  },
+  {
+   "em": "2026-11-20T15:54:50.720Z",
+   "etapa": "juiz:marca",
+   "modelo": "claude-haiku-5-5",
+   "custo_usd": 0.00102,
+   "entrada": 4137,
+   "saida": 772
+  },
+  {
+   "em": "2026-11-20T15:54:54.932Z",
+   "etapa": "juiz:fatos",
+   "modelo": "claude-haiku-5-5",
+   "custo_usd": 0.00182,
+   "entrada": 4210,
+   "saida": 2317
+  },
+  {
+   "em": "2026-11-20T15:55:02.171Z",
+   "etapa": "juiz:visual",
+   "modelo": "claude-sonnet-5-5",
+   "custo_usd": 0.07536,
+   "entrada": 20168,
+   "saida": 595
+  }
+ ]
+}

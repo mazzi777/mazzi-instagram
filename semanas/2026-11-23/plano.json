@@ -1,0 +1,135 @@
+{
+  "semana": "2026-11-23",
+  "criado_em": "2026-11-20",
+  "tentativas": 1,
+  "pecas": [
+    {
+      "dia": "2026-11-23",
+      "horario": "18:40",
+      "tipo": "carrossel",
+      "ramo": "clinica",
+      "objetivo": "conversa",
+      "conteudo": "dor",
+      "tema": "Orçamento aprovado que não vira agenda nem sinal",
+      "angulo": "Gancho: \"Ela aprovou o orçamento e o sinal ficou no ar?\". A paciente disse sim no WhatsApp, mas ninguém abriu a agenda nem anotou o sinal. Mostra o caminho: aprovado, agenda já preenchida, sinal registrado. Foco no depois do sim, não no orçamento sem resposta.",
+      "fatos": [
+        "clin.orcamento",
+        "clin.agenda"
+      ],
+      "exploracao": false,
+      "id": "A",
+      "situacao": "pulada"
+    },
+    {
+      "dia": "2026-11-24",
+      "horario": "07:40",
+      "tipo": "stories",
+      "ramo": "clinica",
+      "objetivo": "conversa",
+      "conteudo": "dor",
+      "tema": "Lembrete de consulta em 1 clique",
+      "angulo": "Quadro 1: \"Quem confirma as consultas de amanhã na sua clínica?\". Mostra o lembrete pronto no WhatsApp com nome, dia e horário e o link pra confirmar ou remarcar. Pede \"me responde aqui nesse story\" e fecha com chama no WhatsApp, link na bio.",
+      "fatos": [
+        "clin.lembrete-1-clique"
+      ],
+      "exploracao": false,
+      "id": "S1"
+    },
+    {
+      "dia": "2026-11-25",
+      "horario": "11:40",
+      "tipo": "reel",
+      "ramo": "restaurante",
+      "objetivo": "conversa",
+      "conteudo": "ensina",
+      "tema": "Sangria: tirou dinheiro do caixa e não anotou",
+      "angulo": "Gancho falado: \"Tirou dinheiro do caixa e esqueceu?\". Rotina de abrir e fechar: abertura, venda com pagamento dividido, sangria registrada e fechamento mostrando a diferença. Cena do balcão às 15h, sem falar de caixa no caderno. Cartão EXEMPLO.",
+      "fatos": [
+        "rest.caixa"
+      ],
+      "exploracao": false,
+      "id": "B"
+    },
+    {
+      "dia": "2026-11-26",
+      "horario": "07:40",
+      "tipo": "stories",
+      "ramo": "restaurante",
+      "objetivo": "conversa",
+      "conteudo": "opiniao",
+      "tema": "Quem da equipe mexe no caixa",
+      "angulo": "Opinião: \"Todo mundo do salão precisa ver o caixa?\". Cargos e permissões: cada um vê só o que o cargo permite e as ações importantes ficam registradas. Pede \"me responde aqui nesse story\".",
+      "fatos": [
+        "comum.equipe-cargos",
+        "rest.caixa"
+      ],
+      "exploracao": false,
+      "id": "S2"
+    },
+    {
+      "dia": "2026-11-26",
+      "horario": "20:40",
+      "tipo": "carrossel",
+      "ramo": "restaurante",
+      "objetivo": "conversa",
+      "conteudo": "convite",
+      "tema": "Primeiros passos até a primeira venda no restaurante",
+      "angulo": "Gancho: \"Abriu o sistema e não sabe por onde começar?\". Mostra a lista curta de primeiros passos até a primeira venda, cada passo abre a tela e fica pronto sozinho. Fecha com chama no WhatsApp pra receber o convite. Horário de noite, pouco testado.",
+      "fatos": [
+        "rest.primeiros-passos",
+        "comum.marca-propria"
+      ],
+      "exploracao": true,
+      "id": "C"
+    },
+    {
+      "dia": "2026-11-27",
+      "horario": "11:40",
+      "tipo": "imagem",
+      "ramo": "clinica",
+      "objetivo": "alcance",
+      "conteudo": "ensina",
+      "tema": "Dia livre na semana pelo celular",
+      "angulo": "Gancho: \"Sua semana tem dia livre e você nem viu?\". No celular a Semana vira lista por dia e o dia sem agendamento mostra \"Dia livre · toque para agendar\". Cartão EXEMPLO. Termina pedindo pra salvar e mandar pra colega.",
+      "fatos": [
+        "clin.agenda-semana-lista-celular",
+        "comum.celular"
+      ],
+      "exploracao": true,
+      "id": "D"
+    },
+    {
+      "dia": "2026-11-28",
+      "horario": "20:40",
+      "tipo": "stories",
+      "ramo": "clinica",
+      "objetivo": "conversa",
+      "conteudo": "dor",
+      "tema": "Backup diário da agenda e das fichas",
+      "angulo": "Quadro 1: \"O computador da recepção pifou. Cadê a agenda?\". Backup diário automático, sem prometer nada além disso. Fecha com chama no WhatsApp, link na bio.",
+      "fatos": [
+        "comum.backup",
+        "clin.fichas"
+      ],
+      "exploracao": false,
+      "id": "S3"
+    },
+    {
+      "dia": "2026-11-29",
+      "horario": "20:40",
+      "tipo": "stories",
+      "ramo": "restaurante",
+      "objetivo": "conversa",
+      "conteudo": "ensina",
+      "tema": "A conta da semana: vendas menos compras",
+      "angulo": "Domingo à noite, a conta que o dono faz de cabeça: quanto vendeu, quanto comprou. O relatório mostra vendas menos compras, lucro bruto aproximado (sem custo por prato). Pede \"me responde aqui nesse story\" com o que ele confere hoje.",
+      "fatos": [
+        "rest.relatorios",
+        "rest.estoque"
+      ],
+      "exploracao": false,
+      "id": "S4"
+    }
+  ],
+  "porque": "Quatro posts de feed (2 carrosséis, 1 reel, 1 imagem), 3 de conversa e 1 de alcance (75%). Clínica e carrossel pesam mais, então a clínica abre a semana com carrossel e o outro carrossel é de restaurante. O reel é um só, com ângulo novo (sangria e rotina do caixa), porque os reels de caixa no caderno flopparam. Saí do tema \"papel que se perde\" e usei pós-aprovação do orçamento, rotina de caixa, permissões, conta da semana e funções novas (primeiros passos, semana em lista no celular). Stories em 4 dias (ter, qui, sáb, dom), sem repetir gancho recente. Exploração em 2 das 8 peças: carrossel às 20:40 e imagem de agenda no celular."
+}
