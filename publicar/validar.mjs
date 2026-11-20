@@ -4,6 +4,7 @@ import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { MOTIVO_BLOQUEIO, segmentosBloqueadosNoTexto } from '../agente/base/segmentos.mjs';
 
 export const IDS = {
   A: { tipo: 'carrossel', offset: 0 },
@@ -81,7 +82,11 @@ export function validarLegenda(texto, onde) {
 }
 
 export function textoProibido(texto, onde) {
-  return PROIBIDAS.filter(([re]) => re.test(texto)).map(([, motivo]) => `${onde}: ${motivo}`);
+  const erros = PROIBIDAS.filter(([re]) => re.test(texto)).map(([, motivo]) => `${onde}: ${motivo}`);
+  // Último portão, qualquer que seja o caminho da peça (agente, produtor manual, edição à mão):
+  // ramo que a política de segmentos não libera não sai.
+  if (segmentosBloqueadosNoTexto(texto).length) erros.push(`${onde}: ${MOTIVO_BLOQUEIO}`);
+  return erros;
 }
 
 /** Valida uma peça. `dir` é a pasta da semana. Devolve a lista de erros (vazia = ok). */
@@ -135,7 +140,7 @@ export function validarPeca(dir, semana, peca, { sondar = sondarVideo, agente = 
 
   if (peca.tipo !== 'stories') erros.push(...validarLegenda(peca.legenda, onde));
   if (peca.alt_text !== undefined && !(typeof peca.alt_text === 'string' && peca.alt_text.length <= 1000)) erros.push(`${onde}: alt_text precisa ser texto de até 1000 caracteres`);
-  for (const campo of ['tema', 'gancho']) {
+  for (const campo of ['tema', 'gancho', 'alt_text']) {
     if (typeof peca[campo] === 'string') erros.push(...textoProibido(peca[campo], `${onde} (${campo})`));
   }
   if (peca.tipo === 'reel' && peca.capa_ms !== undefined && !(Number.isInteger(peca.capa_ms) && peca.capa_ms >= 0)) {

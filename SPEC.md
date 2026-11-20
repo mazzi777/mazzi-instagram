@@ -152,7 +152,7 @@ Stack: Node 22, ESM `.mjs` (como o publicador), `zod`, `@anthropic-ai/claude-age
 
 1. Kill switch e teto de uso.
 2. Coleta as métricas pendentes (seção 11) e lê `estrategia/estado.json`.
-3. Atualiza a base do produto: lê `docs/NOVIDADES.md` e `VERTICALS` do aj-clinic (seção 7.2).
+3. Atualiza a base do produto: lê `docs/NOVIDADES.md` e `VERTICALS` do aj-clinic (seção 7.2), com a política de segmentos (`guia/segmentos.md`). Se esse passo falhar, a falha vira issue e a semana segue com a base anterior.
 4. **Planejar** (Sonnet): devolve a agenda com 3 a 5 posts de feed e stories em 3 a 5 dias. Cada peça leva `tipo`, `tema`, `ramo`, `objetivo` (`conversa` ou `alcance`, na proporção 70/30), `dia`, `horario` (um dos 4 horários), o ângulo e a fonte (que fato da base ela usa).
    - Regras do plano, conferidas por código:
      - pelo menos 1 reel e 1 carrossel;
@@ -227,7 +227,7 @@ O agente escolhe entre os 4 horários fixos. Os pesos vêm das métricas por hor
 ```
 
 - **Fonte inicial:** a seção "O que está no ar" do `guia/marca.md`, o site público (`/`, `/clinicas`, `/restaurantes`, `llms.txt`) e a lista NUNCA.
-- **Ramos:** o agente lê `VERTICALS` do aj-clinic. Um ramo só vira `ramos` quando existe no código **e** tem funções `no_ar` na base. Barbearia, quando entrar no sistema, entra sozinha no planejamento.
+- **Ramos:** o agente lê `VERTICALS` do aj-clinic (`verticals.ts` na versão atual; `permissions.ts` nas anteriores). Um ramo só vira `ramos` quando existe no código, **está liberado na política de segmentos** (`agente/base/segmentos.mjs`) **e** tem funções `no_ar` na base. Ramo novo no código (spa, barbearia...) **não** entra sozinho: fica bloqueado até a liberação explícita. Ver `guia/segmentos.md`.
 
 ### 7.2 Atualização automática (sem você)
 

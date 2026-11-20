@@ -139,6 +139,16 @@ test('checarTexto: peça boa passa com juízes limpos; fato inventado reprova', 
   assert.equal(ruim.ok, false);
 });
 
+test('checarTexto: alt_text e gancho com ramo não liberado reprovam (o texto alternativo também é publicado)', async () => {
+  const juizMarca = async () => ({ problemas: [] });
+  const juizFatos = async () => ({ afirmacoes: [{ trecho: 'lembrete', tipo: 'funcao', funcao_id: 'clin.lembrete-1-clique', em_exemplo: false }] });
+  const alt = await checarTexto({ item, conteudo: { ...carrosselBom, alt_text: 'Capa com a agenda organizada de um day spa.' }, produto, juizFatos, juizMarca, usados: [], hoje: '2026-11-14', config });
+  assert.equal(alt.ok, false);
+  assert.ok(alt.motivos.some((m) => /alt_text\/gancho: cita um tipo de negócio/.test(m)), alt.motivos.join('; '));
+  const ok = await checarTexto({ item, conteudo: { ...carrosselBom, alt_text: 'Capa com a agenda organizada da clínica e massagem modeladora no exemplo.' }, produto, juizFatos, juizMarca, usados: [], hoje: '2026-11-14', config });
+  assert.equal(ok.ok, true, ok.motivos.join('; '));
+});
+
 const EDITOR_OK = () => ({ notas: { original: 8, humano: 8, marca: 9, novidade: 8, clareza: 9 }, cfm: [], sugestoes: [] });
 function cerebroFalso({ conteudos, visual = () => ({ problemas: [] }), fatos = () => ({ afirmacoes: [] }), editor = EDITOR_OK }) {
   let n = 0;
