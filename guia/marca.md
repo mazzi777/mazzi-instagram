@@ -21,6 +21,8 @@ Estética, harmonização (HOF) e também **odontologia** (decisão de 01/11/202
 
 ## O que está no ar (pode divulgar)
 
+Resumo. A fonte da verdade das funções é a base do produto (`agente/base/produto.json`, gerada do código do aj-clinic): o agente só afirma o que está escrito lá, com as mesmas palavras, sem ampliar. Se este resumo e a base discordarem, vale a base.
+
 **Restaurante**
 - Caixa: abertura, vendas, pagamento dividido, sangria, fechamento com diferença.
 - Delivery pelo teclado: o telefone puxa o cliente, código curto por produto, troco, talher, 2 vias + via da cozinha, número do pedido do dia, conferência ("faltou o nº 4?").
@@ -37,7 +39,7 @@ Estética, harmonização (HOF) e também **odontologia** (decisão de 01/11/202
 - Estoque com lote e validade.
 - Pacotes de sessões e comissões.
 
-**Comum:** equipe com cargos e permissões, auditoria, backup diário.
+**Comum:** equipe com cargos e permissões (cada pessoa vê só o que o cargo permite; as ações importantes ficam registradas, não "tudo"), backup diário.
 
 ## NUNCA
 
@@ -83,9 +85,11 @@ Legenda: primeira linha forte, corpo curto, chamada única, até 3 hashtags.
 
 ## Temas que funcionam (lista de partida, não rodízio fixo)
 
-Clínica: paciente que falta · anamnese e termo no tablet · orçamento pelo WhatsApp que vira agendamento e sinal · antes e depois · produto vencendo (lote e validade) · pacotes de sessões e comissão.
+Clínica: paciente que falta · anamnese e termo no tablet · orçamento pelo WhatsApp que vira agendamento e sinal · antes e depois · produto vencendo (lote e validade) · pacotes de sessões e comissão · lista de retornos.
 
-Restaurante: caixa que não fecha · pedido de delivery que some · delivery pelo teclado · balança e preço do quilo por dia · bebida que acaba sem ninguém ver · quanto sobrou de verdade.
+Cada peça é uma cena (dia, hora, pessoa, objeto) + o que a tela mostra nela. O agente vê quantas vezes cada função apareceu nas últimas 6 semanas e puxa as esquecidas.
+
+Restaurante: diferença que aparece no fechamento do caixa · número do pedido do delivery que faltou · delivery pelo teclado · ticket da balança e preço do quilo por dia · estoque mínimo da bebida · relatório de vendas menos compras (mostrar a tela, sem prometer lucro).
 
 O agente não repete gancho nem ângulo das últimas 6 semanas e puxa as funções novas da base do produto.
 

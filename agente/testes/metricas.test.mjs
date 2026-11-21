@@ -312,7 +312,8 @@ test('encherReserva: produz o formato que falta e guarda a peça aprovada no ban
   const banco = tmp();
   const saida = tmp();
   const feitas = await encherReserva({ banco, maximo: 1, raiz: RAIZ, saida, semana: SEMANA, produto, config, cerebro: cerebroFalso(carrosselBom), usados: [], hoje: HOJE, registrar: criarRegistro(saida), capturar: capturaFalsa });
-  assert.deepEqual(feitas, [{ tipo: 'carrossel', status: 'aprovada' }]);
+  assert.deepEqual(feitas.map(({ tipo, status }) => ({ tipo, status })), [{ tipo: 'carrossel', status: 'aprovada' }]);
+  assert.ok(feitas[0].tema, 'a rodada diz de que pauta saiu a peça');
   const [r] = lerReserva(banco);
   assert.equal(r.tipo, 'carrossel');
   assert.equal(r.arquivos.length, 5);

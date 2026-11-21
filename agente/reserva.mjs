@@ -119,14 +119,64 @@ export function ordenarReserva(candidatas, { item, capas = [], usados = [], hoje
     || ((a.usada_em ?? []).at(-1) ?? '').localeCompare((b.usada_em ?? []).at(-1) ?? '') || (a.ramo === item.ramo ? -1 : 1));
 }
 
-/** Pautas que não envelhecem, para encher o banco (o agente escreve a peça a partir delas). */
+/**
+ * Pautas que não envelhecem, para encher o banco (o agente escreve a peça a partir delas).
+ * Até 21/11/2026 eram 4 pautas genéricas ("a clínica num lugar só", "como entrar"...) escolhidas por
+ * (tamanho do banco + k) % 4: com o banco parado em 8 peças, toda semana voltavam as mesmas 2 ("marca própria" e
+ * "como entrar", que nem tem função na base que a comprove) e reprovavam pelos mesmos motivos. Agora cada pauta é
+ * UMA função da base numa cena do dia a dia, separada por ramo, sem gancho pronto (o redator mede o dele).
+ * Só entram pautas cujas funções estão no ar e cujo ramo está ativo (ramo sem base, como o spa, nunca entra).
+ */
+const PAUTAS = [
+  // Clínica: as funções menos mostradas no feed (ver usoDasFuncoes no planejador).
+  { chave: 'clin-retornos', ramo: 'clinica', conteudo: 'ensina', tema: 'a lista de quem deveria ter voltado', fatos: ['clin.retornos'],
+    angulo: 'Segunda de manhã, a recepção abre a lista de retornos: quem deveria voltar e quando. Mostre a lista num cartão EXEMPLO com nomes de exemplo e a data do retorno. Feche com a chamada, sem prometer que a paciente volta.' },
+  { chave: 'clin-pacotes', ramo: 'clinica', conteudo: 'dor', tema: 'em que sessão do pacote a paciente está', fatos: ['clin.pacotes', 'clin.agenda'],
+    angulo: 'A paciente pergunta na recepção quantas sessões ainda tem e ninguém sabe sem abrir o caderno. Mostre o selo "Pacote 4/10" no horário da agenda (cartão EXEMPLO): cada atendimento desconta uma sessão.' },
+  { chave: 'clin-comissoes', ramo: 'clinica', conteudo: 'dor', tema: 'a comissão do fim do mês', fatos: ['clin.comissoes'],
+    angulo: 'Dia 30, a profissional pergunta quanto deu a comissão e a conta está no caderno. Mostre a comissão por profissional calculada pelos atendimentos (cartão EXEMPLO, valores só ali). Não prometa acabar com briga nem economizar tempo.' },
+  { chave: 'clin-lote', ramo: 'clinica', conteudo: 'ensina', tema: 'o lote que vence primeiro', fatos: ['clin.estoque-lote'],
+    angulo: 'Dois frascos iguais na gaveta, lotes diferentes. No atendimento a Mazzi usa o lote que vence antes e avisa do lote vencendo em 30 dias e do item acabando (cartão EXEMPLO). Fale só da gestão do estoque, nunca do procedimento.' },
+  { chave: 'clin-alerta-ficha', ramo: 'clinica', conteudo: 'ensina', tema: 'o alerta de alergia na ficha', fatos: ['clin.anamnese-termo', 'clin.fichas'],
+    angulo: 'A paciente respondeu na anamnese que tem alergia. No dia do atendimento o alerta está na ficha, com o termo assinado com data e hora. Mostre a ficha EXEMPLO com o alerta. Sem medo nem urgência sobre saúde.' },
+  // Restaurante.
+  { chave: 'rest-numero-faltou', ramo: 'restaurante', conteudo: 'dor', tema: 'o pedido de número que faltou', fatos: ['rest.delivery.teclado'],
+    angulo: 'Sexta à noite, o motoboy sai com os pedidos 3 e 5. Cadê o 4? A Mazzi numera o pedido do dia e mostra qual número faltou (cartão EXEMPLO). Feche mostrando a tela e a chamada, sem prometer que nenhum pedido some.' },
+  { chave: 'rest-ticket-balanca', ramo: 'restaurante', conteudo: 'dor', tema: 'o ticket da balança cobrado duas vezes', fatos: ['rest.balanca'],
+    angulo: 'Hora do almoço, fila no caixa: o mesmo ticket da balança aparece de novo. O caixa lê o código de barras, o valor entra sozinho e ticket já cobrado é recusado (cartão EXEMPLO). Diga "ticket da balança", nunca "nota" sozinha.' },
+  { chave: 'rest-quilo-dia', ramo: 'restaurante', conteudo: 'ensina', tema: 'o preço do quilo de cada dia da semana', fatos: ['rest.balanca'],
+    angulo: 'Domingo o quilo tem outro preço e alguém sempre esquece de trocar a plaquinha. A balança tem o preço do quilo por dia da semana e uma tela para o cliente ver o peso. Valor só no cartão EXEMPLO.' },
+  { chave: 'rest-bebida-minimo', ramo: 'restaurante', conteudo: 'ensina', tema: 'o estoque mínimo da bebida', fatos: ['rest.estoque'],
+    angulo: 'Cada refrigerante vendido baixa sozinho do estoque, e o alerta de estoque mínimo aparece antes de acabar (cartão EXEMPLO com a bebida e a quantidade). Evite a fórmula "acabou e ninguém viu": a cena é a compra feita na hora certa.' },
+  { chave: 'rest-diferenca-caixa', ramo: 'restaurante', conteudo: 'ensina', tema: 'a diferença que aparece no fechamento', fatos: ['rest.caixa'],
+    angulo: 'Fim do dia: abertura, vendas, sangria e o fechamento mostram a diferença do caixa na tela (cartão EXEMPLO, valores só ali). Sem "caixa no caderno": a cena é o fechamento das 22h.' },
+  { chave: 'rest-cargos', ramo: 'restaurante', conteudo: 'opiniao', tema: 'o que cada pessoa da equipe vê', fatos: ['comum.equipe-cargos'],
+    angulo: 'Opinião: quem atende o balcão não precisa ver o relatório do mês. Cada pessoa vê só o que o cargo permite e as ações importantes ficam registradas (exatamente isso; nunca "tudo fica registrado").' },
+];
+
 export function pautasEvergreen(produto) {
-  const ramos = produto.ramos;
-  const pautas = [
-    { conteudo: 'dor', tema: 'o sistema com a cara do negócio', angulo: 'O cliente vê o logo e as cores do seu negócio na tela, não o de um sistema qualquer. Mostre a tela concreta, com o logo no canto.', fatos: ['comum.marca-propria', 'comum.celular'], ramo: 'comum' },
-    { conteudo: 'convite', tema: 'como entrar', angulo: 'Não tem cadastro aberto: a pessoa chama no WhatsApp, a gente entende o negócio e manda o convite.', fatos: ['comum.celular'], ramo: 'comum' },
-  ];
-  if (ramos.includes('restaurante')) pautas.push({ conteudo: 'ensina', tema: 'o restaurante num lugar só', angulo: 'Caixa, delivery pelo teclado, balança e estoque no mesmo sistema, sem caderno.', fatos: ['rest.caixa', 'rest.delivery.teclado', 'rest.balanca', 'rest.estoque'], ramo: 'restaurante' });
-  if (ramos.includes('clinica')) pautas.push({ conteudo: 'ensina', tema: 'a clínica num lugar só', angulo: 'Agenda, fichas com fotos, anamnese e termo assinados na tela, orçamento e lembrete de 1 toque.', fatos: ['clin.agenda', 'clin.fichas', 'clin.anamnese-termo', 'clin.orcamento', 'clin.lembrete-1-clique'], ramo: 'clinica' });
-  return pautas;
+  const noAr = new Set(produto.funcoes.filter((f) => f.status === 'no_ar').map((f) => f.id));
+  return PAUTAS.filter((p) => (p.ramo === 'comum' || produto.ramos.includes(p.ramo)) && p.fatos.every((f) => noAr.has(f)));
+}
+
+/**
+ * Escolhe `quantas` pautas para esta rodada: nunca o tema de uma peça que já está no banco, primeiro as funções que
+ * menos aparecem no banco, alternando o ramo. O empate gira pela semana (`semente`): pauta que reprovou numa semana
+ * não volta na seguinte só porque o banco não cresceu.
+ */
+export function escolherPautas(pautas, { banco = [], quantas = 1, semente = 0 } = {}) {
+  const temas = banco.map((r) => r.tema ?? '');
+  const fatosNoBanco = banco.flatMap((r) => r.fatos ?? []);
+  const livres = pautas.filter((p) => !temas.some((t) => t.includes(p.tema)));
+  const n = livres.length;
+  const giro = (i) => ((i - semente) % n + n) % n;
+  const ordem = livres.map((p, i) => ({ p, i, peso: p.fatos.filter((f) => fatosNoBanco.includes(f)).length }))
+    .sort((a, b) => a.peso - b.peso || giro(a.i) - giro(b.i)).map((x) => x.p);
+  const escolhidas = [];
+  while (escolhidas.length < quantas && ordem.length) {
+    const ultimo = escolhidas.at(-1)?.ramo;
+    const k = Math.max(0, ordem.findIndex((p) => p.ramo !== ultimo));
+    escolhidas.push(ordem.splice(k, 1)[0]);
+  }
+  return escolhidas;
 }

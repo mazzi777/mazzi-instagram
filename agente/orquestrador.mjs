@@ -18,7 +18,7 @@ import { capturar, paginasDaPeca } from './imagens/capturar.mjs';
 import { montarReel } from './ferramentas/montar_video.mjs';
 import { ffprobe } from './ferramentas/binarios.mjs';
 import { Registro, validar } from './lib/schemas.mjs';
-import { situacao, guardar, pautasEvergreen, lerReserva } from './reserva.mjs';
+import { situacao, guardar, pautasEvergreen, escolherPautas, lerReserva } from './reserva.mjs';
 
 export const FORMATOS_COM_IMAGEM = ['carrossel', 'imagem', 'stories'];
 export const FORMATOS_PRODUZIDOS = [...FORMATOS_COM_IMAGEM, 'reel'];
@@ -102,7 +102,7 @@ export async function produzirPeca(item, ctx) {
 
   for (let tentativa = 1; tentativa <= maxTentativas; tentativa++) {
     try {
-      const conteudo = await escreverPeca({ raiz, item, produto, cerebro, config, motivosAnteriores: motivos, anterior, capas });
+      const conteudo = await escreverPeca({ raiz, item, produto, cerebro, config, motivosAnteriores: motivos, anterior, capas, usados, hoje });
       // O gancho que vai para a agenda e o log é o que aparece na capa (a nota do gancho, G3, também julga ele).
       const capaTitulo = item.tipo === 'carrossel' ? conteudo.slides?.[0]?.titulo : item.tipo === 'stories' ? conteudo.quadros?.[0]?.titulo : item.tipo === 'imagem' ? conteudo.titulo : null;
       if (capaTitulo) conteudo.gancho = capaTitulo;
@@ -303,25 +303,33 @@ export async function encherReserva({ banco, maximo = 1, ...ctx }) {
   // Renova o banco até ter o mínimo de peças no visual novo (as do molde antigo seguem como última opção).
   const falta = situacao(banco, { produto, hoje }).faltamNovas;
   if (!falta.length || cerebro.economico()) return [];
-  const pautas = pautasEvergreen(produto);
-  const jaTem = lerReserva(banco).length;
+  const tipos = falta.slice(0, maximo);
+  // Semente = número da semana: pauta que reprovou não volta na semana seguinte só porque o banco não cresceu.
+  const semente = Math.floor(Date.parse(`${semana}T12:00:00Z`) / (7 * 86400000));
+  const pautas = escolherPautas(pautasEvergreen(produto), { banco: lerReserva(banco), quantas: tipos.length, semente });
   const feitas = [];
-  for (const [k, tipo] of falta.slice(0, maximo).entries()) {
-    const pauta = pautas[(jaTem + k) % pautas.length];
+  for (const [k, tipo] of tipos.entries()) {
+    const pauta = pautas[k];
+    if (!pauta) break;
+    const { chave, ...dados } = pauta;
     const item = {
-      id: `R${k + 1}`, dia: semana, horario: '07:40', tipo, objetivo: 'conversa', exploracao: false, ...pauta,
+      id: `R${k + 1}`, dia: semana, horario: '07:40', tipo, objetivo: 'conversa', exploracao: false, ...dados,
       angulo: `${pauta.angulo} (Peça de reserva: precisa valer daqui a meses. Nada de data, "essa semana", novidade ou lançamento.)`,
     };
     const tmp = mkdtempSync(path.join(tmpdir(), 'mazzi-reserva-'));
     try {
       // Peça de reserva vai ao ar daqui a semanas: não é comparada com as capas e peças de hoje (capas: []).
       const r = await produzirPeca(item, { ...ctx, saida: tmp, reserva: null, soReserva: false, capas: [], recentes: [] });
+      // O id leva a pauta: duas rodadas no mesmo dia nunca gravam por cima uma da outra.
+      const rid = `${hoje}-${tipo}-${chave}`;
       if (r.status === 'aprovada') {
-        const rid = `${hoje}-${tipo}-${k + 1}`;
         guardar(banco, r.entrada, path.join(tmp, 'semanas', semana), { rid, hoje });
         ctx.registrar({ tipo: 'aprovada', peca: `reserva/${rid}`, detalhe: `banco reserva: ${pauta.tema}` });
+      } else {
+        // Reprovada não entra no banco (nem conta como válida): fica só o registro, com a pauta, para a próxima rodada.
+        ctx.registrar({ tipo: 'reprovada', peca: `reserva/${rid}`, motivos: r.motivos ?? [], detalhe: `banco reserva: ${pauta.tema} (não entrou no banco)` });
       }
-      feitas.push({ tipo, status: r.status });
+      feitas.push({ tipo, status: r.status, tema: pauta.tema });
     } finally {
       rmSync(tmp, { recursive: true, force: true });
     }

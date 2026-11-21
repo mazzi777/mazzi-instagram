@@ -22,6 +22,19 @@ O gancho da capa, do 1º quadro e da primeira linha da legenda passa por esta r�
 
 Bons: "O caixa não fechou de novo?", "Paciente faltou e o horário ficou vazio?", "Visualizou o orçamento e sumiu?".
 Ruins: "Gestão eficiente para sua clínica", "Seu negócio. Organizado.", "Hoje vou falar de estoque".
+Reprovados de verdade (21/11) e por quê: "Abriu o sistema e não sabe por onde começar?" (nota 50: "sistema" não é concreto), "Cadê o seu logo na tela do balcão?" (56: "logo", "tela" e "balcão" não contam), "Todo mundo do salão precisa ver o caixa?" (60: "caixa" na palavra 8, tarde demais).
+O redator e o planejador têm a ferramenta `medir_gancho`, com a mesma régua do código: meça antes de entregar.
+
+## Chamada (CTA)
+
+- Uma só, ligada à cena: "Quer ver a sua agenda assim? Chama no WhatsApp, link na bio." é melhor que "Chama no WhatsApp" solto.
+- Nunca prometa o que acontece depois da conversa (demonstração, teste, prazo, "convite na hora"): a base não diz.
+- Alcance: "Salva pra conferir no fechamento de sábado" (diz para quê), nunca "salva e compartilha".
+
+## Fidelidade à base
+
+- Use as palavras da função como estão na base. "As ações importantes ficam registradas" não vira "tudo fica registrado"; "fornecedores e custo médio" não vira "avisa quando o fornecedor sobe o preço"; não existe "sem formulário" nem "sem senha por e-mail" na base.
+- Uma função por peça, no máximo duas. Lista de funções ("agenda, ficha, orçamento e lembrete num lugar só") serve para qualquer sistema e o editor reprova por original.
 
 ## Carrossel (ig-carousel)
 
