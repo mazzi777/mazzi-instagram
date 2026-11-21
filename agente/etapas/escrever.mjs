@@ -171,7 +171,7 @@ export async function checarTexto({ item, conteudo, produto, juizFatos, juizMarc
 const CENAS_PROMPT = `CENAS DISPONÍVEIS (campo "cena", escolha uma por batida):
 - gancho: a frase da tela bate palavra por palavra com risco à mão no "destaque" e símbolos gigantes no fundo ("simbolo": ? ! ou x). SEMPRE a 1ª batida.
 - digitando: uma frase curta sendo digitada ("texto") e um chip com ícone que salta no fim ("chip": {icone, rotulo}).
-- lista: 3 a 5 botões com ícone girando em 3D ("itens": [{icone, rotulo}]). Bom para "tudo que dá pra fazer". Com "estilo": "pilulas", 2 ou 3 benefícios curtos em pílulas cheias que entram uma por batida (uma ideia por pílula, até 18 letras cada, senão não cabe numa linha).
+- lista: 3 a 5 botões com ícone girando em 3D ("itens": [{icone, rotulo}]). Para passos ou partes de UMA função (não uma vitrine de recursos). Com "estilo": "pilulas", 2 ou 3 benefícios curtos em pílulas cheias que entram uma por batida (uma ideia por pílula, até 18 letras cada, senão não cabe numa linha).
 - hub: a Mazzi no centro e 3 a 6 módulos em volta ligados por linha fina ("modulos": [{icone, rotulo}]). Para "tudo num lugar só" (só módulos que existem na base).
 - encaixe: uma base com 2 a 4 encaixes que vão sendo ocupados, um por batida, com o contador "2/4" ("pecas": [{icone, rotulo}]). Para "cada coisa no seu lugar" (os módulos de um ramo, os passos de um fluxo). Nunca número de resultado.
 - cartao: cartão de interface EXEMPLO em vidro 3D ("cartao": {titulo, linhas: [{rotulo, selo, tom}]}).
@@ -181,10 +181,17 @@ const CENAS_PROMPT = `CENAS DISPONÍVEIS (campo "cena", escolha uma por batida):
 - celular: telefone em 3D com 1 a 3 mensagens subindo ("mensagens": [{lado: negocio|cliente, texto}], "contato"?).
 - icone: ícone de app com notificações acumulando que vira o ícone da Mazzi ("de": ícone, "badge": número).
 - orbita: a Mazzi no centro e 4 a 6 ícones de funções girando em volta ("icones").
-- ato: corte para fundo coral com a frase da tela enorme. Use UMA vez, na virada ("mas tem jeito").
+- ato: corte para fundo coral com a frase da tela enorme. No máximo UMA vez, e a frase traz informação da cena ("Domingo o quilo já vem certo"), nunca virada vazia ("Mas tem jeito", "Tem solução").
 - painel: painel de relatório inclinado com gráfico se desenhando ("titulo", "linhas"? até 2). Só para números do período: vendas, compras, lucro bruto, atendimentos do mês. Para um caso pontual (uma nota, um pedido, uma paciente), use cartão ou celular.
 Regras: comece com gancho; nunca a mesma cena duas vezes seguidas; pelo menos 4 cenas diferentes; pelo menos uma cena que mostre o produto.
-Roteiro-modelo de reel de produto (um dos caminhos, não o único): dor (gancho) → as coisas soltas do dia a dia (papel, lista, icone) → a Mazzi no centro (orbita) → a tela EXEMPLO (cartao, celular, painel ou contador) → uma frase de virada (ato) → chamada. 20 a 30 segundos; uma frase por tela.
+O reel é UMA cena do começo ao fim (o editor reprovou em 21/11 os que viravam vitrine de recursos):
+1. gancho com a cena concreta (quem, quando, qual objeto) e o nome da coisa logo na 1ª ou 2ª tela ("balança", "lista de retornos");
+2. o problema MOSTRADO: se a fala cita caderno, plaquinha, gaveta ou bilhete, a cena daquela batida mostra (papel, celular);
+3. a tela da função naquela mesma cena (cartao, celular, contador ou painel), só com o que a base diz;
+4. um ou dois detalhes NOVOS da mesma função, cada batida com informação que a anterior não tinha (checklist que resume o que acabou de ser dito é repetição);
+5. chamada ligada à cena.
+A frase da tela é frase de balcão, não etiqueta ("O caixa lê o código", não "Nota com código"). Varie o tamanho das falas: umas de 2 a 4 palavras, outras de 8 a 10.
+A ferramenta medir_roteiro também devolve "avisos" (o que o editor costuma reprovar): resolva antes de entregar. 20 a 35 segundos; uma frase por tela.
 Ícones permitidos: ${ICONES.join(', ')}.`;
 
 const layoutsPrompt = (tipo) => `LAYOUTS (campo "layout" de cada slide, quadro ou imagem; o fundo quem escolhe é o sistema):
@@ -238,10 +245,41 @@ export function ferramentaTexto({ config, tipo }) {
   };
 }
 
+// O que o editor (G9b) mais reprovou nos reels de 21/11 (18 sugestões no registro), em sinais que o código acha.
+// São AVISOS para o redator antecipar: não reprovam nada (quem julga continua sendo o editor, independente).
+const VIRADA_VAZIA = /^\s*(?:mas\s+)?(?:tem|há|existe)\s+(?:jeito|solução|saída)\b|^\s*simples\s+assim\b|^\s*(?:e\s+)?agora\s+ficou\s+fácil\b|^\s*problema\s+resolvido\b/iu;
+const OBJETOS_DE_CENA = /\b(caderno|papel|plaquinha|gaveta|bilhete|planilha|agenda de papel|post-?it)\b/iu;
+const FALA_DE_MANUAL = /\b(cada linha traz|o sistema (?:permite|possibilita|oferece)|é possível|você pode (?:ver|acessar|conferir)|basta (?:clicar|abrir)|com (?:apenas|poucos) cliques)\b/iu;
+const palavrasDe = (t = '') => (t.toLowerCase().normalize('NFD').replace(/\p{M}/gu, '').match(/[a-z0-9]{4,}/g) ?? []);
+
+/** Avisos editoriais do roteiro do reel (lista de frases; vazia = nada a antecipar). */
+export function avisosDoRoteiro(batidas) {
+  const avisos = [];
+  batidas.forEach((b, i) => {
+    const n = i + 1;
+    if (VIRADA_VAZIA.test(b.fala) || VIRADA_VAZIA.test(b.tela)) avisos.push(`batida ${n}: virada vazia ("${b.fala}"): troque por uma informação da cena`);
+    if (FALA_DE_MANUAL.test(b.fala)) avisos.push(`batida ${n}: fala de manual ("${b.fala}"): diga como na recepção ou no balcão`);
+    const objeto = b.fala.match(OBJETOS_DE_CENA)?.[1];
+    const mostra = [batidas[i - 1], b, batidas[i + 1]].some((x) => x && ['papel', 'celular'].includes(x.cena?.tipo));
+    if (objeto && !mostra) avisos.push(`batida ${n}: a fala cita "${objeto}" mas nenhuma cena perto mostra (use "papel" ou "celular")`);
+    if (i && ['checklist', 'lista'].includes(b.cena?.tipo)) {
+      const itens = (b.cena.itens ?? []).map((x) => (typeof x === 'string' ? x : x.rotulo)).join(' ');
+      const antes = new Set(palavrasDe(`${batidas[i - 1].fala} ${batidas[i - 1].tela} ${JSON.stringify(batidas[i - 1].cena ?? {})}`));
+      const daLista = palavrasDe(itens);
+      if (daLista.length && daLista.filter((p) => antes.has(p)).length / daLista.length >= 0.5) avisos.push(`batida ${n}: a lista repete o que a batida ${n - 1} acabou de dizer: traga informação nova`);
+    }
+  });
+  const tamanhos = batidas.map((b) => b.fala.split(/\s+/).filter(Boolean).length);
+  const media = tamanhos.reduce((s, x) => s + x, 0) / (tamanhos.length || 1);
+  const desvio = Math.sqrt(tamanhos.reduce((s, x) => s + (x - media) ** 2, 0) / (tamanhos.length || 1));
+  if (tamanhos.length >= 5 && desvio < 1.5) avisos.push(`falas todas do mesmo tamanho (${tamanhos.join(', ')} palavras): misture falas de 2 a 4 palavras com outras de 8 a 10`);
+  return avisos;
+}
+
 /**
  * Ferramenta "medir_roteiro" (só reel): as MESMAS regras de código do roteiro (tempo de cada batida e do gancho,
- * duração total) e da edição (cenas). Em 21/11 os 3 reels de reposição gastaram tentativas em batida > 4 s,
- * gancho com 3,0 s e cena repetida.
+ * duração estimada do vídeo com folga) e da edição (cenas), mais os avisos editoriais (não reprovam).
+ * Em 21/11 os 3 reels de reposição gastaram tentativas em batida > 4 s, gancho com 3,0 s e cena repetida.
  */
 export function ferramentaRoteiro({ config }) {
   return {
@@ -250,12 +288,17 @@ export function ferramentaRoteiro({ config }) {
     shape: { batidas: z.array(z.object({ fala: z.string(), tela: z.string(), cena: z.object({ tipo: z.string() }).passthrough() })).min(1).max(20) },
     handler: async ({ batidas }) => {
       let motivos;
+      let avisos = [];
+      let videoEstimado;
       try {
-        motivos = [...checarBatidas(batidas.map((b) => b.fala), config?.checagens?.batidas).motivos, ...regrasDaEdicao(batidas)];
+        const r = checarBatidas(batidas.map((b) => b.fala), config?.checagens?.batidas);
+        videoEstimado = r.detalhe.videoEstimado;
+        motivos = [...r.motivos, ...regrasDaEdicao(batidas)];
+        avisos = avisosDoRoteiro(batidas);
       } catch (e) {
         motivos = [`roteiro fora do formato: ${e.message}`];
       }
-      return { content: [{ type: 'text', text: JSON.stringify({ passa: motivos.length === 0, motivos }, null, 1) }] };
+      return { content: [{ type: 'text', text: JSON.stringify({ passa: motivos.length === 0, motivos, video_estimado_s: videoEstimado, avisos_do_editor: avisos }, null, 1) }] };
     },
   };
 }

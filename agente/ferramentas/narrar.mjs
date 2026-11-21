@@ -7,6 +7,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ffmpeg, rodar, duracao } from './binarios.mjs';
+import { RESPIRO, PAUSA, CAUDA } from '../lib/tempos.mjs';
 
 // Só o que a voz erra (ouvido nas amostras): o resto ela pronuncia bem sozinha.
 export const PRONUNCIA = { Mazzi: 'Mázi', mazzisystems: 'Mázi Systems' };
@@ -89,13 +90,14 @@ export async function narrar(falas, pasta, { motores = [motorEdge, motorKokoro],
 }
 
 /** Junta as falas num WAV só, com uma pausa entre elas. Devolve os tempos (s) de início de cada fala. */
-export function juntarFalas(arquivos, duracoes, saida, { pausa = 0.22 } = {}) {
+// Respiro, pausa e cauda vêm de lib/tempos.mjs: a estimativa do roteiro (batidas.mjs) usa os mesmos números.
+export function juntarFalas(arquivos, duracoes, saida, { pausa = PAUSA } = {}) {
   const inicios = [];
-  let t = 0.15; // respiro antes da 1ª fala
+  let t = RESPIRO; // respiro antes da 1ª fala
   for (const d of duracoes) { inicios.push(+t.toFixed(3)); t += d + pausa; }
   const filtros = arquivos.map((_, i) => `[${i}:a]adelay=${Math.round(inicios[i] * 1000)}|${Math.round(inicios[i] * 1000)}[a${i}]`).join(';');
-  const mix = `${arquivos.map((_, i) => `[a${i}]`).join('')}amix=inputs=${arquivos.length}:normalize=0,apad=pad_dur=0.6[out]`;
+  const mix = `${arquivos.map((_, i) => `[a${i}]`).join('')}amix=inputs=${arquivos.length}:normalize=0,apad=pad_dur=${CAUDA}[out]`;
   rodar(ffmpeg(), ['-v', 'error', '-y', ...arquivos.flatMap((a) => ['-i', a]), '-filter_complex', `${filtros};${mix}`, '-map', '[out]', '-ar', '48000', '-ac', '1', saida]);
-  return { inicios, total: +(t - pausa + 0.6).toFixed(3) };
+  return { inicios, total: +(t - pausa + CAUDA).toFixed(3) };
 }
 
