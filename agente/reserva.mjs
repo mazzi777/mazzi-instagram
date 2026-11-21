@@ -138,16 +138,16 @@ const PAUTAS = [
   { chave: 'clin-lote', ramo: 'clinica', conteudo: 'ensina', tema: 'o lote que vence primeiro', fatos: ['clin.estoque-lote'],
     angulo: 'Dois frascos iguais na gaveta, lotes diferentes. No atendimento a Mazzi usa o lote que vence antes e avisa do lote vencendo em 30 dias e do item acabando (cartão EXEMPLO). Fale só da gestão do estoque, nunca do procedimento.' },
   { chave: 'clin-alerta-ficha', ramo: 'clinica', conteudo: 'ensina', tema: 'o alerta de alergia na ficha', fatos: ['clin.anamnese-termo', 'clin.fichas'],
-    angulo: 'A paciente respondeu na anamnese que tem alergia. No dia do atendimento o alerta está na ficha, com o termo assinado com data e hora. Mostre a ficha EXEMPLO com o alerta. Sem medo nem urgência sobre saúde.' },
+    angulo: 'A paciente respondeu na anamnese que tem alergia. O alerta da anamnese e o termo assinado ficam na ficha, com data e hora. Mostre a ficha EXEMPLO com o alerta da anamnese. Sem medo nem urgência sobre saúde.' },
   // Restaurante.
   { chave: 'rest-numero-faltou', ramo: 'restaurante', conteudo: 'dor', tema: 'o pedido de número que faltou', fatos: ['rest.delivery.teclado'],
     angulo: 'Sexta à noite, o motoboy sai com os pedidos 3 e 5. Cadê o 4? A Mazzi numera o pedido do dia e mostra qual número faltou (cartão EXEMPLO). Feche mostrando a tela e a chamada, sem prometer que nenhum pedido some.' },
-  { chave: 'rest-ticket-balanca', ramo: 'restaurante', conteudo: 'dor', tema: 'o ticket da balança cobrado duas vezes', fatos: ['rest.balanca'],
-    angulo: 'Hora do almoço, fila no caixa: o mesmo ticket da balança aparece de novo. O caixa lê o código de barras, o valor entra sozinho e ticket já cobrado é recusado (cartão EXEMPLO). Diga "ticket da balança", nunca "nota" sozinha.' },
+  { chave: 'rest-ticket-balanca', ramo: 'restaurante', conteudo: 'dor', tema: 'a nota da balança cobrada duas vezes', fatos: ['rest.balanca'],
+    angulo: 'Hora do almoço, fila no caixa: a mesma nota da balança aparece de novo. O caixa lê o código de barras, o valor entra sozinho e a nota da balança já cobrada é recusada (cartão EXEMPLO). Diga "nota da balança" (com "da balança", para não soar como nota fiscal).' },
   { chave: 'rest-quilo-dia', ramo: 'restaurante', conteudo: 'ensina', tema: 'o preço do quilo de cada dia da semana', fatos: ['rest.balanca'],
     angulo: 'Domingo o quilo tem outro preço e alguém sempre esquece de trocar a plaquinha. A balança tem o preço do quilo por dia da semana e uma tela para o cliente ver o peso. Valor só no cartão EXEMPLO.' },
   { chave: 'rest-bebida-minimo', ramo: 'restaurante', conteudo: 'ensina', tema: 'o estoque mínimo da bebida', fatos: ['rest.estoque'],
-    angulo: 'Cada refrigerante vendido baixa sozinho do estoque, e o alerta de estoque mínimo aparece antes de acabar (cartão EXEMPLO com a bebida e a quantidade). Evite a fórmula "acabou e ninguém viu": a cena é a compra feita na hora certa.' },
+    angulo: 'Cada refrigerante vendido baixa sozinho do estoque, e o alerta de estoque mínimo aparece antes de acabar (cartão EXEMPLO com a bebida e a quantidade). Evite a fórmula "acabou e ninguém viu" e não prometa que nunca mais falta: mostre o alerta na tela.' },
   { chave: 'rest-diferenca-caixa', ramo: 'restaurante', conteudo: 'ensina', tema: 'a diferença que aparece no fechamento', fatos: ['rest.caixa'],
     angulo: 'Fim do dia: abertura, vendas, sangria e o fechamento mostram a diferença do caixa na tela (cartão EXEMPLO, valores só ali). Sem "caixa no caderno": a cena é o fechamento das 22h.' },
   { chave: 'rest-cargos', ramo: 'restaurante', conteudo: 'opiniao', tema: 'o que cada pessoa da equipe vê', fatos: ['comum.equipe-cargos'],
@@ -161,17 +161,17 @@ export function pautasEvergreen(produto) {
 
 /**
  * Escolhe `quantas` pautas para esta rodada: nunca o tema de uma peça que já está no banco, primeiro as funções que
- * menos aparecem no banco, alternando o ramo. O empate gira pela semana (`semente`): pauta que reprovou numa semana
+ * menos aparecem no banco, alternando o ramo. Pauta que reprovou nas últimas semanas (`recusadas`) vai para o fim da fila. O empate gira pela semana (`semente`): pauta que reprovou numa semana
  * não volta na seguinte só porque o banco não cresceu.
  */
-export function escolherPautas(pautas, { banco = [], quantas = 1, semente = 0 } = {}) {
+export function escolherPautas(pautas, { banco = [], quantas = 1, semente = 0, recusadas = new Set() } = {}) {
   const temas = banco.map((r) => r.tema ?? '');
   const fatosNoBanco = banco.flatMap((r) => r.fatos ?? []);
   const livres = pautas.filter((p) => !temas.some((t) => t.includes(p.tema)));
   const n = livres.length;
   const giro = (i) => ((i - semente) % n + n) % n;
   const ordem = livres.map((p, i) => ({ p, i, peso: p.fatos.filter((f) => fatosNoBanco.includes(f)).length }))
-    .sort((a, b) => a.peso - b.peso || giro(a.i) - giro(b.i)).map((x) => x.p);
+    .sort((a, b) => Number(recusadas.has(a.p.chave)) - Number(recusadas.has(b.p.chave)) || a.peso - b.peso || giro(a.i) - giro(b.i)).map((x) => x.p);
   const escolhidas = [];
   while (escolhidas.length < quantas && ordem.length) {
     const ultimo = escolhidas.at(-1)?.ramo;

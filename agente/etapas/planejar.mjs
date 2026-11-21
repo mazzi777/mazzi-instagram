@@ -112,8 +112,16 @@ export async function planejarSemana({ raiz, semana, config, produto, cerebro, f
   let prompt = promptPlano({ semana, config, formatos, estadoResumo, ganchosRecentes, novidades, desde, temasRecentes, usoFuncoes });
   let motivos = [];
   for (let tentativa = 1; tentativa <= 3; tentativa++) {
-    const plano = await cerebro.pedir({ etapa: 'planejar', modelo: config.modelos.planejador, sistema, prompt, schema: Plano, effort: 'medium',
-      ferramentas: [ferramentaGancho({ config, usados: ganchosRecentes, hoje: hoje ?? semana })], maxTurns: 12 });
+    // A ferramenta é ajuda, não requisito: se ela estourar os turnos (ou falhar), a mesma tentativa sai sem ela,
+    // para o plano da semana nunca cair por causa da medição (revisão da PR #20).
+    const pedido = { etapa: 'planejar', modelo: config.modelos.planejador, sistema, prompt, schema: Plano, effort: 'medium' };
+    let plano;
+    try {
+      plano = await cerebro.pedir({ ...pedido, ferramentas: [ferramentaGancho({ config, usados: ganchosRecentes, hoje: hoje ?? semana })], maxTurns: 24 });
+    } catch (e) {
+      if (e.parar) throw e; // limite, teto ou login: para a rodada
+      plano = await cerebro.pedir({ ...pedido, etapa: 'planejar:sem-ferramenta' });
+    }
     motivos = regrasDoPlano(plano, { semana, config, produto, formatos, desde });
     if (!motivos.length) return { plano: { ...plano, pecas: idsDoPlano(plano, ocupados) }, tentativas: tentativa };
     prompt = `${prompt}\n\nSEU PLANO ANTERIOR FOI RECUSADO. Corrija:\n${motivos.map((x) => `- ${x}`).join('\n')}`;

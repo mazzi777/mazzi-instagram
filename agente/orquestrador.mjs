@@ -306,7 +306,10 @@ export async function encherReserva({ banco, maximo = 1, ...ctx }) {
   const tipos = falta.slice(0, maximo);
   // Semente = número da semana: pauta que reprovou não volta na semana seguinte só porque o banco não cresceu.
   const semente = Math.floor(Date.parse(`${semana}T12:00:00Z`) / (7 * 86400000));
-  const pautas = escolherPautas(pautasEvergreen(produto), { banco: lerReserva(banco), quantas: tipos.length, semente });
+  // Pauta que reprovou nas últimas 4 semanas fica no fim da fila (revisão da PR #20: sem isso, com o banco cheio de
+  // agenda/caixa, as poucas pautas de função ausente voltariam toda semana mesmo reprovando).
+  const recusadas = pautasRecusadas(ctx.saida ?? ctx.raiz, { desde: dataMais(hoje, -28) });
+  const pautas = escolherPautas(pautasEvergreen(produto), { banco: lerReserva(banco), quantas: tipos.length, semente, recusadas });
   const feitas = [];
   for (const [k, tipo] of tipos.entries()) {
     const pauta = pautas[k];
@@ -326,8 +329,9 @@ export async function encherReserva({ banco, maximo = 1, ...ctx }) {
         guardar(banco, r.entrada, path.join(tmp, 'semanas', semana), { rid, hoje });
         ctx.registrar({ tipo: 'aprovada', peca: `reserva/${rid}`, detalhe: `banco reserva: ${pauta.tema}` });
       } else {
-        // Reprovada não entra no banco (nem conta como válida): fica só o registro, com a pauta, para a próxima rodada.
-        ctx.registrar({ tipo: 'reprovada', peca: `reserva/${rid}`, motivos: r.motivos ?? [], detalhe: `banco reserva: ${pauta.tema} (não entrou no banco)` });
+        // Reprovada não entra no banco (nem conta como válida). O produzirPeca já registrou a reprovação (R1, R2...);
+        // aqui fica só a pauta, como "tentativa", para a próxima rodada não repeti-la (e o relatório não contar duas vezes).
+        ctx.registrar({ tipo: 'tentativa', peca: `reserva/${rid}`, motivos: r.motivos ?? [], detalhe: `banco reserva: pauta [${chave}] ${r.status}, não entrou no banco` });
       }
       feitas.push({ tipo, status: r.status, tema: pauta.tema });
     } finally {
@@ -335,6 +339,20 @@ export async function encherReserva({ banco, maximo = 1, ...ctx }) {
     }
   }
   return feitas;
+}
+
+/** Chaves das pautas de reserva que reprovaram desde `desde` (lidas do registro). */
+export function pautasRecusadas(saida, { desde }) {
+  const pasta = path.join(saida, 'registro');
+  if (!existsSync(pasta)) return new Set();
+  const chaves = new Set();
+  for (const f of readdirSync(pasta).filter((n) => n.endsWith('.jsonl') && n.slice(0, 10) >= desde)) {
+    for (const linha of readFileSync(path.join(pasta, f), 'utf8').split('\n')) {
+      const m = linha.includes('"reserva/') && linha.match(/banco reserva: pauta \[([a-z0-9-]+)\]/);
+      if (m) chaves.add(m[1]);
+    }
+  }
+  return chaves;
 }
 
 export const fimDaSemana = (semana) => dataMais(semana, 6);

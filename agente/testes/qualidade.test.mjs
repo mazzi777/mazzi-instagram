@@ -10,8 +10,8 @@ import { checarTexto, medirGanchos, ferramentaGancho, promptPeca, ganchoSugerido
 import { checarGancho } from '../checagens/gancho.mjs';
 import { motivosDoEditor } from '../checagens/editor.mjs';
 import { CONCRETOS } from '../lib/texto.mjs';
-import { usoDasFuncoes, promptPlano } from '../etapas/planejar.mjs';
-import { produzirPeca, produzirPendentes, encherReserva, criarRegistro } from '../orquestrador.mjs';
+import { usoDasFuncoes, promptPlano, planejarSemana } from '../etapas/planejar.mjs';
+import { produzirPeca, produzirPendentes, encherReserva, criarRegistro, pautasRecusadas } from '../orquestrador.mjs';
 import { guardar, situacao, motivosParaNaoUsar, lerReserva, pautasEvergreen, escolherPautas } from '../reserva.mjs';
 import { avisosDaReserva } from '../agente.mjs';
 import { lerProduto } from '../checagens/fatos.mjs';
@@ -208,7 +208,27 @@ test('qualidade 8: reposição reprovada não entra no banco e fica registrada c
   assert.deepEqual(lerReserva(banco), []);
   assert.equal(situacao(banco, { produto, hoje: HOJE }).total, 0);
   const linhas = readdirSync(path.join(saida, 'registro')).flatMap((f) => readFileSync(path.join(saida, 'registro', f), 'utf8').trim().split('\n').map((l) => JSON.parse(l)));
-  assert.equal(linhas.filter((l) => l.tipo === 'reprovada' && /^reserva\//.test(l.peca)).length, 3);
+  const daPauta = linhas.filter((l) => /^reserva\//.test(l.peca));
+  assert.equal(daPauta.length, 3);
+  assert.ok(daPauta.every((l) => l.tipo === 'tentativa'), 'a reprovação já é registrada pelo produzirPeca: o relatório não conta duas vezes');
+  // A próxima rodada lê essas pautas como recusadas e as manda para o fim da fila.
+  const recusadas = pautasRecusadas(saida, { desde: dataMais(HOJE, -28) });
+  assert.deepEqual([...recusadas].sort(), [...new Set(daPauta.map((l) => l.detalhe.match(/\[(.+?)\]/)[1]))].sort());
+  assert.equal(recusadas.size, 3);
+  assert.equal(pautasRecusadas(saida, { desde: dataMais(HOJE, 1) }).size, 0, 'só olha as últimas semanas');
+});
+
+// Revisão da PR #20: com o banco REAL (8 peças de agenda, caixa, delivery...), pauta que reprovou não volta na semana seguinte.
+test('qualidade 9b: com o banco real, as pautas reprovadas numa semana saem da frente na seguinte', () => {
+  const banco = lerReserva(RAIZ);
+  assert.ok(banco.length >= 8, 'usa o banco de verdade do repositório');
+  const pautas = pautasEvergreen(produto);
+  const semana1 = escolherPautas(pautas, { banco, quantas: 3, semente: 2917 });
+  const recusadas = new Set(semana1.map((p) => p.chave));
+  const semana2 = escolherPautas(pautas, { banco, quantas: 3, semente: 2918, recusadas });
+  assert.equal(semana2.filter((p) => recusadas.has(p.chave)).length, 0, `${semana1.map((p) => p.chave)} -> ${semana2.map((p) => p.chave)}`);
+  const todas = new Set(pautas.map((p) => p.chave));
+  assert.equal(escolherPautas(pautas, { banco, quantas: 3, semente: 1, recusadas: todas }).length, 3, 'com tudo recusado ainda tenta (fim da fila, não proibida)');
 });
 
 // 9. Fluxo semanal da reposição: aprovada entra com id único; pauta gira entre semanas e não repete tema do banco.
@@ -257,4 +277,18 @@ test('qualidade 10: stories não fecha o aviso; semanal e diário conferem a res
   const banco = bancoCom(Array.from({ length: 6 }, () => ({ usada_em: ['2026-11-14'] })));
   const avisos = avisosDaReserva({ saida: tmp(), hoje: HOJE, produto, banco });
   assert.ok(avisos.some((a) => a.peca === 'banco reserva' && /só 0 peça/.test(a.mensagem)), JSON.stringify(avisos));
+});
+
+// Revisão da PR #20: a ferramenta do planejador estourar os turnos não pode derrubar o plano da semana.
+test('qualidade: planejador sem a ferramenta quando ela falha; limite do plano continua parando a rodada', async () => {
+  const plano = JSON.parse(ler('semanas/2026-11-23/plano.json'));
+  const pecas = plano.pecas.map(({ id, situacao, ...p }) => p);
+  const formatos = ['carrossel', 'reel', 'stories', 'imagem'];
+  const pedidos = [];
+  const cerebro = { pedir: async (q) => { pedidos.push(q); if (q.ferramentas?.length) throw new Error('Claude falhou em planejar: error_max_turns'); return { pecas, porque: 'ok' }; } };
+  const r = await planejarSemana({ raiz: RAIZ, semana: SEMANA, config, produto, cerebro, formatos, hoje: HOJE });
+  assert.equal(r.plano.pecas.length, pecas.length);
+  assert.deepEqual(pedidos.map((q) => q.etapa), ['planejar', 'planejar:sem-ferramenta']);
+  const parado = { pedir: async () => { throw Object.assign(new Error('limite do plano'), { parar: true }); } };
+  await assert.rejects(planejarSemana({ raiz: RAIZ, semana: SEMANA, config, produto, cerebro: parado, formatos, hoje: HOJE }), /limite do plano/);
 });
