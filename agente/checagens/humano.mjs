@@ -10,8 +10,8 @@ import { palavras, minusculas, frases, concretos, escala, limitar, desvioPadrao,
 
 const LEXICO = JSON.parse(readFileSync(new URL('./lexico-ia.json', import.meta.url), 'utf8'));
 
-const COLOQUIAL = new Set(['pra', 'pro', 'pros', 'pras', 'tá', 'tô', 'né', 'tava', 'cê', 'aí', 'daí', 'bora', 'tipo', 'beleza', 'olha', 'ó', 'num', 'numa', 'dum', 'duma', 'tão', 'vixe', 'opa']);
-const PESSOAS = new Set(['eu', 'me', 'meu', 'minha', 'meus', 'minhas', 'nós', 'nosso', 'nossa', 'nossos', 'nossas', 'gente', 'você', 'vocês', 'seu', 'sua', 'seus', 'suas', 'te', 'cê']);
+export const COLOQUIAL = new Set(['pra', 'pro', 'pros', 'pras', 'tá', 'tô', 'né', 'tava', 'cê', 'aí', 'daí', 'bora', 'tipo', 'beleza', 'olha', 'ó', 'num', 'numa', 'dum', 'duma', 'tão', 'vixe', 'opa']);
+export const PESSOAS = new Set(['eu', 'me', 'meu', 'minha', 'meus', 'minhas', 'nós', 'nosso', 'nossa', 'nossos', 'nossas', 'gente', 'você', 'vocês', 'seu', 'sua', 'seus', 'suas', 'te', 'cê']);
 const CRITERIOS = ['VARIACAO', 'CONCRETO', 'PALAVRAS_IA', 'TIPOGRAFIA', 'VOZ'];
 
 // \b do JavaScript não entende acento ("é" não é letra para ele); esta fronteira entende.

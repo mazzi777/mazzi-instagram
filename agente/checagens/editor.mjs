@@ -39,6 +39,9 @@ competente assinaria; 9 = ótimo, específico e com cara de gente. Use a régua 
   Se a legenda contradiz alguma tela (a história muda de um para o outro), clareza 4 ou menos.
 
 Em "sugestoes", para cada nota abaixo de 7, diga em uma frase concreta o que o redator deve mudar (e a imagem, quando der).
+A sugestão só pode usar o que está em FUNÇÕES QUE A PEÇA PODE AFIRMAR: nunca sugira função, ação registrada, alerta ou dado
+que não esteja escrito lá (ex.: "ver quem abriu a gaveta" não existe se a função só diz "as ações importantes ficam registradas").
+Isso vale só para as sugestões: a nota de cada critério segue a régua acima.
 
 "cfm": só em peça de CLÍNICA (publicidade médica, Resolução CFM 2.336/2023). Liste SÓ trechos que existem de verdade no texto da
 peça e que: prometem ou insinuam resultado de procedimento; mostram ou descrevem paciente identificável, caso real, antes e depois
@@ -93,7 +96,7 @@ export function motivosDoEditor(r, { minimoCriterio, maxAbaixoDe7, pisos = {} })
  * G7 + G9b. imagens: JPEGs da peça (slides, quadros ou quadros do reel). texto: textoDaPeca(). recentes: [{dia,tipo,tema,gancho,layout}].
  * limites: { minimoCriterio, minimoMedia }. Devolve { ok, motivos, visuais, editor, notas }.
  */
-export async function checarRevisao(imagens, { juiz, contexto = '', texto, item, recentes = [], limites }) {
+export async function checarRevisao(imagens, { juiz, contexto = '', texto, item, recentes = [], limites, fatos = '' }) {
   if (!juiz) return { ok: false, motivos: ['juiz da revisão final indisponível: checagem incompleta'], notas: {} };
   const tarefa = `PARTE 1: CONFERÊNCIA DAS IMAGENS (lista "problemas").\n${TAREFA_JUIZ_VISUAL}\n\n${tarefaEditor(item.tipo)}`;
   const pedido = `${contexto}
@@ -101,7 +104,7 @@ PEÇA: ${item.tipo} · ramo ${item.ramo} · objetivo ${item.objetivo} · tipo de
 
 TEXTO COMPLETO:
 ${texto}
-
+${fatos ? `\nFUNÇÕES QUE A PEÇA PODE AFIRMAR (as sugestões só usam estas, com estas palavras):\n${fatos}\n` : ''}
 AS ÚLTIMAS PEÇAS DO PERFIL (para "novidade"):
 ${resumoRecentes(recentes)}`;
   try {
