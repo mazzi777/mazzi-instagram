@@ -126,7 +126,8 @@ test('qualidade 4: peça específica e fiel à base é aprovada pelo orquestrado
   const [pedido] = cerebro.pedidos;
   assert.match(pedido.prompt, /clin\.retornos: Lista de retornos: quem deveria voltar e quando\./);
   assert.match(pedido.prompt, /RÉGUA DO GANCHO/);
-  assert.deepEqual(pedido.ferramentas.map((f) => f.name), ['medir_gancho']);
+  assert.deepEqual(pedido.ferramentas.map((f) => f.name), ['medir_gancho', 'medir_texto']);
+  assert.match(pedido.prompt, /RÉGUA DE VOZ/);
   assert.ok(pedido.maxTurns >= 6);
 });
 
@@ -291,4 +292,33 @@ test('qualidade: planejador sem a ferramenta quando ela falha; limite do plano c
   assert.deepEqual(pedidos.map((q) => q.etapa), ['planejar', 'planejar:sem-ferramenta']);
   const parado = { pedir: async () => { throw Object.assign(new Error('limite do plano'), { parar: true }); } };
   await assert.rejects(planejarSemana({ raiz: RAIZ, semana: SEMANA, config, produto, cerebro: parado, formatos, hoje: HOJE }), /limite do plano/);
+});
+
+// 2ª rodada de 21/11: duas reposições reprovaram por VOZ e o editor sugeriu função fora da base.
+test('qualidade: medir_texto dá o mesmo veredito do G4; o editor recebe os fatos e a régua de notas não muda', async () => {
+  const { checarHumano, COLOQUIAL, PESSOAS } = await import('../checagens/humano.mjs');
+  const { ferramentaTexto, REGUA_VOZ } = await import('../etapas/escrever.mjs');
+  const { checarRevisao, tarefaEditor } = await import('../checagens/editor.mjs');
+  assert.deepEqual({ notaMinima: config.checagens.humano.notaMinima, criterioMinimo: config.checagens.humano.criterioMinimo }, { notaMinima: 70, criterioMinimo: 55 });
+  const robo = 'O sistema registra abertura, vendas, sangria e fechamento. O relatório apresenta a diferença do caixa. A equipe consulta os dados no fechamento. O dono acompanha os números da operação diária. Os registros ficam disponíveis para consulta.';
+  const humano = 'Fechou o caixa e não bateu? Pra você, a diferença aparece ali no fechamento, tá na tela. Seu caixa abre, vende, faz sangria pro motoboy e fecha. A gente mostra a diferença na hora, sem caderno. Chama no WhatsApp, link na bio, que a gente te mostra o seu.';
+  for (const [texto, tipo] of [[robo, 'carrossel'], [humano, 'carrossel'], [robo, 'reel']]) {
+    const real = checarHumano(texto, { ...config.checagens.humano, semVariacao: tipo === 'reel' });
+    const medido = JSON.parse((await ferramentaTexto({ config, tipo }).handler({ texto })).content[0].text);
+    assert.equal(medido.passa, real.ok);
+    assert.equal(medido.nota, real.nota);
+  }
+  assert.equal(checarHumano(robo, config.checagens.humano).ok, false, 'texto de robô continua reprovando');
+  for (const p of [...COLOQUIAL, ...PESSOAS]) assert.ok(REGUA_VOZ.includes(p), p);
+  let pedido = '';
+  const juiz = async (_t, p) => { pedido = p; return { problemas: [], notas: { original: 8, humano: 8, marca: 8, novidade: 8, clareza: 8 }, sugestoes: [], cfm: [] }; };
+  await checarRevisao([], { juiz, texto: 'x', item: itemRetornos, limites: config.checagens.editor, fatos: '- clin.retornos: Lista de retornos: quem deveria voltar e quando.' });
+  assert.match(pedido, /FUNÇÕES QUE A PEÇA PODE AFIRMAR[\s\S]*clin\.retornos/);
+  assert.match(tarefaEditor('carrossel'), /nunca sugira função/);
+  assert.match(tarefaEditor('carrossel'), /a nota de cada critério segue a régua acima/);
+});
+
+test('qualidade: na regeração, sugestão do editor não libera função fora da base', () => {
+  const p = promptPeca(itemRetornos, ['editor (original 5/10): mostre quem abriu a gaveta'], retornosBom, { produto, config });
+  assert.match(p, /sugestão do editor NÃO libera função, ação ou registro que não está nos fatos acima/);
 });

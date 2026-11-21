@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { checarGancho, notaGancho } from '../checagens/gancho.mjs';
 import { CONCRETOS } from '../lib/texto.mjs';
 import { checarLegenda } from '../checagens/legenda.mjs';
-import { checarHumano } from '../checagens/humano.mjs';
+import { checarHumano, COLOQUIAL, PESSOAS } from '../checagens/humano.mjs';
 import { checarNunca, palavrasProibidas } from '../checagens/nunca.mjs';
 import { checarFatos, resumoParaJuiz } from '../checagens/fatos.mjs';
 import { checarRepeticao } from '../checagens/repeticao.mjs';
@@ -171,7 +171,7 @@ export async function checarTexto({ item, conteudo, produto, juizFatos, juizMarc
 const CENAS_PROMPT = `CENAS DISPONÍVEIS (campo "cena", escolha uma por batida):
 - gancho: a frase da tela bate palavra por palavra com risco à mão no "destaque" e símbolos gigantes no fundo ("simbolo": ? ! ou x). SEMPRE a 1ª batida.
 - digitando: uma frase curta sendo digitada ("texto") e um chip com ícone que salta no fim ("chip": {icone, rotulo}).
-- lista: 3 a 5 botões com ícone girando em 3D ("itens": [{icone, rotulo}]). Bom para "tudo que dá pra fazer". Com "estilo": "pilulas", 2 ou 3 benefícios curtos em pílulas cheias que entram uma por batida (uma ideia por pílula).
+- lista: 3 a 5 botões com ícone girando em 3D ("itens": [{icone, rotulo}]). Bom para "tudo que dá pra fazer". Com "estilo": "pilulas", 2 ou 3 benefícios curtos em pílulas cheias que entram uma por batida (uma ideia por pílula, até 18 letras cada, senão não cabe numa linha).
 - hub: a Mazzi no centro e 3 a 6 módulos em volta ligados por linha fina ("modulos": [{icone, rotulo}]). Para "tudo num lugar só" (só módulos que existem na base).
 - encaixe: uma base com 2 a 4 encaixes que vão sendo ocupados, um por batida, com o contador "2/4" ("pecas": [{icone, rotulo}]). Para "cada coisa no seu lugar" (os módulos de um ramo, os passos de um fluxo). Nunca número de resultado.
 - cartao: cartão de interface EXEMPLO em vidro 3D ("cartao": {titulo, linhas: [{rotulo, selo, tom}]}).
@@ -220,6 +220,30 @@ export function ferramentaGancho(opcoes) {
     handler: async ({ ganchos }) => ({ content: [{ type: 'text', text: JSON.stringify(medirGanchos(ganchos, opcoes), null, 1) }] }),
   };
 }
+
+/**
+ * Ferramenta "medir_texto": a MESMA régua do G4 (cara de IA) sobre o texto corrido da peça (legenda; no reel, as falas
+ * e a legenda; nos stories, títulos e textos dos quadros). Em 21/11 (2ª rodada) duas reposições reprovaram por VOZ.
+ */
+export function ferramentaTexto({ config, tipo }) {
+  return {
+    name: 'medir_texto',
+    description: 'Mede o texto corrido (legenda; no reel as falas + legenda; nos stories os títulos e textos dos quadros) com a régua oficial de "cara de IA" (nota mínima 70, nenhum critério abaixo de 55). Devolve nota, passa e os critérios.',
+    shape: { texto: z.string().min(10).max(4000) },
+    handler: async ({ texto }) => {
+      const r = checarHumano(texto, { ...config?.checagens?.humano, semVariacao: tipo === 'stories' || tipo === 'reel' });
+      const criterios = Object.fromEntries(Object.entries(r.detalhe.criterios).map(([k, v]) => [k, `${v[0] ?? '-'} (${v[1]})`]));
+      return { content: [{ type: 'text', text: JSON.stringify({ nota: r.nota, passa: r.ok, motivos: r.motivos, criterios }, null, 1) }] };
+    },
+  };
+}
+
+/** Régua de voz em texto, com as listas EXATAS do código (G4, critério VOZ). */
+export const REGUA_VOZ = `RÉGUA DE VOZ (código; o texto corrido precisa de nota 70 e nenhum critério abaixo de 55):
+- A cada 100 palavras, uns 2 coloquiais destes: ${[...COLOQUIAL].join(', ')}. ("pra" e "tá" resolvem quase sempre.)
+- A cada 100 palavras, uns 5 destes: ${[...PESSOAS].join(', ')}. (Fale com o dono: "você", "seu caixa", "a gente".)
+- Sem trinca de adjetivos, sem "não é só X, é Y", sem travessão (—).
+Meça o texto corrido com a ferramenta medir_texto antes de responder.`;
 
 /** Régua do gancho em texto, com a lista EXATA de palavras que contam como concretas (a mesma do código). */
 export const REGUA_GANCHO = `RÉGUA DO GANCHO (código; nota mínima 70 e nenhum critério abaixo de 55; vale para a capa/1º quadro e para a 1ª linha da legenda):
@@ -273,8 +297,12 @@ Antes de responder, chame a ferramenta medir_gancho UMA vez com 4 a 8 candidatos
 Como a peça anda: a cena concreta do dono (um dia, uma pessoa, um objeto) → o que a tela da Mazzi mostra naquela cena (só o que está nos fatos acima) → a chamada. Uma ideia por tela.
 Nenhuma tela promete o que vai acontecer ("não some mais", "a gente vê antes", "nunca mais falta", "você vai saber"): o juiz de fatos reprova como resultado inventado. Mostre a tela; quem conclui é o dono.
 Valor em dinheiro (R$, "reais", "conto") só dentro de cartão, painel, celular ou contador de EXEMPLO; nunca na fala, no texto da tela, na legenda ou no título.${item.ramo === 'clinica' ? '\nClínica: fale da recepção, da agenda, da ficha, do orçamento; nunca do procedimento nem de resultado.' : item.ramo === 'restaurante' ? '\nRestaurante: fale do balcão, do caixa, da balança, do delivery, do estoque; palavra do dono (troco, sangria, quilo, motoboy, comanda).' : ''}
+${REGUA_VOZ}
+Interface de EXEMPLO (cartão, painel, celular, conversa) e cenas de módulos (hub, encaixe, órbita, lista) mostram SÓ o que os fatos acima dizem,
+com os nomes deles (ex.: "Retornos", "Pacote 4/10"): nada de módulo de fora, frase de comparação dentro do cartão ("sem caderno")
+nem mensagem de cliente pedindo a função. Na dúvida, um cartão com 2 ou 3 linhas da própria função.
 Nunca escreva sobre o plano, o ângulo ou o próprio post ("o foco aqui é...", "neste post"): escreva só o que o dono vai ler.
-${motivosAnteriores.length ? `\nA TENTATIVA ANTERIOR FOI REPROVADA. Corrija tudo isto:\n${motivosAnteriores.map((m) => `- ${m}`).join('\n')}` : ''}
+${motivosAnteriores.length ? `\nA TENTATIVA ANTERIOR FOI REPROVADA. Corrija tudo isto (sugestão do editor NÃO libera função, ação ou registro que não está nos fatos acima: use a ideia da cena só com o que a base diz):\n${motivosAnteriores.map((m) => `- ${m}`).join('\n')}` : ''}
 ${anterior ? `\nSUA VERSÃO ANTERIOR está abaixo. Mantenha tudo o que não foi apontado e mude SÓ o necessário para resolver os pontos acima (reescrever tudo cria problemas novos):\n${JSON.stringify(anterior, null, 1)}` : ''}`;
 }
 
@@ -287,9 +315,10 @@ export async function escreverPeca({ raiz, item, produto, cerebro, config, motiv
     prompt: promptPeca(item, motivosAnteriores, anterior, { capas, produto, config }),
     schema: CONTEUDO[item.tipo],
     effort: 'medium',
-    // A régua do gancho como ferramenta: o redator mede os candidatos antes de entregar (turnos extras só para isso).
-    ferramentas: [ferramentaGancho({ config, usados, hoje })],
-    maxTurns: 6,
+    // As réguas do gancho e da voz como ferramentas: o redator mede antes de entregar (turnos extras só para isso).
+    // Estourar os turnos vira "erro na produção" e conta como tentativa (não aprova nada).
+    ferramentas: [ferramentaGancho({ config, usados, hoje }), ferramentaTexto({ config, tipo: item.tipo })],
+    maxTurns: 8,
   });
   return limparTexto(conteudo);
 }

@@ -11,7 +11,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { validarPeca, dataMais } from '../publicar/validar.mjs';
 import { ErroLimite, ErroTeto, ErroToken } from './cerebro.mjs';
-import { escreverPeca, checarTexto, juizesDeTexto, textoDaPeca } from './etapas/escrever.mjs';
+import { escreverPeca, checarTexto, juizesDeTexto, textoDaPeca, fatosDaPeca } from './etapas/escrever.mjs';
 import { checarDirecao, aplicarFundos, capasRecentes } from './checagens/direcao.mjs';
 import { checarRevisao, RevisaoFinal } from './checagens/editor.mjs';
 import { capturar, paginasDaPeca } from './imagens/capturar.mjs';
@@ -89,7 +89,7 @@ export async function produzirPeca(item, ctx) {
   // Para a "novidade" o editor vê TUDO o que já está na agenda (feed e stories, inclusive os outros dias desta semana),
   // não só as capas de antes: o ig-revisor pegou um story repetindo o tema de outro story da mesma semana.
   const recentes = ctx.recentes ?? capasRecentes([...new Set([raiz, saida])], { limite: 12, comStories: true }).filter((r) => !(r.dia === item.dia && r.id === item.id));
-  const revisar = (imagens, conteudo, contexto) => checarRevisao(imagens, { juiz: juizFinal, contexto, texto: textoDaPeca(item.tipo, conteudo), item, recentes, limites: config.checagens.editor });
+  const revisar = (imagens, conteudo, contexto) => checarRevisao(imagens, { juiz: juizFinal, contexto, texto: textoDaPeca(item.tipo, conteudo), item, recentes, limites: config.checagens.editor, fatos: fatosDaPeca(item, produto) });
   const maxTentativas = 1 + (cerebro.economico() ? 0 : config.checagens.regeracoes);
   let motivos = [];
   let arquivos = [];
