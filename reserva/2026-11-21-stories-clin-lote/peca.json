@@ -1,0 +1,30 @@
+{
+  "rid": "2026-11-21-stories-clin-lote",
+  "criado_em": "2026-11-21",
+  "usada_em": [],
+  "tipo": "stories",
+  "arquivos": [
+    "2026-11-23-R3-01.jpg",
+    "2026-11-23-R3-02.jpg",
+    "2026-11-23-R3-03.jpg",
+    "2026-11-23-R3-04.jpg"
+  ],
+  "tema": "clinica · o lote que vence primeiro",
+  "gancho": "Dois frascos na gaveta: qual vence antes?",
+  "ramo": "clinica",
+  "objetivo": "conversa",
+  "ia": false,
+  "fatos": [
+    "clin.estoque-lote"
+  ],
+  "visual": {
+    "layout": "pergunta",
+    "fundo": "papel",
+    "layouts": [
+      "pergunta",
+      "bilhete",
+      "cartao",
+      "chamada"
+    ]
+  }
+}

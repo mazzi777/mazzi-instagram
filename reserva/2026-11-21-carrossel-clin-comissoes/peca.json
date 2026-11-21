@@ -1,0 +1,38 @@
+{
+  "rid": "2026-11-21-carrossel-clin-comissoes",
+  "criado_em": "2026-11-21",
+  "usada_em": [],
+  "tipo": "carrossel",
+  "arquivos": [
+    "2026-11-23-R1-01.jpg",
+    "2026-11-23-R1-02.jpg",
+    "2026-11-23-R1-03.jpg",
+    "2026-11-23-R1-04.jpg",
+    "2026-11-23-R1-05.jpg",
+    "2026-11-23-R1-06.jpg",
+    "2026-11-23-R1-07.jpg"
+  ],
+  "tema": "clinica · a comissão do fim do mês",
+  "gancho": "Sua comissão do mês ainda mora no caderno?",
+  "ramo": "clinica",
+  "objetivo": "conversa",
+  "ia": false,
+  "fatos": [
+    "clin.comissoes"
+  ],
+  "visual": {
+    "layout": "pergunta",
+    "fundo": "papel",
+    "layouts": [
+      "pergunta",
+      "bilhete",
+      "manchete",
+      "cartao",
+      "comparativo",
+      "lista",
+      "chamada"
+    ]
+  },
+  "legenda": "Sua comissão do mês ainda mora no caderno?\n\nDia 30. A profissional chega na recepção e pergunta quanto deu. Você abre o caderno, vira página, confere atendimento por atendimento e torce pra não esquecer nenhum.\n\nNa Mazzi, a comissão por profissional é calculada pelos atendimentos. O cartão do carrossel é só um exemplo.\n\nQuer ver a sua comissão assim? Chama no WhatsApp, link na bio.\n\n#gestaodeclinica #clinicaestetica",
+  "alt_text": "Capa em letras grandes com a pergunta \"Sua comissão do mês ainda mora no caderno?\", com a palavra caderno em coral."
+}
