@@ -227,7 +227,10 @@ test('qualidade 9b: com o banco real, as pautas reprovadas numa semana saem da f
   const semana1 = escolherPautas(pautas, { banco, quantas: 3, semente: 2917 });
   const recusadas = new Set(semana1.map((p) => p.chave));
   const semana2 = escolherPautas(pautas, { banco, quantas: 3, semente: 2918, recusadas });
-  assert.equal(semana2.filter((p) => recusadas.has(p.chave)).length, 0, `${semana1.map((p) => p.chave)} -> ${semana2.map((p) => p.chave)}`);
+  // Recusada só volta se faltar pauta não recusada (o banco real cresce: com o tempo sobram menos pautas livres).
+  const livres = pautas.filter((p) => !banco.some((r) => (r.tema ?? '').includes(p.tema)) && !recusadas.has(p.chave)).length;
+  const esperado = Math.max(0, semana2.length - livres);
+  assert.equal(semana2.filter((p) => recusadas.has(p.chave)).length, esperado, `${semana1.map((p) => p.chave)} -> ${semana2.map((p) => p.chave)}`);
   const todas = new Set(pautas.map((p) => p.chave));
   assert.equal(escolherPautas(pautas, { banco, quantas: 3, semente: 1, recusadas: todas }).length, 3, 'com tudo recusado ainda tenta (fim da fila, não proibida)');
 });
