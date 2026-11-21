@@ -1,0 +1,39 @@
+{
+  "rid": "2026-11-21-carrossel-clin-pacotes",
+  "criado_em": "2026-11-21",
+  "usada_em": [],
+  "tipo": "carrossel",
+  "arquivos": [
+    "2026-11-23-R1-01.jpg",
+    "2026-11-23-R1-02.jpg",
+    "2026-11-23-R1-03.jpg",
+    "2026-11-23-R1-04.jpg",
+    "2026-11-23-R1-05.jpg",
+    "2026-11-23-R1-06.jpg",
+    "2026-11-23-R1-07.jpg"
+  ],
+  "tema": "clinica · em que sessão do pacote a paciente está",
+  "gancho": "Sua paciente pergunta da sessão e o caderno some?",
+  "ramo": "clinica",
+  "objetivo": "conversa",
+  "ia": false,
+  "fatos": [
+    "clin.pacotes",
+    "clin.agenda"
+  ],
+  "visual": {
+    "layout": "pergunta",
+    "fundo": "papel",
+    "layouts": [
+      "pergunta",
+      "bilhete",
+      "manchete",
+      "cartao",
+      "manchete",
+      "lista",
+      "chamada"
+    ]
+  },
+  "legenda": "Sua paciente pergunta da sessão e o caderno some?\n\nEla tá na recepção, perguntando quantas sessões ainda tem do pacote. Você procura a folha, confere o risquinho e torce pra tá certo.\n\nNa agenda da Mazzi, o horário mostra o selo Pacote 4/10. Cada atendimento desconta uma sessão.\n\nQuer ver a sua agenda assim? Chama no WhatsApp (link na bio).\n\n#clinicaestetica #agendaclinica #gestaodeclinica",
+  "alt_text": "Capa em fundo liso com a pergunta \"Sua paciente pergunta da sessão e o caderno some?\", com as palavras \"caderno some\" em destaque coral."
+}

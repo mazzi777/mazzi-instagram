@@ -1,0 +1,30 @@
+{
+  "rid": "2026-11-21-stories-clin-alerta-ficha",
+  "criado_em": "2026-11-21",
+  "usada_em": [],
+  "tipo": "stories",
+  "arquivos": [
+    "2026-11-23-R3-01.jpg",
+    "2026-11-23-R3-02.jpg",
+    "2026-11-23-R3-03.jpg",
+    "2026-11-23-R3-04.jpg"
+  ],
+  "tema": "clinica · o alerta de alergia na ficha",
+  "gancho": "Paciente avisou da alergia. Cadê o alerta na ficha?",
+  "ramo": "clinica",
+  "objetivo": "conversa",
+  "ia": false,
+  "fatos": [
+    "clin.anamnese-termo"
+  ],
+  "visual": {
+    "layout": "pergunta",
+    "fundo": "papel",
+    "layouts": [
+      "pergunta",
+      "conversa",
+      "cartao",
+      "manchete"
+    ]
+  }
+}
