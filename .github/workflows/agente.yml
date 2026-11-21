@@ -222,8 +222,10 @@ jobs:
           gh issue comment "$num" --body "$corpo"
 
       # SPEC 9: quando a rodada passa limpa, o aviso aberto do agente é fechado com "resolvido" (o GitHub manda o e-mail).
+      # Só o semanal e o diário conferem a reserva e os horários: a rodada dos stories (só métricas) passar não
+      # resolve nada (em 21/11 ela fechou a #17 por engano, com a reserva ainda baixa).
       - name: Fechar aviso resolvido
-        if: success()
+        if: success() && steps.qual.outputs.comando != 'stories'
         env:
           GH_TOKEN: ${{ github.token }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
