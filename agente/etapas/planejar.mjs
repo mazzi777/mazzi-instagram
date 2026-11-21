@@ -3,6 +3,17 @@ import { z } from 'zod';
 import { dataMais } from '../../publicar/validar.mjs';
 import { HORARIOS, RAMOS } from '../lib/schemas.mjs';
 import { contextoMarca } from './contexto.mjs';
+import { ferramentaGancho, REGUA_GANCHO } from './escrever.mjs';
+
+/**
+ * Quantas vezes cada função no ar apareceu nas peças recentes (feed e stories). O planejador vê as esquecidas primeiro:
+ * a semana de 16/11 reprovou por novidade porque tudo girava em agenda, ficha e caixa no caderno.
+ */
+export function usoDasFuncoes(produto, recentes = []) {
+  const conta = new Map(produto.funcoes.filter((f) => f.status === 'no_ar' && (f.ramo === 'comum' || f.id.startsWith('comum.') || produto.ramos.includes(f.ramo))).map((f) => [f.id, 0]));
+  for (const r of recentes) for (const id of r.fatos ?? []) if (conta.has(id)) conta.set(id, conta.get(id) + 1);
+  return [...conta.entries()].sort((a, b) => a[1] - b[1] || a[0].localeCompare(b[0])).map(([id, vezes]) => ({ id, vezes }));
+}
 
 const FEED = ['carrossel', 'imagem', 'reel'];
 
@@ -62,7 +73,7 @@ export function idsDoPlano(plano, ocupados = new Set()) {
   return ordenado.map((p) => ({ ...p, id: p.tipo === 'stories' ? proximo(() => `S${++st}`) : proximo(() => String.fromCharCode(65 + feed++)) }));
 }
 
-export function promptPlano({ semana, config, formatos, estadoResumo, ganchosRecentes, novidades, desde = semana, temasRecentes = [] }) {
+export function promptPlano({ semana, config, formatos, estadoResumo, ganchosRecentes, novidades, desde = semana, temasRecentes = [], usoFuncoes = [] }) {
   const f = config.frequencia;
   return `Monte o plano do Instagram @mazzisystems para a semana de ${semana} (segunda) a ${dataMais(semana, 6)} (domingo).
 ${desde > semana ? `A semana já começou: todas as peças entre ${desde} e ${dataMais(semana, 6)} (nada antes de ${desde}).
@@ -81,16 +92,36 @@ GANCHOS DAS ÚLTIMAS 6 SEMANAS (não repita gancho nem ângulo):
 ${ganchosRecentes.map((g) => `- ${g.data}: ${g.gancho}`).join('\n') || '- nenhum'}
 ${temasRecentes.length ? `\nTEMAS DAS ÚLTIMAS 2 SEMANAS (feed e stories; não repita o tema nem o TIPO de ângulo: se várias delas já são "o papel ou o registro que se perde", escolha outro tipo, como a decisão do dia, a conta que o dono faz de cabeça, a rotina de abrir e fechar, um número da semana em cartão EXEMPLO ou uma opinião):\n${temasRecentes.map((t) => `- ${t.dia} · ${t.tipo}: ${t.tema}`).join('\n')}\n` : ''}${novidades?.length ? `\nFUNÇÕES NOVAS NA BASE (boa hora para mostrar):\n${novidades.map((n) => `- ${n.id}: ${n.fato}`).join('\n')}` : ''}
 
+${usoFuncoes.length ? `
+USO DAS FUNÇÕES NAS ÚLTIMAS 6 SEMANAS (vezes em que a peça citou a função). Pelo menos metade das peças usa funções com 0 ou 1 uso; a mais usada só volta com uma cena realmente nova:
+${usoFuncoes.map((u) => `- ${u.id}: ${u.vezes}`).join('\n')}
+` : ''}
+COMO ESCOLHER CADA PEÇA:
+- Uma cena real do dono, com dia, hora ou pessoa ("sábado 14h, fila na balança", "a paciente remarcou pela terceira vez"), e a função da base que aparece nela. Nada de "organize", "praticidade" ou ângulo que serviria para qualquer sistema.
+- Clínica e restaurante têm dores diferentes: nunca a mesma peça com o ramo trocado.
+- O ângulo só usa o que está escrito na função da base (não amplie: "ações importantes ficam registradas" não é "tudo fica registrado"; estoque com fornecedor e custo médio não avisa aumento de preço).
+- Se sugerir um gancho no ângulo (Gancho: "..."), meça antes com a ferramenta medir_gancho e só sugira um que volte com passa=true.
+${REGUA_GANCHO}
+
 Em "porque", explique em poucas linhas as escolhas da semana.`;
 }
 
 /** Pede o plano e cobra as regras (até 3 tentativas, passando os motivos de volta). */
-export async function planejarSemana({ raiz, semana, config, produto, cerebro, formatos, estadoResumo = '', ganchosRecentes = [], novidades = [], desde = semana, ocupados = new Set(), temasRecentes = [] }) {
+export async function planejarSemana({ raiz, semana, config, produto, cerebro, formatos, estadoResumo = '', ganchosRecentes = [], novidades = [], desde = semana, ocupados = new Set(), temasRecentes = [], usoFuncoes = [], hoje }) {
   const sistema = `Você é o estrategista de conteúdo do Instagram da Mazzi Systems.\n\n${contextoMarca(raiz, produto)}`;
-  let prompt = promptPlano({ semana, config, formatos, estadoResumo, ganchosRecentes, novidades, desde, temasRecentes });
+  let prompt = promptPlano({ semana, config, formatos, estadoResumo, ganchosRecentes, novidades, desde, temasRecentes, usoFuncoes });
   let motivos = [];
   for (let tentativa = 1; tentativa <= 3; tentativa++) {
-    const plano = await cerebro.pedir({ etapa: 'planejar', modelo: config.modelos.planejador, sistema, prompt, schema: Plano, effort: 'medium' });
+    // A ferramenta é ajuda, não requisito: se ela estourar os turnos (ou falhar), a mesma tentativa sai sem ela,
+    // para o plano da semana nunca cair por causa da medição (revisão da PR #20).
+    const pedido = { etapa: 'planejar', modelo: config.modelos.planejador, sistema, prompt, schema: Plano, effort: 'medium' };
+    let plano;
+    try {
+      plano = await cerebro.pedir({ ...pedido, ferramentas: [ferramentaGancho({ config, usados: ganchosRecentes, hoje: hoje ?? semana })], maxTurns: 24 });
+    } catch (e) {
+      if (e.parar) throw e; // limite, teto ou login: para a rodada
+      plano = await cerebro.pedir({ ...pedido, etapa: 'planejar:sem-ferramenta' });
+    }
     motivos = regrasDoPlano(plano, { semana, config, produto, formatos, desde });
     if (!motivos.length) return { plano: { ...plano, pecas: idsDoPlano(plano, ocupados) }, tentativas: tentativa };
     prompt = `${prompt}\n\nSEU PLANO ANTERIOR FOI RECUSADO. Corrija:\n${motivos.map((x) => `- ${x}`).join('\n')}`;

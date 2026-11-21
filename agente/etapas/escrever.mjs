@@ -1,6 +1,7 @@
 // Redator (Sonnet) + as checagens de texto (G1–G5, G8). O redator recebe os motivos da tentativa anterior.
 import { z } from 'zod';
-import { checarGancho } from '../checagens/gancho.mjs';
+import { checarGancho, notaGancho } from '../checagens/gancho.mjs';
+import { CONCRETOS } from '../lib/texto.mjs';
 import { checarLegenda } from '../checagens/legenda.mjs';
 import { checarHumano } from '../checagens/humano.mjs';
 import { checarNunca, palavrasProibidas } from '../checagens/nunca.mjs';
@@ -196,37 +197,99 @@ Direção de arte (o código confere e reprova): escolha o layout pelo que a tel
 "chamada". Stories com pelo menos 2 layouts. "pergunta" e "chamada" com até 9 palavras no título. Texto de cada tela com até 32 palavras.
 Stories: pelo menos um quadro que mostre uma cena (conversa, cartao, bilhete, comparativo ou lista). "destaque" (palavra colorida) só na palavra que dói, em no máximo 2 telas (o sistema tira o resto). Guia: guia/direcao-de-arte.md.`;
 
-export function promptPeca(item, motivosAnteriores = [], anterior = null, { capas = [] } = {}) {
+/**
+ * Ferramenta do redator e do planejador: a MESMA régua do G3 e do G8 (código, sem Claude). Medir antes de entregar
+ * não muda a checagem final (ela roda de novo depois); só evita gastar uma tentativa inteira num gancho que já nasce reprovado.
+ */
+export function medirGanchos(ganchos, { config, usados = [], hoje } = {}) {
+  const limites = config?.checagens?.gancho ?? {};
+  return ganchos.map((g) => {
+    const r = checarGancho(g, limites);
+    const rep = checarRepeticao(g, usados, { hoje, limite: config?.checagens?.repeticao?.limite });
+    const motivos = [...r.motivos, ...rep.motivos];
+    return { gancho: g, nota: r.nota, passa: motivos.length === 0, motivos, criterios: Object.fromEntries(Object.entries(r.detalhe.criterios).map(([k, v]) => [k, `${v[0]} (${v[1]})`])) };
+  });
+}
+
+/** Especificação da ferramenta "medir_gancho" (o cérebro embrulha no formato do SDK). */
+export function ferramentaGancho(opcoes) {
+  return {
+    name: 'medir_gancho',
+    description: 'Mede ganchos com a régua oficial (nota de 0 a 100, mínimo 70, nenhum critério abaixo de 55, sem repetir gancho das últimas 6 semanas). Mande de 1 a 8 candidatos; use um que volte com passa=true.',
+    shape: { ganchos: z.array(z.string().min(2).max(140)).min(1).max(8) },
+    handler: async ({ ganchos }) => ({ content: [{ type: 'text', text: JSON.stringify(medirGanchos(ganchos, opcoes), null, 1) }] }),
+  };
+}
+
+/** Régua do gancho em texto, com a lista EXATA de palavras que contam como concretas (a mesma do código). */
+export const REGUA_GANCHO = `RÉGUA DO GANCHO (código; nota mínima 70 e nenhum critério abaixo de 55; vale para a capa/1º quadro e para a 1ª linha da legenda):
+- CONCRETO é o critério que mais reprova. Conta como concreto: número, nome próprio no meio da frase, ou uma destas palavras:
+  ${[...CONCRETOS].join(', ')}.
+  NÃO contam: sistema, tela, logo, venda, menu, conta, negócio, gestão, cadastro, controle, organização.
+- TENSÃO: "não", "sem", "sumiu", "faltou", "esqueceu", "de novo", "ninguém", "antes", "cadê" ou pergunta.
+- NA FRENTE: a palavra concreta ou de tensão nas 4 primeiras palavras.
+- COM QUEM: "você/seu/sua", uma ordem ("Confere", "Anota") ou pergunta direta.
+- 5 a 12 palavras, até 60 caracteres.`;
+
+/** O gancho que o plano sugeriu no ângulo (entre aspas, depois de "Gancho", "Quadro 1" etc.), se houver. */
+export function ganchoSugerido(angulo = '') {
+  const m = angulo.match(/(?:gancho(?: falado)?|quadro 1|capa)\s*:\s*["“]([^"”]{3,140})["”]/i);
+  return m ? m[1].trim() : null;
+}
+
+/** Texto exato das funções que a peça pode usar: o redator não amplia ("as ações importantes" não vira "tudo"). */
+export function fatosDaPeca(item, produto) {
+  const porId = new Map((produto?.funcoes ?? []).map((f) => [f.id, f]));
+  return item.fatos.map((id) => `- ${id}: ${porId.get(id)?.fato ?? '(fora da base: não use)'}`).join('\n');
+}
+
+export function promptPeca(item, motivosAnteriores = [], anterior = null, { capas = [], produto = null, config = null } = {}) {
   const formato = {
     carrossel: `5 a 8 slides: capa (gancho), estaca, ideias (uma por slide, com "passo" numerado se for sequência), resumo (itens) e chamada. Cartão, conversa, comparativo ou bilhete de exemplo quando ajudar a VER a cena.\n${layoutsPrompt(item.tipo)}`,
     imagem: `um post de imagem única: título forte, texto curto e, se ajudar, um cartão, uma conversa, um comparativo ou um bilhete de exemplo.\n${layoutsPrompt(item.tipo)}`,
     stories: `4 ou 5 quadros, uma ideia por quadro, falando com "você"; o 4º é o pedido, UM só: "me responde aqui nesse story" OU "chama no WhatsApp, link na bio" (nunca os dois); o 5º, se houver, fecha sem pedir de novo. "gancho" é o título do 1º quadro, igual.\n${layoutsPrompt(item.tipo)}`,
     reel: 'reel narrado de 20 a 40 segundos, em 7 a 12 batidas. Cada batida tem "fala" (o que a voz diz: frases curtas de gente, até 10 palavras para caber em 4 segundos; a 1ª fala é o gancho, até 7 palavras, e cabe em 3 segundos), "tela" (a frase grande na tela, até 6 palavras, que reforça a fala sem repetir tudo) e "cena" (o motion graphics daquela batida). A última batida é a chamada (o fechamento da marca entra sozinho nela). Escreva a fala para ser ouvida: sem siglas difíceis, sem parênteses, sem emoji.\n' + CENAS_PROMPT,
   }[item.tipo];
-  const chamada = item.objetivo === 'conversa' ? 'A chamada é "chama no WhatsApp (link na bio)".' : 'A chamada pede para salvar OU para compartilhar o post: escolha um verbo só (nunca "salva e compartilha").';
+  const chamada = item.objetivo === 'conversa'
+    ? 'A chamada é "chama no WhatsApp (link na bio)", ligada à cena da peça (ex.: "Quer ver a sua agenda assim? Chama no WhatsApp, link na bio."). Nunca prometa o que acontece depois da conversa (demonstração, teste, prazo, convite na hora).'
+    : 'A chamada pede para salvar OU para compartilhar o post, dizendo para quê (ex.: "Salva pra conferir no fechamento de sábado."): um verbo só (nunca "salva e compartilha").';
+  const sugerido = ganchoSugerido(item.angulo);
+  const notaSugerido = sugerido ? notaGancho(sugerido) : null;
+  const avisoSugerido = sugerido && config && !checarGancho(sugerido, config.checagens.gancho).ok
+    ? `\nO gancho sugerido no ângulo ("${sugerido}") tira nota ${notaSugerido.nota} na régua e REPROVA: não use; escreva outro para a mesma cena.`
+    : sugerido ? '\nO gancho do ângulo é sugestão: pode melhorar, desde que passe na régua.' : '';
   return `Escreva a peça abaixo para o Instagram @mazzisystems.
 
 Formato: ${item.tipo}: ${formato}
 Ramo: ${item.ramo} · Objetivo: ${item.objetivo} · Tipo de conteúdo: ${item.conteudo}
 Tema: ${item.tema}
 Ângulo: ${item.angulo}
-Fatos da base que pode usar (e só estes): ${item.fatos.join(', ')}${capas.length && ['carrossel', 'imagem'].includes(item.tipo) ? `\nAs últimas capas do feed usaram os layouts: ${capas.filter((c) => c.layout !== 'reel').slice(0, 3).map((c) => c.layout).join(', ')}. A capa desta peça usa OUTRO layout${capas.filter((c) => c.layout !== 'reel').slice(0, 2).length === 2 && capas.filter((c) => c.layout !== 'reel').slice(0, 2).every((c) => LAYOUTS[c.layout]?.familia !== 'cena') ? ', e precisa MOSTRAR uma cena (conversa, comparativo, cartao ou bilhete): as últimas foram só texto grande' : ''}.` : ''}
+Fatos da base que pode usar (e só estes, com estas palavras; não amplie, não some funções, não prometa resultado):
+${produto ? fatosDaPeca(item, produto) : item.fatos.join(', ')}${capas.length && ['carrossel', 'imagem'].includes(item.tipo) ? `\nAs últimas capas do feed usaram os layouts: ${capas.filter((c) => c.layout !== 'reel').slice(0, 3).map((c) => c.layout).join(', ')}. A capa desta peça usa OUTRO layout${capas.filter((c) => c.layout !== 'reel').slice(0, 2).length === 2 && capas.filter((c) => c.layout !== 'reel').slice(0, 2).every((c) => LAYOUTS[c.layout]?.familia !== 'cena') ? ', e precisa MOSTRAR uma cena (conversa, comparativo, cartao ou bilhete): as últimas foram só texto grande' : ''}.` : ''}
 ${item.tipo === 'stories' ? '' : `${chamada}\nA legenda começa com o gancho (primeira linha, até 125 caracteres), corpo curto, uma chamada, até 3 hashtags no fim.${item.tipo === 'reel' ? '' : '\n"alt_text" descreve a capa para quem não enxerga, em uma ou duas frases.'}`}
-"gancho" é a frase da capa / do 1º quadro, IGUAL ao título dela: até 12 palavras, concreta, com algo em jogo, falando com o dono.
+"gancho" é a frase da capa / do 1º quadro, IGUAL ao título dela: até 12 palavras, concreta, com algo em jogo, falando com o dono.${avisoSugerido}
+${REGUA_GANCHO}
+Antes de responder, chame a ferramenta medir_gancho UMA vez com 4 a 8 candidatos de gancho e use um que volte com passa=true${item.tipo === 'stories' ? '' : ' (meça também a 1ª linha da legenda)'}. Só chame de novo se nenhum passar.
+Como a peça anda: a cena concreta do dono (um dia, uma pessoa, um objeto) → o que a tela da Mazzi mostra naquela cena (só o que está nos fatos acima) → a chamada. Uma ideia por tela.
+Nenhuma tela promete o que vai acontecer ("não some mais", "a gente vê antes", "nunca mais falta", "você vai saber"): o juiz de fatos reprova como resultado inventado. Mostre a tela; quem conclui é o dono.
+Valor em dinheiro (R$, "reais", "conto") só dentro de cartão, painel, celular ou contador de EXEMPLO; nunca na fala, no texto da tela, na legenda ou no título.${item.ramo === 'clinica' ? '\nClínica: fale da recepção, da agenda, da ficha, do orçamento; nunca do procedimento nem de resultado.' : item.ramo === 'restaurante' ? '\nRestaurante: fale do balcão, do caixa, da balança, do delivery, do estoque; palavra do dono (troco, sangria, quilo, motoboy, comanda).' : ''}
 Nunca escreva sobre o plano, o ângulo ou o próprio post ("o foco aqui é...", "neste post"): escreva só o que o dono vai ler.
 ${motivosAnteriores.length ? `\nA TENTATIVA ANTERIOR FOI REPROVADA. Corrija tudo isto:\n${motivosAnteriores.map((m) => `- ${m}`).join('\n')}` : ''}
 ${anterior ? `\nSUA VERSÃO ANTERIOR está abaixo. Mantenha tudo o que não foi apontado e mude SÓ o necessário para resolver os pontos acima (reescrever tudo cria problemas novos):\n${JSON.stringify(anterior, null, 1)}` : ''}`;
 }
 
 /** Escreve a peça (uma tentativa). */
-export async function escreverPeca({ raiz, item, produto, cerebro, config, motivosAnteriores, anterior, capas = [] }) {
+export async function escreverPeca({ raiz, item, produto, cerebro, config, motivosAnteriores, anterior, capas = [], usados = [], hoje }) {
   const conteudo = await cerebro.pedir({
     etapa: `escrever:${item.tipo}`,
     modelo: config.modelos.redator,
     sistema: `Você é o redator do Instagram da Mazzi Systems. Escreve como gente, em português do Brasil.\n\n${contextoMarca(raiz, produto)}`,
-    prompt: promptPeca(item, motivosAnteriores, anterior, { capas }),
+    prompt: promptPeca(item, motivosAnteriores, anterior, { capas, produto, config }),
     schema: CONTEUDO[item.tipo],
     effort: 'medium',
+    // A régua do gancho como ferramenta: o redator mede os candidatos antes de entregar (turnos extras só para isso).
+    ferramentas: [ferramentaGancho({ config, usados, hoje })],
+    maxTurns: 6,
   });
   return limparTexto(conteudo);
 }

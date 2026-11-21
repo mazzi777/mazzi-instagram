@@ -44,8 +44,10 @@ function promptComImagens(texto, imagens) {
 }
 
 export async function consultarSdk({ modelo, sistema, prompt, imagens = [], schemaJson, ferramentas = [], maxTurns, tetoUsd, effort }) {
-  const { query, createSdkMcpServer } = await import('@anthropic-ai/claude-agent-sdk');
-  const mcpServers = ferramentas.length ? { mazzi: createSdkMcpServer({ name: 'mazzi', tools: ferramentas }) } : {};
+  const { query, createSdkMcpServer, tool } = await import('@anthropic-ai/claude-agent-sdk');
+  // Ferramentas chegam como { name, description, shape, handler } (as etapas não importam o SDK): aqui viram ferramentas do SDK.
+  const prontas = ferramentas.map((t) => (t.shape ? tool(t.name, t.description, t.shape, t.handler) : t));
+  const mcpServers = prontas.length ? { mazzi: createSdkMcpServer({ name: 'mazzi', tools: prontas }) } : {};
   const permitidas = ferramentas.map((t) => `mcp__mazzi__${t.name}`);
   const conversa = query({
     prompt: imagens.length ? promptComImagens(prompt, imagens) : prompt,

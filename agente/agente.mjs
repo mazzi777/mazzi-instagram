@@ -15,7 +15,7 @@ import { criarCerebro, semanaIso, ErroToken, ErroLimite, ErroTeto } from './cere
 import { lerProduto } from './checagens/fatos.mjs';
 import { lerGanchosUsados } from './checagens/repeticao.mjs';
 import { atualizarBase, FONTES_VERTICALS } from './base/atualizar.mjs';
-import { planejarSemana } from './etapas/planejar.mjs';
+import { planejarSemana, usoDasFuncoes } from './etapas/planejar.mjs';
 import { capasRecentes } from './checagens/direcao.mjs';
 import { criarRegistro, produzirPendentes, cobrirComReserva, encherReserva, agendaAlheia, assumirSemana, revalidarAgenda, FORMATOS_PRODUZIDOS } from './orquestrador.mjs';
 import { criarMeta, coletar } from './metricas.mjs';
@@ -212,7 +212,8 @@ export async function rodar(comando, { env = process.env, agora = () => new Date
     const ocupados = new Set(existsSync(fAgenda) ? JSON.parse(readFileSync(fAgenda, 'utf8')).pecas.map((p) => p.id) : []);
     const { plano, tentativas } = await planejarSemana({ raiz: RAIZ, semana, config, produto, cerebro, formatos, estadoResumo: estrategia.resumo, ganchosRecentes: usados.filter((u) => u.data >= dataMais(hoje, -42)), novidades, desde, ocupados,
       // O ensaio de 12/11 mostrou o plano repetindo o tema da semana anterior com outro gancho: o planejador vê os temas.
-      temasRecentes: capasRecentes([...new Set([RAIZ, saida])], { limite: 30, comStories: true }).filter((t) => t.dia >= dataMais(hoje, -14) && t.tema) });
+      temasRecentes: capasRecentes([...new Set([RAIZ, saida])], { limite: 30, comStories: true }).filter((t) => t.dia >= dataMais(hoje, -14) && t.tema),
+      usoFuncoes: usoDasFuncoes(produto, capasRecentes([...new Set([RAIZ, saida])], { limite: 200, comStories: true }).filter((t) => t.dia >= dataMais(hoje, -42))), hoje });
     mkdirSync(path.dirname(fPlano), { recursive: true });
     writeFileSync(fPlano, `${JSON.stringify({ semana, criado_em: hoje, tentativas, ...plano }, null, 2)}\n`);
     registrar({ tipo: 'plano', peca: semana, detalhe: plano.porque });
@@ -236,12 +237,16 @@ export async function rodar(comando, { env = process.env, agora = () => new Date
       else if (r.parou) erros.push(erroComoAviso(r.parou));
       else {
         try {
-          const repostas = await encherReserva({ ...ctxBase, produto, semana, banco: RAIZ, maximo: 2 });
-          if (repostas.length) log.push(`Banco reserva: ${repostas.map((x) => `${x.tipo}=${x.status}`).join(', ')}`);
+          // 3 por semana: um de cada formato que falta (carrossel, reel, stories), cada um de uma pauta diferente.
+          const repostas = await encherReserva({ ...ctxBase, produto, semana, banco: RAIZ, maximo: 3 });
+          if (repostas.length) log.push(`Banco reserva: ${repostas.map((x) => `${x.tipo}=${x.status} (${x.tema})`).join(', ')}`);
         } catch (e) {
           erros.push(erroComoAviso(e));
         }
       }
+      // O semanal também confere o banco: se ele passasse "limpo" com a reserva abaixo do mínimo, o workflow fecharia
+      // o aviso aberto como resolvido (o mesmo erro da #17, agora pelo semanal em vez dos stories).
+      erros.push(...avisosDaReserva({ saida, hoje, produto }));
       const estrategia = atualizarEstrategia(RAIZ, hoje, saida);
       const f = gravarRelatorio({ saida, hoje, semanaIso: semanaIso(new Date(`${hoje}T12:00:00Z`)), raiz: RAIZ, estrategia, reserva: situacao(RAIZ, { produto, hoje }), gasto: cerebro.gastoSemana() });
       log.push(`Relatório: ${path.relative(RAIZ, f)}`);
