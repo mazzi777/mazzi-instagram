@@ -1,13 +1,21 @@
 // Ritmo do roteiro do reel. Porte para pt-BR do beats.py (skill ig-reel, licença MIT).
 // Estima quanto tempo cada fala leva, empilha em tempos e aponta o que mata um reel na edição:
 // gancho que passa de 3 s, batida longa demais parada na mesma tela, falas seguidas sem nada concreto,
-// e duração fora da faixa. Estimativa por palavras/segundo; o tempo real vem do áudio (alinhar.mjs).
+// e duração fora da faixa. O tempo real vem do áudio (alinhar.mjs) e o validador final mede o MP4.
+//
+// Duas estimativas, cada uma do lado que deixa a regra MAIS rígida (21/11/2026):
+// - limites de cima (gancho ≤ 3 s, batida ≤ 4 s, total ≤ 45 s): 2,65 palavras/s, mais LENTA que a voz real
+//   (estima para mais, então pega antes a fala longa);
+// - limite de baixo (vídeo ≥ 20 s): a voz real calibrada por sílaba + respiro, pausas e cauda da montagem
+//   (lib/tempos.mjs), com 1 s de folga. Antes o mínimo usava os mesmos 2,65 palavras/s e um roteiro "de 20 s"
+//   virou um vídeo de 19,8 s.
 import { palavras, minusculas, concretos } from '../lib/texto.mjs';
+import { estimarVideo, MARGEM_DURACAO } from '../lib/tempos.mjs';
 
 export const JANELA_GANCHO = 3.0;
 export const BATIDA_MAX = 4.0;
 const SEQUENCIA_ABSTRATA = 3;
-const PALAVRAS_POR_SEGUNDO = 2.65; // voz do Antonio, ~160 por minuto
+const PALAVRAS_POR_SEGUNDO = 2.65; // só para os limites de cima (mais lenta que a voz real: estima para mais)
 
 const VAZIAS = new Set(['o', 'a', 'os', 'as', 'um', 'uma', 'e', 'ou', 'mas', 'se', 'de', 'do', 'da', 'dos', 'das', 'no', 'na',
   'nos', 'nas', 'em', 'pra', 'para', 'com', 'que', 'é', 'isso', 'esse', 'essa', 'você', 'seu', 'sua', 'eu', 'meu', 'minha',
@@ -47,10 +55,14 @@ export function analisarBatidas(falas, { palavrasPorSegundo = PALAVRAS_POR_SEGUN
   const eco = [...chave(batidas.at(-1).texto)].filter((p) => primeira.has(p));
   notas.push(eco.length ? `fecha em laço: a última batida repete "${eco.slice(0, 3).join(', ')}" do gancho` : 'sem laço: a última batida não repete nenhuma palavra do gancho');
 
-  if (total < duracaoMin) falhas.push(`${total.toFixed(1)} s de fala, abaixo de ${duracaoMin} s`);
+  // Mínimo: duração estimada do VÍDEO (voz real + pausas da montagem) com folga de MARGEM_DURACAO.
+  const video = estimarVideo(linhas);
+  if (video < duracaoMin + MARGEM_DURACAO) {
+    falhas.push(`vídeo estimado em ${video.toFixed(1)} s (voz real + pausas), abaixo de ${duracaoMin + MARGEM_DURACAO} s (${duracaoMin} s + ${MARGEM_DURACAO} s de folga): acrescente uma batida com informação nova da cena ou da função, nunca repetição nem frase vazia`);
+  }
   if (total > duracaoMax) falhas.push(`${total.toFixed(1)} s de fala, acima de ${duracaoMax} s: corte ~${Math.ceil((total - duracaoMax) * palavrasPorSegundo)} palavras`);
 
-  return { totalSegundos: +total.toFixed(2), batidas, notas, falhas };
+  return { totalSegundos: +total.toFixed(2), videoEstimado: +video.toFixed(2), batidas, notas, falhas };
 }
 
 export function checarBatidas(falas, opcoes) {

@@ -1,0 +1,7 @@
+{
+  "nota": "Roteiros inteiros narrados pela voz real (Edge TTS pt-BR-AntonioNeural, rate +4%) e juntados pelo juntarFalas do pipeline em 21/11/2026. 'real_total' é a duração do WAV final (s). Usado para conferir a estimativa do vídeo (agente/lib/tempos.mjs).",
+  "roteiros": [
+    { "nome": "reelBom antigo (falas curtas)", "real_total": 17.72, "falas": ["O caixa não fechou de novo?", "A sangria ficou num papel que ninguém achou.", "E o troco do almoço saiu errado.", "Mas tem jeito.", "Na Mazzi cada sangria fica registrada na hora.", "Caixa, delivery e balança no mesmo lugar.", "Tudo no seu computador e no celular.", "Chama no WhatsApp, o link tá na bio."] },
+    { "nome": "reelBom novo", "real_total": 22.46, "falas": ["O caixa não fechou de novo?", "A sangria das duas ficou num papel que ninguém achou.", "E o troco do almoço saiu errado pro motoboy.", "Mas tem jeito, e não é caderno novo.", "Na Mazzi cada sangria fica registrada na hora que sai.", "Caixa, delivery e balança ficam no mesmo lugar pra você.", "Funciona no computador do balcão e no seu celular.", "Chama no WhatsApp, o link tá na bio."] }
+  ]
+}

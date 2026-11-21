@@ -91,3 +91,13 @@ Pode: agenda, falta, confirmação, ficha, anamnese, termo, alerta de alergia/an
 - Só afirme o que está na base do produto (funções no ar). Se a função não está na lista, ela não existe.
 - Nunca fale de preço (nem "grátis"). Nunca cite cliente, depoimento, número ou resultado (valor só dentro de cartão de exemplo). Nunca prometa resultado de procedimento.
 - Descreva o que a tela mostra, não o resultado que ela traria: "o relatório mostra vendas menos compras" pode; "você vai saber se fechou no azul", "a calculadora fica de folga", "sobra tempo pra atender" não podem (são promessa de resultado).
+
+## Reel (ig-reel, ajustado pelo que o editor reprovou em 21/11/2026)
+
+- O reel é UMA cena do começo ao fim: quem, quando, qual objeto; o problema mostrado; a tela da função naquela cena; um ou dois detalhes novos; a chamada ligada à cena.
+- Nada de vitrine de recursos ("caixa, delivery e balança num lugar só") nem de checklist que resume o que a batida anterior acabou de dizer.
+- Nada de virada vazia ("Mas tem jeito", "Tem solução", "Simples assim"): a frase de virada traz informação da cena.
+- Se a fala cita caderno, plaquinha, gaveta ou bilhete, a cena daquela batida mostra.
+- Frase da tela é frase de balcão, não etiqueta ("O caixa lê o código", não "Nota com código").
+- Varie o tamanho das falas (umas de 2 a 4 palavras, outras de 8 a 10): o editor reprova cadência de robô.
+- Duração: a ferramenta medir_roteiro estima o vídeo com a voz real (sílabas, pausas da montagem) e pede 21 s (20 + 1 de folga). Para chegar lá, acrescente uma batida com informação nova da cena ou da função, nunca repetição nem frase vazia.

@@ -58,8 +58,9 @@ const cenaBasica = [
 const reelBom = {
   gancho: 'O caixa não fechou de novo?',
   batidas: [
-    'O caixa não fechou de novo?', 'A sangria ficou num papel que ninguém achou.', 'E o troco do almoço saiu errado.', 'Mas tem jeito.',
-    'Na Mazzi cada sangria fica registrada na hora.', 'Caixa, delivery e balança no mesmo lugar.', 'Tudo no seu computador e no celular.', 'Chama no WhatsApp, o link tá na bio.',
+    // Até 21/11 este roteiro tinha falas curtas: a estimativa antiga dizia 20,4 s e a voz real deu 17,7 s.
+    'O caixa não fechou de novo?', 'A sangria das duas ficou num papel que ninguém achou.', 'E o troco do almoço saiu errado pro motoboy.', 'Mas tem jeito, e não é caderno novo.',
+    'Na Mazzi cada sangria fica registrada na hora que sai.', 'Caixa, delivery e balança ficam no mesmo lugar pra você.', 'Funciona no computador do balcão e no seu celular.', 'Chama no WhatsApp, o link tá na bio.',
   ].map((fala, i) => ({ fala, tela: ['O caixa não fechou de novo?', 'No caderno', 'Troco errado', 'Mas tem jeito', 'Sangria na hora', 'Tudo junto', 'No celular também', 'Chama no WhatsApp'][i], destaque: i === 0 ? 'de novo?' : undefined, ...cenaBasica[i] })),
   legenda: 'O caixa não fechou de novo?\n\nNa Mazzi a sangria fica registrada na hora e o fechamento mostra a diferença do dia.\n\nChama no WhatsApp (link na bio).\n\n#restaurante',
 };
