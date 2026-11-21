@@ -1,0 +1,123 @@
+{
+  "semana": "2026-11-23",
+  "produtor": "agente",
+  "pecas": [
+    {
+      "id": "S1",
+      "dia": "2026-11-24",
+      "horario": "07:40",
+      "tipo": "stories",
+      "arquivos": [
+        "2026-11-23-S1-01.jpg",
+        "2026-11-23-S1-02.jpg",
+        "2026-11-23-S1-03.jpg",
+        "2026-11-23-S1-04.jpg",
+        "2026-11-23-S1-05.jpg"
+      ],
+      "tema": "clinica · Lembrete de consulta em 1 clique",
+      "gancho": "Quem confirma as consultas de amanhã na sua clínica?",
+      "ramo": "clinica",
+      "objetivo": "conversa",
+      "ia": false,
+      "origem": "agente",
+      "fatos": [
+        "clin.lembrete-1-clique"
+      ],
+      "tentativas": 1,
+      "visual": {
+        "layout": "pergunta",
+        "fundo": "papel",
+        "layouts": [
+          "pergunta",
+          "bilhete",
+          "conversa",
+          "manchete",
+          "cartao"
+        ]
+      }
+    },
+    {
+      "tipo": "reel",
+      "arquivos": [
+        "2026-11-23-B.mp4"
+      ],
+      "tema": "comum · como entrar",
+      "gancho": "Seu cadastro na Mazzi não existe. Só WhatsApp.",
+      "ramo": "comum",
+      "objetivo": "conversa",
+      "ia": true,
+      "fatos": [
+        "comum.celular"
+      ],
+      "legenda": "Seu cadastro na Mazzi não existe. Só WhatsApp.\n\nA entrada é pela conversa. Você conta como funciona a sua clínica ou o seu restaurante, a gente entende o negócio e manda o convite.\n\nDepois é só abrir no navegador, no computador ou no celular. Dá pra instalar como aplicativo na tela inicial. Precisa de internet.\n\nChama no WhatsApp (link na bio).\n\n#mazzisystems #gestao #pequenosnegocios",
+      "capa_ms": 1000,
+      "id": "B",
+      "dia": "2026-11-25",
+      "horario": "11:40",
+      "origem": "reserva"
+    },
+    {
+      "id": "D",
+      "dia": "2026-11-27",
+      "horario": "11:40",
+      "tipo": "imagem",
+      "arquivos": [
+        "2026-11-23-D-01.jpg"
+      ],
+      "tema": "clinica · Dia livre na semana pelo celular",
+      "gancho": "Abriu a agenda no celular e a terça tava vazia?",
+      "ramo": "clinica",
+      "objetivo": "alcance",
+      "ia": false,
+      "origem": "agente",
+      "fatos": [
+        "clin.agenda-semana-lista-celular",
+        "comum.celular"
+      ],
+      "tentativas": 2,
+      "visual": {
+        "layout": "cartao",
+        "fundo": "papel",
+        "layouts": [
+          "cartao"
+        ]
+      },
+      "legenda": "Abriu a agenda no celular e a terça tava vazia?\n\nNa Semana do celular, cada dia vem numa linha, um embaixo do outro. Quando não tem ninguém marcado, a linha mostra \"Dia livre · toque para agendar\". Tocou, abriu a agenda, é só encaixar alguém.\n\nFunciona no navegador do celular ou instalado na tela inicial. Precisa de internet.\n\nO cartão do post é um EXEMPLO de como a tela aparece.\n\nSalva esse post pra lembrar de olhar a Semana antes de fechar a agenda.\n\n#clinicaestetica #gestaodeclinica #agendaonline",
+      "alt_text": "Cartão de exemplo da agenda no celular, com a Semana em lista por dia e uma linha de terça destacada: \"Dia livre · toque para agendar\". Título: Abriu a agenda no celular e a terça tava vazia?"
+    },
+    {
+      "id": "S3",
+      "dia": "2026-11-28",
+      "horario": "20:40",
+      "tipo": "stories",
+      "arquivos": [
+        "2026-11-23-S3-01.jpg",
+        "2026-11-23-S3-02.jpg",
+        "2026-11-23-S3-03.jpg",
+        "2026-11-23-S3-04.jpg",
+        "2026-11-23-S3-05.jpg"
+      ],
+      "tema": "clinica · Backup diário da agenda e das fichas",
+      "gancho": "O computador da recepção pifou. Cadê a agenda?",
+      "ramo": "clinica",
+      "objetivo": "conversa",
+      "ia": false,
+      "origem": "agente",
+      "fatos": [
+        "comum.backup"
+      ],
+      "tentativas": 2,
+      "visual": {
+        "layout": "pergunta",
+        "fundo": "papel",
+        "layouts": [
+          "pergunta",
+          "conversa",
+          "cartao",
+          "chamada",
+          "frase"
+        ]
+      }
+    }
+  ]
+}

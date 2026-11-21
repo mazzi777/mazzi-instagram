@@ -33,7 +33,8 @@
         "clin.lembrete-1-clique"
       ],
       "exploracao": false,
-      "id": "S1"
+      "id": "S1",
+      "situacao": "aprovada"
     },
     {
       "dia": "2026-11-25",
@@ -48,7 +49,8 @@
         "rest.caixa"
       ],
       "exploracao": false,
-      "id": "B"
+      "id": "B",
+      "situacao": "reserva"
     },
     {
       "dia": "2026-11-26",
@@ -64,7 +66,8 @@
         "rest.caixa"
       ],
       "exploracao": false,
-      "id": "S2"
+      "id": "S2",
+      "situacao": "pulada"
     },
     {
       "dia": "2026-11-26",
@@ -80,7 +83,8 @@
         "comum.marca-propria"
       ],
       "exploracao": true,
-      "id": "C"
+      "id": "C",
+      "situacao": "pulada"
     },
     {
       "dia": "2026-11-27",
@@ -96,7 +100,8 @@
         "comum.celular"
       ],
       "exploracao": true,
-      "id": "D"
+      "id": "D",
+      "situacao": "aprovada"
     },
     {
       "dia": "2026-11-28",
@@ -112,7 +117,8 @@
         "clin.fichas"
       ],
       "exploracao": false,
-      "id": "S3"
+      "id": "S3",
+      "situacao": "aprovada"
     },
     {
       "dia": "2026-11-29",
@@ -128,7 +134,8 @@
         "rest.estoque"
       ],
       "exploracao": false,
-      "id": "S4"
+      "id": "S4",
+      "situacao": "pulada"
     }
   ],
   "porque": "Quatro posts de feed (2 carrosséis, 1 reel, 1 imagem), 3 de conversa e 1 de alcance (75%). Clínica e carrossel pesam mais, então a clínica abre a semana com carrossel e o outro carrossel é de restaurante. O reel é um só, com ângulo novo (sangria e rotina do caixa), porque os reels de caixa no caderno flopparam. Saí do tema \"papel que se perde\" e usei pós-aprovação do orçamento, rotina de caixa, permissões, conta da semana e funções novas (primeiros passos, semana em lista no celular). Stories em 4 dias (ter, qui, sáb, dom), sem repetir gancho recente. Exploração em 2 das 8 peças: carrossel às 20:40 e imagem de agenda no celular."

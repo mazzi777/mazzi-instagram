@@ -1,7 +1,9 @@
 {
   "rid": "2026-11-02-reel-2",
   "criado_em": "2026-11-02",
-  "usada_em": [],
+  "usada_em": [
+    "2026-11-21"
+  ],
   "tipo": "reel",
   "arquivos": [
     "2026-11-02-R2.mp4"

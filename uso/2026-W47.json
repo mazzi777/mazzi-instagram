@@ -97,6 +97,638 @@
    "custo_usd": 0.07536,
    "entrada": 20168,
    "saida": 595
+  },
+  {
+   "em": "2026-11-21T08:39:10.587Z",
+   "etapa": "escrever:stories",
+   "modelo": "claude-sonnet-5-5",
+   "custo_usd": 0.07312,
+   "entrada": 12939,
+   "saida": 2109
+  },
+  {
+   "em": "2026-11-21T08:39:14.570Z",
+   "etapa": "juiz:marca",
+   "modelo": "claude-haiku-5-5",
+   "custo_usd": 0.0011,
+   "entrada": 3769,
+   "saida": 363
+  },
+  {
+   "em": "2026-11-21T08:39:18.964Z",
+   "etapa": "juiz:fatos",
+   "modelo": "claude-haiku-5-5",
+   "custo_usd": 0.00183,
+   "entrada": 3843,
+   "saida": 1795
+  },
+  {
+   "em": "2026-11-21T08:39:23.876Z",
+   "etapa": "juiz:visual",
+   "modelo": "claude-sonnet-5-5",
+   "custo_usd": 0.07451,
+   "entrada": 17947,
+   "saida": 273
+  },
+  {
+   "em": "2026-11-21T08:39:43.178Z",
+   "etapa": "escrever:reel",
+   "modelo": "claude-sonnet-5-5",
+   "custo_usd": 0.09596,
+   "entrada": 16916,
+   "saida": 2797
+  },
+  {
+   "em": "2026-11-21T08:39:47.956Z",
+   "etapa": "juiz:marca",
+   "modelo": "claude-haiku-5-5",
+   "custo_usd": 0.00087,
+   "entrada": 4446,
+   "saida": 655
+  },
+  {
+   "em": "2026-11-21T08:39:52.663Z",
+   "etapa": "juiz:fatos",
+   "modelo": "claude-haiku-5-5",
+   "custo_usd": 0.00173,
+   "entrada": 4519,
+   "saida": 2362
+  },
+  {
+   "em": "2026-11-21T08:40:05.674Z",
+   "etapa": "escrever:reel",
+   "modelo": "claude-sonnet-5-5",
+   "custo_usd": 0.04063,
+   "entrada": 18718,
+   "saida": 2154
+  },
+  {
+   "em": "2026-11-21T08:40:09.801Z",
+   "etapa": "juiz:marca",
+   "modelo": "claude-haiku-5-5",
+   "custo_usd": 0.00092,
+   "entrada": 4396,
+   "saida": 518
+  },
+  {
+   "em": "2026-11-21T08:40:15.830Z",
+   "etapa": "juiz:fatos",
+   "modelo": "claude-haiku-5-5",
+   "custo_usd": 0.00174,
+   "entrada": 4469,
+   "saida": 2406
+  },
+  {
+   "em": "2026-11-21T08:44:34.702Z",
+   "etapa": "juiz:visual",
+   "modelo": "claude-sonnet-5-5",
+   "custo_usd": 0.08868,
+   "entrada": 21292,
+   "saida": 737
+  },
+  {
+   "em": "2026-11-21T08:44:51.177Z",
+   "etapa": "escrever:reel",
+   "modelo": "claude-sonnet-5-5",
+   "custo_usd": 0.0426,
+   "entrada": 18953,
+   "saida": 2255
+  },
+  {
+   "em": "2026-11-21T08:44:55.537Z",
+   "etapa": "juiz:marca",
+   "modelo": "claude-haiku-5-5",
+   "custo_usd": 0.00082,
+   "entrada": 4254,
+   "saida": 511
+  },
+  {
+   "em": "2026-11-21T08:45:00.794Z",
+   "etapa": "juiz:fatos",
+   "modelo": "claude-haiku-5-5",
+   "custo_usd": 0.00177,
+   "entrada": 4328,
+   "saida": 2348
+  },
+  {
+   "em": "2026-11-21T08:45:10.472Z",
+   "etapa": "escrever:stories",
+   "modelo": "claude-sonnet-5-5",
+   "custo_usd": 0.02083,
+   "entrada": 12915,
+   "saida": 1178
+  },
+  {
+   "em": "2026-11-21T08:45:13.959Z",
+   "etapa": "juiz:marca",
+   "modelo": "claude-haiku-5-5",
+   "custo_usd": 0.00053,
+   "entrada": 3662,
+   "saida": 312
+  },
+  {
+   "em": "2026-11-21T08:45:16.349Z",
+   "etapa": "juiz:fatos",
+   "modelo": "claude-haiku-5-5",
+   "custo_usd": 0.00093,
+   "entrada": 3736,
+   "saida": 1040
+  },
+  {
+   "em": "2026-11-21T08:45:22.652Z",
+   "etapa": "escrever:stories",
+   "modelo": "claude-sonnet-5-5",
+   "custo_usd": 0.02044,
+   "entrada": 13588,
+   "saida": 863
+  },
+  {
+   "em": "2026-11-21T08:45:26.134Z",
+   "etapa": "juiz:marca",
+   "modelo": "claude-haiku-5-5",
+   "custo_usd": 0.00054,
+   "entrada": 3664,
+   "saida": 297
+  },
+  {
+   "em": "2026-11-21T08:45:30.983Z",
+   "etapa": "juiz:fatos",
+   "modelo": "claude-haiku-5-5",
+   "custo_usd": 0.00117,
+   "entrada": 3738,
+   "saida": 1612
+  },
+  {
+   "em": "2026-11-21T08:45:38.679Z",
+   "etapa": "juiz:visual",
+   "modelo": "claude-sonnet-5-5",
+   "custo_usd": 0.06778,
+   "entrada": 17837,
+   "saida": 791
+  },
+  {
+   "em": "2026-11-21T08:45:46.605Z",
+   "etapa": "escrever:stories",
+   "modelo": "claude-sonnet-5-5",
+   "custo_usd": 0.02351,
+   "entrada": 13748,
+   "saida": 1105
+  },
+  {
+   "em": "2026-11-21T08:45:54.671Z",
+   "etapa": "juiz:marca",
+   "modelo": "claude-haiku-5-5",
+   "custo_usd": 0.00094,
+   "entrada": 3716,
+   "saida": 1111
+  },
+  {
+   "em": "2026-11-21T08:45:56.569Z",
+   "etapa": "juiz:fatos",
+   "modelo": "claude-haiku-5-5",
+   "custo_usd": 0.00137,
+   "entrada": 3790,
+   "saida": 1952
+  },
+  {
+   "em": "2026-11-21T08:46:12.833Z",
+   "etapa": "escrever:carrossel",
+   "modelo": "claude-sonnet-5-5",
+   "custo_usd": 0.07589,
+   "entrada": 13344,
+   "saida": 2208
+  },
+  {
+   "em": "2026-11-21T08:46:17.185Z",
+   "etapa": "juiz:marca",
+   "modelo": "claude-haiku-5-5",
+   "custo_usd": 0.0005,
+   "entrada": 4057,
+   "saida": 527
+  },
+  {
+   "em": "2026-11-21T08:46:23.081Z",
+   "etapa": "juiz:fatos",
+   "modelo": "claude-haiku-5-5",
+   "custo_usd": 0.00192,
+   "entrada": 4129,
+   "saida": 2751
+  },
+  {
+   "em": "2026-11-21T08:46:32.920Z",
+   "etapa": "escrever:carrossel",
+   "modelo": "claude-sonnet-5-5",
+   "custo_usd": 0.0324,
+   "entrada": 14828,
+   "saida": 1613
+  },
+  {
+   "em": "2026-11-21T08:46:37.448Z",
+   "etapa": "juiz:marca",
+   "modelo": "claude-haiku-5-5",
+   "custo_usd": 0.00072,
+   "entrada": 4052,
+   "saida": 586
+  },
+  {
+   "em": "2026-11-21T08:46:42.886Z",
+   "etapa": "juiz:fatos",
+   "modelo": "claude-haiku-5-5",
+   "custo_usd": 0.00177,
+   "entrada": 4125,
+   "saida": 2685
+  },
+  {
+   "em": "2026-11-21T08:46:51.624Z",
+   "etapa": "juiz:visual",
+   "modelo": "claude-sonnet-5-5",
+   "custo_usd": 0.06999,
+   "entrada": 18155,
+   "saida": 880
+  },
+  {
+   "em": "2026-11-21T08:47:03.905Z",
+   "etapa": "escrever:carrossel",
+   "modelo": "claude-sonnet-5-5",
+   "custo_usd": 0.03675,
+   "entrada": 15159,
+   "saida": 1892
+  },
+  {
+   "em": "2026-11-21T08:47:09.071Z",
+   "etapa": "juiz:marca",
+   "modelo": "claude-haiku-5-5",
+   "custo_usd": 0.00077,
+   "entrada": 4057,
+   "saida": 674
+  },
+  {
+   "em": "2026-11-21T08:47:16.432Z",
+   "etapa": "juiz:fatos",
+   "modelo": "claude-haiku-5-5",
+   "custo_usd": 0.00202,
+   "entrada": 4132,
+   "saida": 3173
+  },
+  {
+   "em": "2026-11-21T08:47:26.070Z",
+   "etapa": "escrever:imagem",
+   "modelo": "claude-sonnet-5-5",
+   "custo_usd": 0.06544,
+   "entrada": 13058,
+   "saida": 1292
+  },
+  {
+   "em": "2026-11-21T08:47:29.656Z",
+   "etapa": "juiz:marca",
+   "modelo": "claude-haiku-5-5",
+   "custo_usd": 0.00061,
+   "entrada": 3808,
+   "saida": 361
+  },
+  {
+   "em": "2026-11-21T08:47:33.665Z",
+   "etapa": "juiz:fatos",
+   "modelo": "claude-haiku-5-5",
+   "custo_usd": 0.00132,
+   "entrada": 3884,
+   "saida": 1649
+  },
+  {
+   "em": "2026-11-21T08:47:38.494Z",
+   "etapa": "juiz:visual",
+   "modelo": "claude-sonnet-5-5",
+   "custo_usd": 0.01916,
+   "entrada": 6424,
+   "saida": 492
+  },
+  {
+   "em": "2026-11-21T08:47:46.253Z",
+   "etapa": "escrever:imagem",
+   "modelo": "claude-sonnet-5-5",
+   "custo_usd": 0.02535,
+   "entrada": 14196,
+   "saida": 1092
+  },
+  {
+   "em": "2026-11-21T08:47:49.349Z",
+   "etapa": "juiz:marca",
+   "modelo": "claude-haiku-5-5",
+   "custo_usd": 0.00031,
+   "entrada": 3836,
+   "saida": 234
+  },
+  {
+   "em": "2026-11-21T08:47:53.764Z",
+   "etapa": "juiz:fatos",
+   "modelo": "claude-haiku-5-5",
+   "custo_usd": 0.00115,
+   "entrada": 3908,
+   "saida": 1584
+  },
+  {
+   "em": "2026-11-21T08:47:55.924Z",
+   "etapa": "juiz:visual",
+   "modelo": "claude-sonnet-5-5",
+   "custo_usd": 0.01567,
+   "entrada": 6449,
+   "saida": 157
+  },
+  {
+   "em": "2026-11-21T08:48:06.385Z",
+   "etapa": "escrever:stories",
+   "modelo": "claude-sonnet-5-5",
+   "custo_usd": 0.03021,
+   "entrada": 27008,
+   "saida": 1508
+  },
+  {
+   "em": "2026-11-21T08:48:10.303Z",
+   "etapa": "juiz:marca",
+   "modelo": "claude-haiku-5-5",
+   "custo_usd": 0.00057,
+   "entrada": 3650,
+   "saida": 311
+  },
+  {
+   "em": "2026-11-21T08:48:12.965Z",
+   "etapa": "juiz:fatos",
+   "modelo": "claude-haiku-5-5",
+   "custo_usd": 0.00106,
+   "entrada": 3723,
+   "saida": 1154
+  },
+  {
+   "em": "2026-11-21T08:48:17.588Z",
+   "etapa": "juiz:visual",
+   "modelo": "claude-sonnet-5-5",
+   "custo_usd": 0.06335,
+   "entrada": 17814,
+   "saida": 357
+  },
+  {
+   "em": "2026-11-21T08:48:28.039Z",
+   "etapa": "escrever:stories",
+   "modelo": "claude-sonnet-5-5",
+   "custo_usd": 0.02519,
+   "entrada": 13791,
+   "saida": 1236
+  },
+  {
+   "em": "2026-11-21T08:48:31.797Z",
+   "etapa": "juiz:marca",
+   "modelo": "claude-haiku-5-5",
+   "custo_usd": 0.00062,
+   "entrada": 3692,
+   "saida": 406
+  },
+  {
+   "em": "2026-11-21T08:48:35.593Z",
+   "etapa": "juiz:fatos",
+   "modelo": "claude-haiku-5-5",
+   "custo_usd": 0.0011,
+   "entrada": 3765,
+   "saida": 1426
+  },
+  {
+   "em": "2026-11-21T08:48:38.583Z",
+   "etapa": "juiz:visual",
+   "modelo": "claude-sonnet-5-5",
+   "custo_usd": 0.06152,
+   "entrada": 17856,
+   "saida": 157
+  },
+  {
+   "em": "2026-11-21T08:48:42.755Z",
+   "etapa": "escrever:stories",
+   "modelo": "claude-sonnet-5-5",
+   "custo_usd": 0.01423,
+   "entrada": 12930,
+   "saida": 512
+  },
+  {
+   "em": "2026-11-21T08:48:47.803Z",
+   "etapa": "juiz:marca",
+   "modelo": "claude-haiku-5-5",
+   "custo_usd": 0.00079,
+   "entrada": 3705,
+   "saida": 530
+  },
+  {
+   "em": "2026-11-21T08:48:51.672Z",
+   "etapa": "juiz:fatos",
+   "modelo": "claude-haiku-5-5",
+   "custo_usd": 0.00139,
+   "entrada": 3778,
+   "saida": 1794
+  },
+  {
+   "em": "2026-11-21T08:48:55.107Z",
+   "etapa": "escrever:stories",
+   "modelo": "claude-sonnet-5-5",
+   "custo_usd": 0.01724,
+   "entrada": 13655,
+   "saida": 516
+  },
+  {
+   "em": "2026-11-21T08:48:58.575Z",
+   "etapa": "juiz:marca",
+   "modelo": "claude-haiku-5-5",
+   "custo_usd": 0.00062,
+   "entrada": 3711,
+   "saida": 363
+  },
+  {
+   "em": "2026-11-21T08:49:02.074Z",
+   "etapa": "juiz:fatos",
+   "modelo": "claude-haiku-5-5",
+   "custo_usd": 0.00116,
+   "entrada": 3784,
+   "saida": 1382
+  },
+  {
+   "em": "2026-11-21T08:49:06.463Z",
+   "etapa": "juiz:visual",
+   "modelo": "claude-sonnet-5-5",
+   "custo_usd": 0.06364,
+   "entrada": 17875,
+   "saida": 361
+  },
+  {
+   "em": "2026-11-21T08:49:16.629Z",
+   "etapa": "escrever:stories",
+   "modelo": "claude-sonnet-5-5",
+   "custo_usd": 0.02657,
+   "entrada": 13913,
+   "saida": 1343
+  },
+  {
+   "em": "2026-11-21T08:49:21.038Z",
+   "etapa": "juiz:marca",
+   "modelo": "claude-haiku-5-5",
+   "custo_usd": 0.00069,
+   "entrada": 3731,
+   "saida": 576
+  },
+  {
+   "em": "2026-11-21T08:49:23.885Z",
+   "etapa": "juiz:fatos",
+   "modelo": "claude-haiku-5-5",
+   "custo_usd": 0.00108,
+   "entrada": 3804,
+   "saida": 1296
+  },
+  {
+   "em": "2026-11-21T08:49:30.334Z",
+   "etapa": "juiz:visual",
+   "modelo": "claude-sonnet-5-5",
+   "custo_usd": 0.06589,
+   "entrada": 17892,
+   "saida": 566
+  },
+  {
+   "em": "2026-11-21T08:49:44.579Z",
+   "etapa": "escrever:carrossel",
+   "modelo": "claude-sonnet-5-5",
+   "custo_usd": 0.03006,
+   "entrada": 13228,
+   "saida": 2016
+  },
+  {
+   "em": "2026-11-21T08:49:51.422Z",
+   "etapa": "juiz:marca",
+   "modelo": "claude-haiku-5-5",
+   "custo_usd": 0.00097,
+   "entrada": 3992,
+   "saida": 1123
+  },
+  {
+   "em": "2026-11-21T08:49:52.180Z",
+   "etapa": "juiz:fatos",
+   "modelo": "claude-haiku-5-5",
+   "custo_usd": 0.00129,
+   "entrada": 4065,
+   "saida": 1756
+  },
+  {
+   "em": "2026-11-21T08:50:06.768Z",
+   "etapa": "escrever:carrossel",
+   "modelo": "claude-sonnet-5-5",
+   "custo_usd": 0.0366,
+   "entrada": 14993,
+   "saida": 1966
+  },
+  {
+   "em": "2026-11-21T08:50:10.452Z",
+   "etapa": "juiz:marca",
+   "modelo": "claude-haiku-5-5",
+   "custo_usd": 0.0007,
+   "entrada": 3987,
+   "saida": 371
+  },
+  {
+   "em": "2026-11-21T08:50:15.473Z",
+   "etapa": "juiz:fatos",
+   "modelo": "claude-haiku-5-5",
+   "custo_usd": 0.00166,
+   "entrada": 4060,
+   "saida": 2207
+  },
+  {
+   "em": "2026-11-21T08:50:21.153Z",
+   "etapa": "juiz:visual",
+   "modelo": "claude-sonnet-5-5",
+   "custo_usd": 0.06432,
+   "entrada": 17482,
+   "saida": 563
+  },
+  {
+   "em": "2026-11-21T08:50:37.945Z",
+   "etapa": "escrever:carrossel",
+   "modelo": "claude-sonnet-5-5",
+   "custo_usd": 0.03918,
+   "entrada": 14913,
+   "saida": 2242
+  },
+  {
+   "em": "2026-11-21T08:50:46.223Z",
+   "etapa": "escrever:reel",
+   "modelo": "claude-sonnet-5-5",
+   "custo_usd": 0.02427,
+   "entrada": 16865,
+   "saida": 1265
+  },
+  {
+   "em": "2026-11-21T08:50:51.758Z",
+   "etapa": "juiz:marca",
+   "modelo": "claude-haiku-5-5",
+   "custo_usd": 0.00102,
+   "entrada": 4285,
+   "saida": 808
+  },
+  {
+   "em": "2026-11-21T08:50:58.536Z",
+   "etapa": "juiz:fatos",
+   "modelo": "claude-haiku-5-5",
+   "custo_usd": 0.00206,
+   "entrada": 4358,
+   "saida": 2829
+  },
+  {
+   "em": "2026-11-21T08:51:12.853Z",
+   "etapa": "escrever:reel",
+   "modelo": "claude-sonnet-5-5",
+   "custo_usd": 0.04194,
+   "entrada": 19066,
+   "saida": 2142
+  },
+  {
+   "em": "2026-11-21T08:51:16.009Z",
+   "etapa": "juiz:marca",
+   "modelo": "claude-haiku-5-5",
+   "custo_usd": 0.00073,
+   "entrada": 4180,
+   "saida": 234
+  },
+  {
+   "em": "2026-11-21T08:51:21.942Z",
+   "etapa": "juiz:fatos",
+   "modelo": "claude-haiku-5-5",
+   "custo_usd": 0.0016,
+   "entrada": 4253,
+   "saida": 1841
+  },
+  {
+   "em": "2026-11-21T08:51:36.758Z",
+   "etapa": "escrever:reel",
+   "modelo": "claude-sonnet-5-5",
+   "custo_usd": 0.04065,
+   "entrada": 18558,
+   "saida": 2222
+  },
+  {
+   "em": "2026-11-21T08:51:40.149Z",
+   "etapa": "juiz:marca",
+   "modelo": "claude-haiku-5-5",
+   "custo_usd": 0.00042,
+   "entrada": 4171,
+   "saida": 323
+  },
+  {
+   "em": "2026-11-21T08:51:46.173Z",
+   "etapa": "juiz:fatos",
+   "modelo": "claude-haiku-5-5",
+   "custo_usd": 0.00184,
+   "entrada": 4244,
+   "saida": 2422
+  },
+  {
+   "em": "2026-11-21T08:54:23.965Z",
+   "etapa": "juiz:visual",
+   "modelo": "claude-sonnet-5-5",
+   "custo_usd": 0.07746,
+   "entrada": 20431,
+   "saida": 721
   }
  ]
 }
