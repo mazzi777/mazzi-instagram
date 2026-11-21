@@ -175,7 +175,9 @@ export function escolherPautas(pautas, { banco = [], quantas = 1, semente = 0, r
   const escolhidas = [];
   while (escolhidas.length < quantas && ordem.length) {
     const ultimo = escolhidas.at(-1)?.ramo;
-    const k = Math.max(0, ordem.findIndex((p) => p.ramo !== ultimo));
+    // Alterna o ramo, mas sem passar uma pauta recusada na frente de uma que não foi (a recusa pesa mais que o ramo).
+    const recusa = (p) => recusadas.has(p.chave);
+    const k = Math.max(0, ordem.findIndex((p) => p.ramo !== ultimo && recusa(p) === recusa(ordem[0])));
     escolhidas.push(ordem.splice(k, 1)[0]);
   }
   return escolhidas;

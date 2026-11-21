@@ -227,7 +227,10 @@ test('qualidade 9b: com o banco real, as pautas reprovadas numa semana saem da f
   const semana1 = escolherPautas(pautas, { banco, quantas: 3, semente: 2917 });
   const recusadas = new Set(semana1.map((p) => p.chave));
   const semana2 = escolherPautas(pautas, { banco, quantas: 3, semente: 2918, recusadas });
-  assert.equal(semana2.filter((p) => recusadas.has(p.chave)).length, 0, `${semana1.map((p) => p.chave)} -> ${semana2.map((p) => p.chave)}`);
+  // Recusada só volta se faltar pauta não recusada (o banco real cresce: com o tempo sobram menos pautas livres).
+  const livres = pautas.filter((p) => !banco.some((r) => (r.tema ?? '').includes(p.tema)) && !recusadas.has(p.chave)).length;
+  const esperado = Math.max(0, semana2.length - livres);
+  assert.equal(semana2.filter((p) => recusadas.has(p.chave)).length, esperado, `${semana1.map((p) => p.chave)} -> ${semana2.map((p) => p.chave)}`);
   const todas = new Set(pautas.map((p) => p.chave));
   assert.equal(escolherPautas(pautas, { banco, quantas: 3, semente: 1, recusadas: todas }).length, 3, 'com tudo recusado ainda tenta (fim da fila, não proibida)');
 });
@@ -322,3 +325,32 @@ test('qualidade: na regeração, sugestão do editor não libera função fora d
   const p = promptPeca(itemRetornos, ['editor (original 5/10): mostre quem abriu a gaveta'], retornosBom, { produto, config });
   assert.match(p, /sugestão do editor NÃO libera função, ação ou registro que não está nos fatos acima/);
 });
+
+// 3ª rodada de 21/11: os 3 reels gastaram tentativas em batida longa, gancho de 3,0 s e cena repetida.
+test('qualidade: medir_roteiro dá o mesmo veredito do roteiro e da edição; só o reel recebe a ferramenta', async () => {
+  const { ferramentaRoteiro, regrasDaEdicao } = await import('../etapas/escrever.mjs');
+  const { checarBatidas } = await import('../checagens/batidas.mjs');
+  const medir = async (batidas) => JSON.parse((await ferramentaRoteiro({ config }).handler({ batidas })).content[0].text);
+  const longa = [
+    { fala: 'Tirou dinheiro do caixa e esqueceu de anotar onde?', tela: 'Tirou e esqueceu?', cena: { tipo: 'gancho' } },
+    { fala: 'Aí no fechamento da noite a conta não bate e ninguém sabe dizer por que nem quando foi', tela: 'Não bate', cena: { tipo: 'cartao', cartao: { linhas: [{ rotulo: 'Sangria' }] } } },
+    { fala: 'Chama no WhatsApp.', tela: 'Link na bio', cena: { tipo: 'cartao', cartao: { linhas: [{ rotulo: 'x' }] } } },
+  ];
+  const real = [...checarBatidas(longa.map((b) => b.fala), config.checagens.batidas).motivos, ...regrasDaEdicao(longa)];
+  const medido = await medir(longa);
+  assert.equal(medido.passa, false);
+  assert.deepEqual(medido.motivos, real);
+  assert.ok(real.some((m) => /gancho leva/.test(m)) && real.some((m) => /repetida/.test(m)), real.join('; '));
+  const reel = await escreverPedido({ ...itemRetornos, tipo: 'reel' });
+  assert.ok(reel.ferramentas.some((f) => f.name === 'medir_roteiro'));
+  assert.match(reel.prompt, /medir_roteiro/);
+  const carrossel = await escreverPedido(itemRetornos);
+  assert.ok(!carrossel.ferramentas.some((f) => f.name === 'medir_roteiro'));
+});
+
+async function escreverPedido(item) {
+  const { escreverPeca } = await import('../etapas/escrever.mjs');
+  let pedido;
+  await escreverPeca({ raiz: RAIZ, item, produto, config, cerebro: { pedir: async (q) => { pedido = q; return retornosBom; } }, motivosAnteriores: [], anterior: null, usados: [], hoje: HOJE });
+  return pedido;
+}

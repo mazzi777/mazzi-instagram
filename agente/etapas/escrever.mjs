@@ -238,6 +238,28 @@ export function ferramentaTexto({ config, tipo }) {
   };
 }
 
+/**
+ * Ferramenta "medir_roteiro" (só reel): as MESMAS regras de código do roteiro (tempo de cada batida e do gancho,
+ * duração total) e da edição (cenas). Em 21/11 os 3 reels de reposição gastaram tentativas em batida > 4 s,
+ * gancho com 3,0 s e cena repetida.
+ */
+export function ferramentaRoteiro({ config }) {
+  return {
+    name: 'medir_roteiro',
+    description: 'Confere o roteiro do reel com as regras oficiais do código: tempo de cada batida (até 4 s) e do gancho (até 3 s), duração total, variedade e regras das cenas. Mande as batidas completas ({fala, tela, cena}); passa=true quer dizer que o roteiro não tem nenhum desses problemas.',
+    shape: { batidas: z.array(z.object({ fala: z.string(), tela: z.string(), cena: z.object({ tipo: z.string() }).passthrough() })).min(1).max(20) },
+    handler: async ({ batidas }) => {
+      let motivos;
+      try {
+        motivos = [...checarBatidas(batidas.map((b) => b.fala), config?.checagens?.batidas).motivos, ...regrasDaEdicao(batidas)];
+      } catch (e) {
+        motivos = [`roteiro fora do formato: ${e.message}`];
+      }
+      return { content: [{ type: 'text', text: JSON.stringify({ passa: motivos.length === 0, motivos }, null, 1) }] };
+    },
+  };
+}
+
 /** Régua de voz em texto, com as listas EXATAS do código (G4, critério VOZ). */
 export const REGUA_VOZ = `RÉGUA DE VOZ (código; o texto corrido precisa de nota 70 e nenhum critério abaixo de 55):
 - A cada 100 palavras, uns 2 coloquiais destes: ${[...COLOQUIAL].join(', ')}. ("pra" e "tá" resolvem quase sempre.)
@@ -297,7 +319,7 @@ Antes de responder, chame a ferramenta medir_gancho UMA vez com 4 a 8 candidatos
 Como a peça anda: a cena concreta do dono (um dia, uma pessoa, um objeto) → o que a tela da Mazzi mostra naquela cena (só o que está nos fatos acima) → a chamada. Uma ideia por tela.
 Nenhuma tela promete o que vai acontecer ("não some mais", "a gente vê antes", "nunca mais falta", "você vai saber"): o juiz de fatos reprova como resultado inventado. Mostre a tela; quem conclui é o dono.
 Valor em dinheiro (R$, "reais", "conto") só dentro de cartão, painel, celular ou contador de EXEMPLO; nunca na fala, no texto da tela, na legenda ou no título.${item.ramo === 'clinica' ? '\nClínica: fale da recepção, da agenda, da ficha, do orçamento; nunca do procedimento nem de resultado.' : item.ramo === 'restaurante' ? '\nRestaurante: fale do balcão, do caixa, da balança, do delivery, do estoque; palavra do dono (troco, sangria, quilo, motoboy, comanda).' : ''}
-${REGUA_VOZ}
+${REGUA_VOZ}${item.tipo === 'reel' ? '\nReel: antes de responder, passe as batidas completas na ferramenta medir_roteiro e só entregue com passa=true. Gancho falado com até 6 palavras (o limite é 3 s, e 7 palavras já encostam nele); nenhuma fala passa de 10 palavras.' : ''}
 Interface de EXEMPLO (cartão, painel, celular, conversa) e cenas de módulos (hub, encaixe, órbita, lista) mostram SÓ o que os fatos acima dizem,
 com os nomes deles (ex.: "Retornos", "Pacote 4/10"): nada de módulo de fora, frase de comparação dentro do cartão ("sem caderno")
 nem mensagem de cliente pedindo a função. Na dúvida, um cartão com 2 ou 3 linhas da própria função.
@@ -317,8 +339,8 @@ export async function escreverPeca({ raiz, item, produto, cerebro, config, motiv
     effort: 'medium',
     // As réguas do gancho e da voz como ferramentas: o redator mede antes de entregar (turnos extras só para isso).
     // Estourar os turnos vira "erro na produção" e conta como tentativa (não aprova nada).
-    ferramentas: [ferramentaGancho({ config, usados, hoje }), ferramentaTexto({ config, tipo: item.tipo })],
-    maxTurns: 8,
+    ferramentas: [ferramentaGancho({ config, usados, hoje }), ferramentaTexto({ config, tipo: item.tipo }), ...(item.tipo === 'reel' ? [ferramentaRoteiro({ config })] : [])],
+    maxTurns: item.tipo === 'reel' ? 10 : 8,
   });
   return limparTexto(conteudo);
 }
