@@ -1505,6 +1505,14 @@
    "custo_usd": 0.07734,
    "entrada": 20905,
    "saida": 562
+  },
+  {
+   "em": "2026-11-21T13:07:03.047Z",
+   "etapa": "escrever:reel",
+   "modelo": "claude-sonnet-5-5",
+   "custo_usd": 0,
+   "entrada": 0,
+   "saida": 0
   }
  ]
 }
