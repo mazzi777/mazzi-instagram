@@ -4,7 +4,8 @@
 import React from 'react';
 import { AbsoluteFill, interpolate, useCurrentFrame, useVideoConfig, staticFile } from 'remotion';
 import { loadFont } from '@remotion/fonts';
-import { AREA, geometriaHub, geometriaEncaixe } from './geometria.mjs';
+import { AREA, geometriaHub, geometriaEncaixe, ANEL, layoutContador } from './geometria.mjs';
+import { nomeDoCartao, SELO_CORES } from '../../lib/exemplo.mjs';
 import { COR, ATOS, tw, mola, SAI, ENTRA_SAI, useCena, naBatida, Fundo, Camera, Rabisco, Icone, TituloCinetico, Rotulo, MarcaMazzi, linhasEstimadas, tamanhoQueCabe } from './base.jsx';
 
 loadFont({ family: 'Caveat', url: staticFile('caveat-600.woff2'), weight: '600' });
@@ -18,8 +19,27 @@ function Selo({ texto, tom = 'neutro', tamanho = 30 }) {
   return <span style={{ fontSize: tamanho, fontWeight: 800, padding: '8px 22px', borderRadius: 999, background: fundo, color: cor, whiteSpace: 'nowrap' }}>{texto}</span>;
 }
 
-function Exemplo({ titulo, cor = '#8b8f97' }) {
-  return <div style={{ fontSize: 24, fontWeight: 800, letterSpacing: '0.16em', color: cor }}>EXEMPLO{titulo ? ` · ${titulo.toUpperCase()}` : ''}</div>;
+/**
+ * Selo EXEMPLO: pílula sólida (papel sobre escuro, grafite sobre claro), com fundo próprio para não depender do que
+ * está atrás. Até 21/11 era texto cinza de 20 a 24 px, às vezes com opacidade 0,55, e o juiz visual reprovava.
+ */
+export function SeloExemplo({ sobre = 'escuro', tamanho = 28 }) {
+  const c = SELO_CORES[sobre] ?? SELO_CORES.escuro;
+  return (
+    <span data-selo="exemplo" style={{ display: 'inline-block', fontSize: tamanho, fontWeight: 800, letterSpacing: '0.06em', lineHeight: 1, padding: `${Math.round(tamanho * 0.32)}px ${Math.round(tamanho * 0.7)}px`,
+      borderRadius: 999, background: c.fundo, color: c.texto, whiteSpace: 'nowrap', boxShadow: '0 4px 14px rgba(0,0,0,0.18)' }}>EXEMPLO</span>
+  );
+}
+
+/** Cabeçalho do cartão: o selo (uma vez só) e o nome do cartão sem a palavra "exemplo" que o redator às vezes escreve. */
+function Exemplo({ titulo, sobre = 'escuro' }) {
+  const nome = nomeDoCartao(titulo);
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 18, minWidth: 0 }}>
+      <SeloExemplo sobre={sobre} />
+      {nome ? <span style={{ fontSize: 30, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>{nome}</span> : null}
+    </div>
+  );
 }
 
 /**
@@ -148,10 +168,11 @@ export function Cartao({ tela, destaque, cartao, ramo }) {
       <div style={{ position: 'absolute', left: ESQ, top: 600, width: 800, perspective: 1600 }}>
         <div style={{ position: 'relative', overflow: 'hidden', borderRadius: 40, padding: '40px 44px 22px', background: 'linear-gradient(140deg, rgba(255,255,255,0.18), rgba(255,255,255,0.05))', border: '2px solid rgba(255,255,255,0.24)', backdropFilter: 'blur(8px)',
           boxShadow: '0 60px 120px rgba(0,0,0,0.5), inset 0 2px 0 rgba(255,255,255,0.3)', transform: `rotateY(${-6 - (1 - m) * 30}deg) rotateX(${4 + (1 - m) * 12}deg) translateY(${(1 - m) * 140}px)`, opacity: m, color: COR.papel }}>
-          <div style={{ position: 'absolute', inset: 0, background: 'rgba(17,19,22,0.55)' }} />
-          <div style={{ position: 'absolute', top: 0, left: reflexo, width: 220, height: '100%', background: 'linear-gradient(100deg, transparent, rgba(255,255,255,0.22), transparent)', transform: 'skewX(-18deg)' }} />
+          {/* Vidro quase opaco: com 0,55 ele virava cinza sobre o fundo claro e o texto perdia contraste. */}
+          <div style={{ position: 'absolute', inset: 0, background: 'rgba(17,19,22,0.84)' }} />
+          <div style={{ position: 'absolute', top: 0, left: reflexo, width: 220, height: '100%', background: 'linear-gradient(100deg, transparent, rgba(255,255,255,0.16), transparent)', transform: 'skewX(-18deg)' }} />
           <div style={{ position: 'relative' }}>
-            <Exemplo titulo={cartao.titulo} cor="#b9bcc3" />
+            <Exemplo titulo={cartao.titulo} sobre="escuro" />
             {cartao.linhas.map((l, i) => {
               const q = naBatida(i + 1);
               const v = tw(f, q, q + 8, 0, 1);
@@ -189,7 +210,7 @@ export function Papel({ tela, destaque, rabiscos, cartao, ramo }) {
       <div style={{ position: 'absolute', left: div, top: 0, width: 1080, height: 1920, background: 'radial-gradient(120% 70% at 40% 45%, #22262c, #111316)', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', left: 50, top: 236, fontSize: 30, fontWeight: 900, letterSpacing: '0.08em', color: COR.coral }}>NA MAZZI</div>
         <div style={{ position: 'absolute', left: 50, top: 560, width: 450, borderRadius: 30, padding: '28px 30px 12px', background: COR.cartao, border: `2px solid ${COR.borda}`, boxShadow: '0 40px 80px rgba(0,0,0,0.5)', color: COR.papel }}>
-          <Exemplo titulo={cartao.titulo} />
+          <Exemplo titulo={cartao.titulo} sobre="escuro" />
           {cartao.linhas.map((l, i) => (
             <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, padding: '18px 0', borderTop: i ? `2px solid ${COR.borda}` : 'none', fontSize: 32 }}>
               <span>{l.rotulo}</span>{l.selo ? <Selo texto={l.selo} tom={l.tom ?? 'ok'} tamanho={24} /> : null}
@@ -241,23 +262,31 @@ export function Contador({ tela, destaque, rotulo, valor, total, sufixo, ramo })
   const { ato, duracao } = useCena();
   const p = tw(f, 6, Math.min(duracao - 4, 40), 0, 1, ENTRA_SAI);
   const atual = Math.round(valor * p);
-  const frac = total ? valor / total : 1;
-  const C = 2 * Math.PI * 250;
+  const frac = total ? Math.min(1, valor / total) : 1;
+  const C = 2 * Math.PI * ANEL.raio;
+  // Tamanhos pela corda do anel (geometria.mjs): o número e o rótulo nunca passam da borda interna, mesmo "999kg/999".
+  const g = layoutContador({ rotulo, valor, total, sufixo });
+  const claro = ato.texto === COR.grafite; // fundo papel ou coral: pílula grafite
+  const lado = ANEL.raio * 2 + ANEL.traco;
   return (
     <Camera>
       <Fundo />
       <Topo tela={tela} destaque={destaque} ramo={ramo} tamanho={72} />
-      <svg viewBox="0 0 600 600" width="600" height="600" aria-hidden="true" style={{ position: 'absolute', left: 240, top: 520 }}>
-        <circle cx="300" cy="300" r="250" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="38" />
-        <circle cx="300" cy="300" r="250" fill="none" stroke={ato.destaque} strokeWidth="38" strokeLinecap="round" strokeDasharray={`${C * frac * p} ${C}`} transform="rotate(-90 300 300)" />
+      <svg viewBox={`0 0 ${lado} ${lado}`} width={lado} height={lado} aria-hidden="true" style={{ position: 'absolute', left: ANEL.cx - lado / 2, top: ANEL.cy - lado / 2 }}>
+        <circle cx={lado / 2} cy={lado / 2} r={ANEL.raio} fill="none" stroke={claro ? 'rgba(17,19,22,0.1)' : 'rgba(255,255,255,0.1)'} strokeWidth={ANEL.traco} />
+        <circle cx={lado / 2} cy={lado / 2} r={ANEL.raio} fill="none" stroke={ato.destaque} strokeWidth={ANEL.traco} strokeLinecap="round" strokeDasharray={`${C * frac * p} ${C}`} transform={`rotate(-90 ${lado / 2} ${lado / 2})`} />
       </svg>
-      <div style={{ position: 'absolute', left: 240, top: 640, width: 600, display: 'flex', flexDirection: 'column', alignItems: 'center', color: ato.texto }}>
-        <div style={{ fontSize: 34, fontWeight: 800, letterSpacing: '0.14em', opacity: 0.7 }}>{rotulo.toUpperCase()}</div>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, fontWeight: 900, letterSpacing: '-0.05em' }}>
-          <span style={{ fontSize: 210, lineHeight: 1 }}>{atual}{sufixo ?? ''}</span>
-          {total ? <span style={{ fontSize: 90, opacity: 0.45 }}>/{total}</span> : null}
+      <div style={{ position: 'absolute', left: ANEL.cx - 300, top: g.topo, width: 600, height: g.altura, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14, color: ato.texto, textAlign: 'center' }}>
+        {g.linhas.length ? (
+          <div style={{ fontSize: g.rotulo, lineHeight: `${Math.round(g.rotulo * 1.15)}px`, fontWeight: 800, letterSpacing: '0.08em' }}>
+            {g.linhas.map((l, i) => <div key={i}>{l}</div>)}
+          </div>
+        ) : null}
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, fontWeight: 900, letterSpacing: '-0.05em', height: g.numero, lineHeight: `${g.numero}px`, whiteSpace: 'nowrap' }}>
+          <span style={{ fontSize: g.numero }}>{atual}{sufixo ?? ''}</span>
+          {total ? <span style={{ fontSize: g.total, opacity: 0.6 }}>/{total}</span> : null}
         </div>
-        <div style={{ fontSize: 24, fontWeight: 800, letterSpacing: '0.16em', opacity: 0.55, marginTop: 10 }}>EXEMPLO</div>
+        <SeloExemplo sobre={claro ? 'claro' : 'escuro'} tamanho={26} />
       </div>
     </Camera>
   );
@@ -294,7 +323,7 @@ export function Celular({ tela, destaque, mensagens, contato = 'Sua clínica', r
                 </React.Fragment>
               );
             })}
-            <div style={{ marginTop: 'auto', textAlign: 'center', fontSize: 20, fontWeight: 800, letterSpacing: '0.16em', color: '#6f7279' }}>EXEMPLO</div>
+            <div style={{ marginTop: 'auto', alignSelf: 'center' }}><SeloExemplo sobre="escuro" tamanho={24} /></div>
           </div>
         </div>
       </div>
@@ -397,7 +426,7 @@ export function Painel({ tela, destaque, titulo, linhas = [], ramo }) {
       <div style={{ position: 'absolute', left: 70, top: 600, width: 940, perspective: 1600 }}>
         <div style={{ borderRadius: 36, background: COR.cartao, border: `2px solid ${COR.borda}`, padding: '34px 38px', color: COR.papel, boxShadow: '0 60px 120px rgba(0,0,0,0.5)',
           transform: `rotateX(${18 - m * 8}deg) rotateY(${-12 + (1 - m) * -20}deg) translateY(${(1 - m) * 160}px)`, opacity: m }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><div style={{ fontSize: 38, fontWeight: 800 }}>{titulo}</div><Exemplo /></div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><div style={{ fontSize: 38, fontWeight: 800 }}>{nomeDoCartao(titulo)}</div><SeloExemplo sobre="escuro" tamanho={26} /></div>
           <svg viewBox="0 0 860 300" width="860" height="300" aria-hidden="true" style={{ marginTop: 18 }}>
             {[0, 1, 2, 3].map((k) => <line key={k} x1="0" x2="860" y1={40 + k * 80} y2={40 + k * 80} stroke="#2c3038" strokeWidth="2" />)}
             <path d="M0 250 C 90 230, 140 180, 220 190 S 360 120, 440 140 S 600 60, 680 80 S 800 30, 860 24" stroke={ato.destaque} strokeWidth="8" fill="none" strokeLinecap="round" pathLength={1} strokeDasharray={1} strokeDashoffset={1 - traco} />

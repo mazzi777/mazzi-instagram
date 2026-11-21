@@ -4,6 +4,7 @@
 // (direcao.mjs) para o grid não virar um bloco só. @mazzisystems em toda peça; interface sempre com o selo "EXEMPLO".
 import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
+import { nomeDoCartao } from '../lib/exemplo.mjs';
 
 const require = createRequire(import.meta.url);
 const woff = (pacote, arquivo) => readFileSync(require.resolve(`@fontsource/${pacote}/files/${arquivo}`)).toString('base64');
@@ -73,7 +74,7 @@ function cartao(c, fundo, grande = false) {
     return `<div class="linha"><span>${esc(l.rotulo)}</span>${selo}</div>`;
   }).join('');
   // O redator às vezes já escreve "Exemplo" no título: o selo é um só.
-  const nome = (c.titulo ?? '').replace(/(?:^|\s*[:·\-–]\s*|\s+)\(?exemplo\)?(?:\s*[:·\-–]\s*|\s+|$)/gi, ' ').trim();
+  const nome = nomeDoCartao(c.titulo);
   return `<div class="cartao escala${grande ? ' grande' : ''}"><div class="exemplo">EXEMPLO${nome ? ` · ${esc(nome)}` : ''}</div>${linhas}</div>`;
 }
 
