@@ -1,7 +1,9 @@
 {
   "rid": "2026-11-21-carrossel-clin-comissoes",
   "criado_em": "2026-11-21",
-  "usada_em": [],
+  "usada_em": [
+    "2026-11-27"
+  ],
   "tipo": "carrossel",
   "arquivos": [
     "2026-11-23-R1-01.jpg",

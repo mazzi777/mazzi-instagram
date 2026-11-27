@@ -1,24 +1,24 @@
 {
-  "atualizado_em": "2026-11-20",
+  "atualizado_em": "2026-11-27",
   "pesos": {
     "tipo": {
-      "carrossel": 1.2,
-      "reel": 0.8,
+      "carrossel": 1.44,
+      "reel": 0.674,
       "imagem": 1
     },
     "ramo": {
-      "comum": 0.8,
-      "clinica": 1.2,
+      "comum": 0.64,
+      "clinica": 1.44,
       "restaurante": 1
     },
     "objetivo": {
-      "conversa": 1.128,
+      "conversa": 1.108,
       "alcance": 1
     },
     "horario": {
-      "07:40": 0.8,
+      "07:40": 0.721,
       "18:40": 1,
-      "11:40": 0.8,
+      "11:40": 0.64,
       "20:40": 1
     },
     "conteudo": {
@@ -27,27 +27,27 @@
   },
   "amostras": {
     "tipo": {
-      "carrossel": 6,
-      "reel": 7,
+      "carrossel": 7,
+      "reel": 8,
       "imagem": 2
     },
     "ramo": {
-      "comum": 6,
+      "comum": 7,
       "clinica": 7,
-      "restaurante": 2
+      "restaurante": 3
     },
     "objetivo": {
-      "conversa": 13,
+      "conversa": 15,
       "alcance": 2
     },
     "horario": {
       "07:40": 7,
-      "18:40": 2,
-      "11:40": 4,
+      "18:40": 3,
+      "11:40": 5,
       "20:40": 2
     },
     "conteudo": {
-      "desconhecido": 15
+      "desconhecido": 17
     }
   }
 }
