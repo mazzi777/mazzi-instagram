@@ -2,6 +2,7 @@
 
 Uma linha por peça, a mais nova no topo. A partir de 09/11/2026 o GitHub Actions acrescenta as linhas sozinho ao publicar (data · PUBLICADO · formato · tema · gancho · ids). A produção da semana lê este arquivo para não repetir tema nem gancho.
 
+- 27/11/2026 · PUBLICADO · imagem (D, 1 arquivo(s)) · clinica · Dia livre na semana pelo celular · "Abriu a agenda no celular e a terça tava vazia?" · ids 17995119717096515 · via API da Meta
 - 25/11/2026 · PUBLICADO · reel (B, 1 arquivo(s)) · comum · como entrar · "Seu cadastro na Mazzi não existe. Só WhatsApp." · ids 18389361460300117 · via API da Meta
 - 24/11/2026 · PUBLICADO · stories (S1, 5 arquivo(s)) · clinica · Lembrete de consulta em 1 clique · "Quem confirma as consultas de amanhã na sua clínica?" · ids 18155369434548974, 18097672100174120, 18152436925564914, 18084751097709108, 17891946624478254 · via API da Meta
 - 20/11/2026 · PUBLICADO · carrossel (C, 7 arquivo(s)) · comum · como entrar · "Procurou o cadastro da Mazzi e não achou?" · ids 17933534262424636 · via API da Meta
