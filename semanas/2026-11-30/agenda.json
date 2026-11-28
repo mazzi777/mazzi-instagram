@@ -40,6 +40,140 @@
       "dia": "2026-11-30",
       "horario": "18:40",
       "origem": "reserva"
+    },
+    {
+      "id": "S1",
+      "dia": "2026-12-01",
+      "horario": "07:40",
+      "tipo": "stories",
+      "arquivos": [
+        "2026-11-30-S1-01.jpg",
+        "2026-11-30-S1-02.jpg",
+        "2026-11-30-S1-03.jpg",
+        "2026-11-30-S1-04.jpg"
+      ],
+      "tema": "comum · Esqueceu a senha: link pelo WhatsApp",
+      "gancho": "Segunda de manhã e a recepção sem senha?",
+      "ramo": "comum",
+      "objetivo": "conversa",
+      "ia": false,
+      "origem": "agente",
+      "fatos": [
+        "comum.recuperar-senha-suporte"
+      ],
+      "tentativas": 3,
+      "visual": {
+        "layout": "pergunta",
+        "fundo": "papel",
+        "layouts": [
+          "pergunta",
+          "conversa",
+          "cartao",
+          "manchete"
+        ]
+      }
+    },
+    {
+      "tipo": "stories",
+      "arquivos": [
+        "2026-11-30-S2-01.jpg",
+        "2026-11-30-S2-02.jpg",
+        "2026-11-30-S2-03.jpg",
+        "2026-11-30-S2-04.jpg"
+      ],
+      "tema": "clinica · o lote que vence primeiro",
+      "gancho": "Dois frascos na gaveta: qual vence antes?",
+      "ramo": "clinica",
+      "objetivo": "conversa",
+      "ia": false,
+      "fatos": [
+        "clin.estoque-lote"
+      ],
+      "visual": {
+        "layout": "pergunta",
+        "fundo": "papel",
+        "layouts": [
+          "pergunta",
+          "bilhete",
+          "cartao",
+          "chamada"
+        ]
+      },
+      "id": "S2",
+      "dia": "2026-12-03",
+      "horario": "20:40",
+      "origem": "reserva"
+    },
+    {
+      "tipo": "carrossel",
+      "arquivos": [
+        "2026-11-30-C-01.jpg",
+        "2026-11-30-C-02.jpg",
+        "2026-11-30-C-03.jpg",
+        "2026-11-30-C-04.jpg",
+        "2026-11-30-C-05.jpg",
+        "2026-11-30-C-06.jpg",
+        "2026-11-30-C-07.jpg"
+      ],
+      "tema": "clinica · em que sessão do pacote a paciente está",
+      "gancho": "Sua paciente pergunta da sessão e o caderno some?",
+      "ramo": "clinica",
+      "objetivo": "conversa",
+      "ia": false,
+      "fatos": [
+        "clin.pacotes",
+        "clin.agenda"
+      ],
+      "visual": {
+        "layout": "pergunta",
+        "fundo": "papel",
+        "layouts": [
+          "pergunta",
+          "bilhete",
+          "manchete",
+          "cartao",
+          "manchete",
+          "lista",
+          "chamada"
+        ]
+      },
+      "legenda": "Sua paciente pergunta da sessão e o caderno some?\n\nEla tá na recepção, perguntando quantas sessões ainda tem do pacote. Você procura a folha, confere o risquinho e torce pra tá certo.\n\nNa agenda da Mazzi, o horário mostra o selo Pacote 4/10. Cada atendimento desconta uma sessão.\n\nQuer ver a sua agenda assim? Chama no WhatsApp (link na bio).\n\n#clinicaestetica #agendaclinica #gestaodeclinica",
+      "alt_text": "Capa em fundo liso com a pergunta \"Sua paciente pergunta da sessão e o caderno some?\", com as palavras \"caderno some\" em destaque coral.",
+      "id": "C",
+      "dia": "2026-12-04",
+      "horario": "18:40",
+      "origem": "reserva"
+    },
+    {
+      "tipo": "stories",
+      "arquivos": [
+        "2026-11-30-S3-01.jpg",
+        "2026-11-30-S3-02.jpg",
+        "2026-11-30-S3-03.jpg",
+        "2026-11-30-S3-04.jpg"
+      ],
+      "tema": "clinica · o alerta de alergia na ficha",
+      "gancho": "Paciente avisou da alergia. Cadê o alerta na ficha?",
+      "ramo": "clinica",
+      "objetivo": "conversa",
+      "ia": false,
+      "fatos": [
+        "clin.anamnese-termo"
+      ],
+      "visual": {
+        "layout": "pergunta",
+        "fundo": "papel",
+        "layouts": [
+          "pergunta",
+          "conversa",
+          "cartao",
+          "manchete"
+        ]
+      },
+      "id": "S3",
+      "dia": "2026-12-05",
+      "horario": "07:40",
+      "origem": "reserva"
     }
   ]
 }

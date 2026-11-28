@@ -1,7 +1,9 @@
 {
   "rid": "2026-11-21-stories-clin-lote",
   "criado_em": "2026-11-21",
-  "usada_em": [],
+  "usada_em": [
+    "2026-11-28"
+  ],
   "tipo": "stories",
   "arquivos": [
     "2026-11-23-R3-01.jpg",
